@@ -19,7 +19,7 @@ const SignInClient = dynamic(() => Promise.resolve(function SignInContent() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(''))
+    setError('')
 
     try {
       const { supabase } = await import('@/lib/auth')

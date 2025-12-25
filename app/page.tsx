@@ -18,7 +18,7 @@ export default function Home() {
       {/* Hero */}
       <main className="container" style={{ maxWidth: '1200px' }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '3.5rem', fontWeight: 800, color: 'white', marginBottom: '1rem' }}>Scannez vos calories 📷</h2>
+          <h2 style={{ fontSize: '3.5rem', fontWeight: 800, color: 'white', marginBottom: '1rem' }}>Scannez vos calories 📸</h2>
           <p style={{ fontSize: '1.25rem', color: 'rgba(255,255,255,0.9)', marginBottom: '2rem' }}>Prenez une photo de votre repas, l'IA compte les calories automatiquement</p>
           <button onClick={() => router.push('/app')} className="btn-primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1.125rem' }}>
             ✨ Commencer Gratuitement
@@ -26,7 +26,7 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginTop: '4rem' }}>>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginTop: '4rem' }}>
           {[
             { icon: '📸', title: 'Photo → Calories', desc: 'Scannez vos repas en 1 seconde' },
             { icon: '📊', title: 'Macros détaillés', desc: 'Protéines, glucides, graisses' },
