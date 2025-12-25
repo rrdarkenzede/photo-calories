@@ -1,89 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-interface DailyStat {
-  date: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  scans: number;
-}
-
-interface StatsResponse {
-  period: string | null;
-  data: DailyStat[];
-  summary: {
-    averageCalories: number;
-    averageProtein: number;
-    averageCarbs: number;
-    averageFat: number;
-    totalScans: number;
-  };
-  goals: {
-    dailyCalories: number;
-    dailyProtein: number;
-    dailyCarbs: number;
-    dailyFat: number;
-  };
-  progress: {
-    caloriesPercentage: number;
-    proteinPercentage: number;
-    carbsPercentage: number;
-    fatPercentage: number;
-  };
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    // TODO: Authenticate user
-    const searchParams = req.nextUrl.searchParams;
-    const period = searchParams.get('period') || 'day'; // 'day', 'week', 'month'
-
-    // TODO: Fetch daily_summaries from database for given period
-    // TODO: Calculate averages and trends
-
-    const stats: StatsResponse = {
-      period,
-      data: [
-        // Example:
-        // {
-        //   date: '2025-12-25',
-        //   calories: 2150,
-        //   protein: 125,
-        //   carbs: 240,
-        //   fat: 65,
-        //   scans: 5
-        // }
-      ],
-      summary: {
-        averageCalories: 0,
-        averageProtein: 0,
-        averageCarbs: 0,
-        averageFat: 0,
-        totalScans: 0,
-      },
-      goals: {
-        dailyCalories: 2000,
-        dailyProtein: 150,
-        dailyCarbs: 250,
-        dailyFat: 65,
-      },
-      progress: {
-        caloriesPercentage: 0,
-        proteinPercentage: 0,
-        carbsPercentage: 0,
-        fatPercentage: 0,
-      },
-    };
-
-    return NextResponse.json({
-      success: true,
-      stats,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch stats' },
-      { status: 500 }
-    );
-  }
+// Placeholder - To be implemented
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    success: true,
+    stats: {
+      totalScans: 0,
+      totalCalories: 0,
+      avgCaloriesPerDay: 0,
+    },
+    message: 'Stats feature coming soon',
+  })
 }
