@@ -9,11 +9,13 @@ import HistoryView from './HistoryView'
 import RecipeBuilder from './RecipeBuilder'
 import PlansModal from './PlansModal'
 
+type TabType = 'home' | 'history' | 'analytics' | 'coach' | 'recipes' | 'plans'
+
 export default function Dashboard({ profile: initialProfile }: { profile: UserProfile }) {
   const [profile, setProfile] = useState(initialProfile)
   const [meals, setMeals] = useState<MealEntry[]>([])
   const [allMeals, setAllMeals] = useState<MealEntry[]>([])
-  const [tab, setTab] = useState<'home' | 'history' | 'analytics' | 'coach' | 'recipes' | 'plans'>('home')
+  const [tab, setTab] = useState<TabType>('home')
   const [showAddMeal, setShowAddMeal] = useState(false)
   const planFeatures = PLAN_FEATURES[profile.plan]
 
@@ -135,16 +137,13 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
             { id: 'analytics' as const, icon: '📈', label: 'Stats' },
             { id: 'coach' as const, icon: '🤖', label: 'Coach' },
             { id: 'recipes' as const, icon: '👨‍🍳', label: 'Recettes' },
+            { id: 'plans' as const, icon: '📋', label: 'Plans' },
           ].map(nav => (
             <button key={nav.id} onClick={() => setTab(nav.id)} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === nav.id ? '#667eea' : 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
               <div style={{ fontSize: '1.5rem' }}>{nav.icon}</div>
               {nav.label}
             </button>
           ))}
-          <button onClick={() => setTab('plans')} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === 'plans' ? '#667eea' : 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ fontSize: '1.5rem' }}>\ud83d\udccb</div>
-            Plans
-          </button>
         </div>
       </nav>
 
@@ -171,9 +170,9 @@ function UpgradePrompt({ feature }: { feature: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'white' }}>
       <div style={{ textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>\ud83d\udd10 {feature} verrouill\u00e9</h2>
-        <p style={{ opacity: 0.7, marginBottom: '2rem' }}>Upgrade votre plan pour acc\u00e9der \u00e0 cette fonctionnalit\u00e9</p>
-        <button style={{ padding: '1rem 2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>\ud83d\udd13 D\u00e9verrouiller</button>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>🔒 {feature} verrouillé</h2>
+        <p style={{ opacity: 0.7, marginBottom: '2rem' }}>Upgrade votre plan pour accéder à cette fonctionnalité</p>
+        <button style={{ padding: '1rem 2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>🔓 Déverrouiller</button>
       </div>
     </div>
   )
