@@ -1,8 +1,6 @@
-export const metadata = {
-  title: 'Tableau de Bord - PhotoCalories',
-  description: 'Votre tableau de bord nutrition personnalisé',
-}
+'use client'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return children
-}
+import { ReactNode } from 'react'
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return <>{children}</>
