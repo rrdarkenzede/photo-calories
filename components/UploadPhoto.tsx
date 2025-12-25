@@ -26,8 +26,8 @@ const NUTRITION_DATABASE: Record<string, NutritionInfo> = {
   'Fromage': { kcal: 402, protein: 25, carbs: 1.3, fat: 33, fiber: 0, sugar: 0.5, salt: 1.6 },
   'Tomate': { kcal: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2, sugar: 2.6, salt: 0.01 },
   'Basilic': { kcal: 23, protein: 3.1, carbs: 2.6, fat: 0.6, fiber: 1.6, sugar: 0, salt: 0.1 },
-  'Huile d\'olive': { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, sugar: 0, salt: 0 },
-  'Pâte à pizza': { kcal: 280, protein: 9, carbs: 56, fat: 1.3, fiber: 2, sugar: 1, salt: 0.5 },
+  'Huile d\'olivier': { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, sugar: 0, salt: 0 },
+  'P\u00e2te \u00e0 pizza': { kcal: 280, protein: 9, carbs: 56, fat: 1.3, fiber: 2, sugar: 1, salt: 0.5 },
   'Poulet': { kcal: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, sugar: 0, salt: 0.1 },
   'Riz': { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4, sugar: 0.1, salt: 0.01 },
   'Brocoli': { kcal: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.6, sugar: 1.7, salt: 0.03 },
@@ -46,11 +46,11 @@ export default function UploadPhoto() {
     if (!file) return;
 
     if (!canAddScan()) {
-      alert('❌ Limite de scans atteinte!');
+      alert('\u274c Limite de scans atteinte!');
       return;
     }
 
-    // Créer preview
+    // Cr\u00e9er preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setPreview(e.target?.result as string);
@@ -87,7 +87,7 @@ export default function UploadPhoto() {
           }
         } catch (error) {
           console.error('Erreur:', error);
-          alert('❌ Erreur lors de l\'analyse');
+          alert('\u274c Erreur lors de l\'analyse');
           setDetectedFoods([]);
         }
       };
@@ -114,7 +114,7 @@ export default function UploadPhoto() {
 
   const handleSave = () => {
     if (detectedFoods.length === 0) {
-      alert('❌ Aucun aliment détecté!');
+      alert('\u274c Aucun aliment d\u00e9tect\u00e9!');
       return;
     }
 
@@ -136,7 +136,7 @@ export default function UploadPhoto() {
     };
 
     addScan(scan);
-    alert(`✅ Photo sauvegardée! ${totals.kcal.toFixed(0)} kcal détectées`);
+    alert(`\u2705 Photo sauvegard\u00e9e! ${totals.kcal.toFixed(0)} kcal d\u00e9tect\u00e9es`);
     reset();
   };
 
@@ -165,16 +165,16 @@ export default function UploadPhoto() {
             disabled={isAnalyzing || !canAddScan()}
             className="inline-block text-6xl mb-4 hover:scale-110 transition-transform disabled:opacity-50"
           >
-            📸
+            \ud83d\udcf8
           </button>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Prendre une Photo</h2>
-          <p className="text-gray-600 mb-6">Sélectionne une image de ton repas pour l'analyser</p>
+          <p className="text-gray-600 mb-6">S\u00e9lectionne une image de ton repas pour l\'analyser</p>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing || !canAddScan()}
             className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition-all"
           >
-            {isAnalyzing ? '⏳ Analyse...' : '📂 Sélectionner une photo'}
+            {isAnalyzing ? '\u23f3 Analyse...' : '\ud83d\udcc2 S\u00e9lectionner une photo'}
           </button>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function UploadPhoto() {
           {/* Detected Foods */}
           {detectedFoods.length > 0 && (
             <div className="bg-white rounded-2xl p-6 border-2 border-gray-200">
-              <h3 className="text-xl font-bold mb-4">🍽️ Aliments Détectés</h3>
+              <h3 className="text-xl font-bold mb-4">\ud83d\udf74 Aliments D\u00e9tect\u00e9s</h3>
               <div className="space-y-3 max-h-48 overflow-y-auto">
                 {detectedFoods.map((food, idx) => (
                   <div key={idx} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
@@ -209,7 +209,7 @@ export default function UploadPhoto() {
 
               {/* Nutrition Totals */}
               <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                <h4 className="font-bold text-gray-800 mb-4">📊 Valeurs Totales</h4>
+                <h4 className="font-bold text-gray-800 mb-4">\ud83d\udccb Valeurs Totales</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-lg border-2 border-orange-200">
                     <p className="text-sm text-gray-600">Calories</p>
@@ -218,7 +218,7 @@ export default function UploadPhoto() {
                   {plan !== 'free' && (
                     <>
                       <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
-                        <p className="text-sm text-gray-600">Protéines</p>
+                        <p className="text-sm text-gray-600">Prot\u00e9ines</p>
                         <p className="text-2xl font-bold text-blue-600">{totals.protein.toFixed(1)}g</p>
                       </div>
                       <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg border-2 border-yellow-200">
@@ -243,7 +243,7 @@ export default function UploadPhoto() {
                   className="w-5 h-5 rounded accent-blue-600"
                 />
                 <label className="text-gray-700 font-semibold">
-                  {countsTowardGoal ? '✅' : '⭕'} Compter vers mon objectif
+                  {countsTowardGoal ? '\u2705' : '\u2b55'} Compter vers mon objectif
                 </label>
               </div>
 
@@ -253,13 +253,13 @@ export default function UploadPhoto() {
                   onClick={handleSave}
                   className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-bold hover:shadow-lg transition-all"
                 >
-                  ✅ Valider
+                  \u2705 Valider
                 </button>
                 <button
                   onClick={reset}
                   className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-400 transition-all"
                 >
-                  🔄 Nouvelle Photo
+                  \ud83d\uddd4 Nouvelle Photo
                 </button>
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function UploadPhoto() {
       {/* Info */}
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
         <p className="text-sm text-blue-900">
-          💡 <strong>Astuce:</strong> Prends une photo claire de ton repas avec bonne luminosité pour une meilleure détection!
+          \ud83d\udca1 <strong>Astuce:</strong> Prends une photo claire de ton repas avec bonne luminosit\u00e9 pour une meilleure d\u00e9tection!
         </p>
       </div>
     </div>
