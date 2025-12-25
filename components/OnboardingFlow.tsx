@@ -10,7 +10,7 @@ export default function OnboardingFlow({ onComplete }: { onComplete: (profile: U
     age: 25,
     weight: 70,
     height: 170,
-    gender: 'M',
+    gender: 'M' as 'M' | 'F' | 'Other',
     activityLevel: 'moderate',
     goal: 'maintain',
     restrictions: [] as string[],
@@ -32,7 +32,16 @@ export default function OnboardingFlow({ onComplete }: { onComplete: (profile: U
     const macros = calculateMacros(tdee, form.goal, form.weight)
 
     const profile: UserProfile = {
-      ...form,
+      name: form.name,
+      age: form.age,
+      weight: form.weight,
+      height: form.height,
+      gender: form.gender,
+      activityLevel: form.activityLevel,
+      goal: form.goal,
+      restrictions: form.restrictions,
+      preferences: form.preferences,
+      metabolism: form.metabolism,
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       targetCalories: macros.calories,
@@ -71,7 +80,7 @@ export default function OnboardingFlow({ onComplete }: { onComplete: (profile: U
             </div>
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Genre</label>
-              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value as any })} style={{ width: '100%', padding: '0.75rem', border: 'none', borderRadius: '12px' }}>
+              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value as 'M' | 'F' | 'Other' })} style={{ width: '100%', padding: '0.75rem', border: 'none', borderRadius: '12px' }}>
                 <option value="M">Homme</option>
                 <option value="F">Femme</option>
                 <option value="Other">Autre</option>
