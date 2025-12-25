@@ -46,12 +46,12 @@ export default function UploadPhoto() {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Upload Zone */}
       <div className="relative group">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-3xl blur-2xl group-hover:opacity-100 opacity-0 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-3xl blur-2xl group-hover:opacity-100 opacity-0 transition-opacity duration-300" />
         
-        <div className="relative bg-gradient-to-br from-blue-600/20 via-blue-500/10 to-indigo-500/20 rounded-3xl p-12 border-2 border-dashed border-blue-400/50 group-hover:border-blue-400/80 transition-all duration-300 backdrop-blur-md">
+        <div className="relative bg-gradient-to-br from-blue-900/30 to-indigo-900/20 rounded-3xl p-12 border-2 border-dashed border-blue-500/50 group-hover:border-blue-400/80 transition-all duration-300 backdrop-blur-sm">
           <div className="text-center space-y-6">
             <input
               ref={fileInputRef}
@@ -61,14 +61,12 @@ export default function UploadPhoto() {
               className="hidden"
             />
 
-            <div className="relative inline-block">
-              <div className="absolute inset-0 bg-blue-500/30 rounded-full blur-lg animate-pulse" />
-              <div className="relative text-7xl animate-float">📸</div>
-            </div>
+            {/* Icon */}
+            <div className="text-7xl animate-bounce">📸</div>
 
             <div className="space-y-3">
               <h2 className="text-3xl font-bold text-white">Uploader une Photo</h2>
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-400 text-lg">
                 Sélectionne une image claire de ton repas
               </p>
             </div>
@@ -77,14 +75,14 @@ export default function UploadPhoto() {
               onClick={() => fileInputRef.current?.click()}
               disabled={!canAddScan()}
               className={`
-                relative px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300
+                px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300
                 ${canAddScan()
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white hover:shadow-lg hover:shadow-blue-500/50 hover:-translate-y-1 cursor-pointer'
-                  : 'bg-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-blue-500/50 hover:scale-105 cursor-pointer'
+                  : 'bg-gray-700/50 text-gray-400 cursor-not-allowed opacity-50'
                 }
               `}
             >
-              {canAddScan() ? '📋 Sélectionner une photo' : '🚭 Limite atteinte'}
+              {canAddScan() ? '📸 Sélectionner une photo' : '🚫 Limite atteinte'}
             </button>
           </div>
         </div>
@@ -92,10 +90,9 @@ export default function UploadPhoto() {
 
       {/* Preview Section */}
       {preview && (
-        <div className="space-y-4 animate-slideInUp">
+        <div className="space-y-4 animate-fadeIn">
           {/* Image Preview */}
-          <div className="relative group rounded-2xl overflow-hidden border border-white/10">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-transparent to-cyan-500/20 z-10 pointer-events-none" />
+          <div className="relative group rounded-2xl overflow-hidden border-2 border-gray-700 hover:border-blue-500/50 transition-all">
             <img
               src={preview}
               alt="Preview"
@@ -106,16 +103,16 @@ export default function UploadPhoto() {
                 setPreview(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
-              className="absolute top-4 right-4 z-20 bg-red-500/80 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold transition-all hover:scale-110"
+              className="absolute top-4 right-4 z-20 bg-red-600/80 hover:bg-red-700 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold transition-all hover:scale-110"
             >
               ×
             </button>
           </div>
 
           {/* Analysis Info */}
-          <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl p-4 backdrop-blur-md">
+          <div className="bg-purple-900/30 border border-purple-500/30 rounded-xl p-4">
             <p className="text-sm text-gray-300 flex items-center gap-2">
-              <span className="text-lg">📱</span>
+              <span className="text-lg">🤖</span>
               <span>Vision AI va analyser tes macros</span>
             </p>
           </div>
@@ -127,14 +124,14 @@ export default function UploadPhoto() {
             className={`
               w-full py-4 rounded-xl font-bold text-lg transition-all duration-300
               ${isAnalyzing
-                ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/50 hover:-translate-y-1 active:translate-y-0'
+                ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/50 hover:scale-105 active:scale-95'
               }
             `}
           >
             {isAnalyzing ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
                 Analyse en cours...
               </span>
             ) : (
@@ -146,21 +143,20 @@ export default function UploadPhoto() {
 
       {/* Tips Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-xl p-4 backdrop-blur-md hover:border-blue-400/60 transition-all">
-          <div className="text-2xl mb-2">📷</div>
-          <p className="text-sm text-gray-300 font-semibold">Bonne luminosité</p>
-          <p className="text-xs text-gray-400 mt-1">Utilise la lumière naturelle</p>
-        </div>
-        <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl p-4 backdrop-blur-md hover:border-purple-400/60 transition-all">
-          <div className="text-2xl mb-2">📋</div>
-          <p className="text-sm text-gray-300 font-semibold">Image claire</p>
-          <p className="text-xs text-gray-400 mt-1">Cadre bien ton repas</p>
-        </div>
-        <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-xl p-4 backdrop-blur-md hover:border-green-400/60 transition-all">
-          <div className="text-2xl mb-2">🙋</div>
-          <p className="text-sm text-gray-300 font-semibold">Proche du repas</p>
-          <p className="text-xs text-gray-400 mt-1">Détail au premier plan</p>
-        </div>
+        {[
+          { icon: '📷', title: 'Bonne luminosité', desc: 'Utilise la lumière naturelle' },
+          { icon: '📋', title: 'Image claire', desc: 'Cadre bien ton repas' },
+          { icon: '🤞', title: 'Proche du repas', desc: 'Détail au premier plan' },
+        ].map((tip, idx) => (
+          <div
+            key={idx}
+            className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 transition-all hover:shadow-lg hover:shadow-gray-700/20"
+          >
+            <div className="text-3xl mb-3">{tip.icon}</div>
+            <p className="text-sm font-bold text-gray-200 mb-1">{tip.title}</p>
+            <p className="text-xs text-gray-400">{tip.desc}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
