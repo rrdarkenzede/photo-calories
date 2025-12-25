@@ -42,6 +42,7 @@ export default function OnboardingFlow({ onComplete }: { onComplete: (profile: U
       restrictions: form.restrictions,
       preferences: form.preferences,
       metabolism: form.metabolism,
+      plan: 'free',
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       targetCalories: macros.calories,
