@@ -1,38 +1,65 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { supabase } from '@/lib/auth'
+import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 
-export default function SignIn() {
+const SignInClient = dynamic(() => Promise.resolve(function SignInContent() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
+    setError(''))
 
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
-    if (err) {
-      setError(err.message)
+    try {
+      const { supabase } = await import('@/lib/auth')
+      if (!supabase) {
+        setError('Service non disponible')
+        setLoading(false)
+        return
+      }
+      
+      const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+      if (err) {
+        setError(err.message)
+        setLoading(false)
+        return
+      }
+      router.push('/dashboard')
+    } catch (err) {
+      setError('Erreur de connexion')
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard')
   }
 
   const handleGoogleSignIn = async () => {
-    const { error: err } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    })
-    if (err) setError(err.message)
+    try {
+      const { supabase } = await import('@/lib/auth')
+      if (!supabase) {
+        setError('Service non disponible')
+        return
+      }
+      const { error: err } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      })
+      if (err) setError(err.message)
+    } catch (err) {
+      setError('Erreur Google')
+    }
   }
+
+  if (!mounted) return null
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -61,4 +88,6 @@ export default function SignIn() {
       </div>
     </div>
   )
-}
+}), { ssr: false })
+
+export default SignInClient

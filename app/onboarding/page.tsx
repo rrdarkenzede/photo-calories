@@ -1,13 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { calculateBMR, calculateTDEE, calculateMacros, supabase } from '@/lib/auth'
+import { useState, useEffect } from 'react'
+import { calculateBMR, calculateTDEE, calculateMacros } from '@/lib/auth'
+import dynamic from 'next/dynamic'
 
-export default function Onboarding() {
+const OnboardingClient = dynamic(() => Promise.resolve(function OnboardingContent() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     age: 25,
@@ -19,40 +21,64 @@ export default function Onboarding() {
     dietary_restrictions: [] as string[],
   })
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const handleUpdate = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }))
   }
 
   const handleSubmit = async () => {
     setLoading(true)
-    const user = (await supabase.auth.getUser()).data.user
-    if (!user) return
+    try {
+      const { supabase } = await import('@/lib/auth')
+      if (!supabase) {
+        alert('Service non disponible')
+        setLoading(false)
+        return
+      }
 
-    const bmr = calculateBMR(formData.weight, formData.height, formData.age, formData.gender)
-    const tdee = calculateTDEE(bmr, formData.activity_level)
-    const macros = calculateMacros(tdee, formData.goal, formData.weight)
+      const user = (await supabase.auth.getUser()).data.user
+      if (!user) {
+        router.push('/auth/signin')
+        return
+      }
 
-    const { error } = await supabase.from('profiles').insert([
-      {
-        id: user.id,
-        email: user.email,
-        ...formData,
-        bmr,
-        tdee,
-        ...macros,
-        plan: 'free',
-        scans_remaining: 2,
-        scans_limit: 2,
-      },
-    ])
+      const bmr = calculateBMR(formData.weight, formData.height, formData.age, formData.gender)
+      const tdee = calculateTDEE(bmr, formData.activity_level)
+      const macros = calculateMacros(tdee, formData.goal, formData.weight)
 
-    if (error) {
-      console.error(error)
-      return
+      const { error } = await supabase.from('profiles').insert([
+        {
+          id: user.id,
+          email: user.email,
+          ...formData,
+          bmr,
+          tdee,
+          ...macros,
+          plan: 'free',
+          scans_remaining: 2,
+          scans_limit: 2,
+        },
+      ])
+
+      if (error) {
+        console.error(error)
+        alert('Erreur lors de la création du profil')
+        return
+      }
+
+      router.push('/dashboard')
+    } catch (err) {
+      console.error(err)
+      alert('Erreur')
+    } finally {
+      setLoading(false)
     }
-
-    router.push('/dashboard')
   }
+
+  if (!mounted) return null
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '2rem' }}>
@@ -94,7 +120,7 @@ export default function Onboarding() {
               <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '2rem' }}>Niveau d'activité</h2>
               <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
                 {[
-                  { value: 'sedentary', label: '📍 Sédentaire (pas d\'exercice)' },
+                  { value: 'sedentary', label: '📋 Sédentaire (pas d\'exercice)' },
                   { value: 'light', label: '🚶 Peu actif (1-2x/semaine)' },
                   { value: 'moderate', label: '🏃 Modérément actif (3-5x/semaine)' },
                   { value: 'very_active', label: '💪 Très actif (6-7x/semaine)' },
@@ -154,4 +180,6 @@ export default function Onboarding() {
       </div>
     </div>
   )
-}
+}), { ssr: false })
+
+export default OnboardingClient

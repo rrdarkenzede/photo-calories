@@ -1,31 +1,49 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { supabase } from '@/lib/auth'
+import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 
-export default function SignUp() {
+const SignUpClient = dynamic(() => Promise.resolve(function SignUpContent() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error: err } = await supabase.auth.signUp({ email, password })
-    if (err) {
-      setError(err.message)
+    try {
+      const { supabase } = await import('@/lib/auth')
+      if (!supabase) {
+        setError('Service non disponible')
+        setLoading(false)
+        return
+      }
+      
+      const { error: err } = await supabase.auth.signUp({ email, password })
+      if (err) {
+        setError(err.message)
+        setLoading(false)
+        return
+      }
+      router.push('/onboarding')
+    } catch (err) {
+      setError('Erreur d\'inscription')
       setLoading(false)
-      return
     }
-
-    router.push('/onboarding')
   }
+
+  if (!mounted) return null
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -54,4 +72,6 @@ export default function SignUp() {
       </div>
     </div>
   )
-}
+}), { ssr: false })
+
+export default SignUpClient
