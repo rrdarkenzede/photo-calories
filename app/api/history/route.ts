@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface HistoryIngredient {
+  name: string;
+  quantity: number;
+  unit: string;
+  calories: number;
+}
+
+interface HistoryScan {
+  id: number;
+  type: 'photo' | 'barcode' | 'recipe';
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  ingredients: HistoryIngredient[];
+  scannedAt: string;
+}
+
 export async function GET(req: NextRequest) {
   try {
     // TODO: Authenticate user
@@ -11,7 +30,7 @@ export async function GET(req: NextRequest) {
     // TODO: Include all fields: name, calories, macros, ingredients breakdown
     // TODO: Order by scanned_at DESC (newest first)
 
-    const history = [
+    const history: HistoryScan[] = [
       // Example structure:
       // {
       //   id: 1,
