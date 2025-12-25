@@ -3,154 +3,98 @@
 import { useStore } from '@/store/useStore';
 
 export default function GoalTracker() {
-  const { plan, goals, getTodayStats } = useStore();
+  const { goals, getTodayStats } = useStore();
+  const todayStats = getTodayStats();
 
-  // Ne pas afficher pour FREE
-  if (plan === 'free') return null;
-
-  // ✅ Utiliser getTodayStats au lieu de getTodayProgress
-  const progress = getTodayStats();
-  const dailyGoals = goals;
-
-  if (!dailyGoals) {
+  if (!goals) {
     return (
-      <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 text-center">
-        <div className="text-4xl mb-3">⚙️</div>
-        <h3 className="text-xl font-bold text-yellow-900 mb-2">
-          Configure ton Coach Fitness
-        </h3>
-        <p className="text-yellow-700 mb-4">
-          Définis tes objectifs pour suivre ta progression quotidienne!
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <p className="text-yellow-700">
+          ⚠️ Définissez vos objectifs dans le Coach pour tracker votre progression
         </p>
-        <button className="px-6 py-3 bg-yellow-600 text-white rounded-lg font-bold hover:bg-yellow-700">
-          Configurer mes objectifs
-        </button>
       </div>
     );
   }
 
-  // Calculer les pourcentages
-  const calcProgress = (current: number, target: number) => {
-    if (target === 0) return 0;
+  const getProgress = (current: number, target: number) => {
     return Math.min((current / target) * 100, 100);
   };
 
-  const getProgressColor = (percent: number) => {
-    if (percent < 80) return 'bg-green-500';
-    if (percent < 100) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
-
-  const calorieProgress = calcProgress(progress.totalKcal, dailyGoals.caloriesPerDay);
-  const proteinProgress = calcProgress(progress.totalProtein, dailyGoals.proteinPerDay);
-  const carbsProgress = calcProgress(progress.totalCarbs, dailyGoals.carbsPerDay);
-  const fatProgress = calcProgress(progress.totalFat, dailyGoals.fatsPerDay);
+  const caloriesProgress = getProgress(todayStats.totalKcal, goals.caloriesPerDay);
+  const proteinProgress = getProgress(todayStats.totalProtein, goals.proteinPerDay);
+  const carbsProgress = getProgress(todayStats.totalCarbs, goals.carbsPerDay);
+  const fatsProgress = getProgress(todayStats.totalFat, goals.fatsPerDay);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
-      <h3 className="text-2xl font-bold text-[#1f8b8f]">📊 Suivi du jour</h3>
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold text-white mb-4">Progression d'Aujourd'hui</h3>
 
-      {/* CALORIES */}
+      {/* Calories */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <span className="font-semibold text-gray-700">🔥 Calories</span>
-          <span className="text-sm font-bold">
-            {progress.totalKcal.toFixed(0)} / {dailyGoals.caloriesPerDay} kcal
+          <span className="text-orange-400 font-semibold">🔥 Calories</span>
+          <span className="text-white text-sm">
+            {todayStats.totalKcal.toFixed(0)} / {goals.caloriesPerDay}
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
           <div
-            className={`h-3 rounded-full transition-all ${getProgressColor(calorieProgress)}`}
-            style={{ width: `${calorieProgress}%` }}
+            className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300"
+            style={{ width: `${Math.min(caloriesProgress, 100)}%` }}
           />
         </div>
-        <div className="text-right text-xs text-gray-600 mt-1">
-          {calorieProgress.toFixed(0)}%
-        </div>
+        <span className="text-xs text-gray-400">{caloriesProgress.toFixed(0)}%</span>
       </div>
 
-      {/* PROTÉINES */}
-      {plan === 'pro' || plan === 'FITNESS' ? (
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-gray-700">💪 Protéines</span>
-            <span className="text-sm font-bold">
-              {progress.totalProtein.toFixed(1)} / {dailyGoals.proteinPerDay}g
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className={`h-3 rounded-full transition-all ${getProgressColor(proteinProgress)}`}
-              style={{ width: `${proteinProgress}%` }}
-            />
-          </div>
-          <div className="text-right text-xs text-gray-600 mt-1">
-            {proteinProgress.toFixed(0)}%
-          </div>
+      {/* Protéines */}
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-blue-400 font-semibold">💪 Protéines</span>
+          <span className="text-white text-sm">
+            {todayStats.totalProtein.toFixed(1)} / {goals.proteinPerDay}g
+          </span>
         </div>
-      ) : null}
-
-      {/* GLUCIDES */}
-      {plan === 'FITNESS' ? (
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-gray-700">🍞 Glucides</span>
-            <span className="text-sm font-bold">
-              {progress.totalCarbs.toFixed(1)} / {dailyGoals.carbsPerDay}g
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className={`h-3 rounded-full transition-all ${getProgressColor(carbsProgress)}`}
-              style={{ width: `${carbsProgress}%` }}
-            />
-          </div>
-          <div className="text-right text-xs text-gray-600 mt-1">
-            {carbsProgress.toFixed(0)}%
-          </div>
+        <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300"
+            style={{ width: `${Math.min(proteinProgress, 100)}%` }}
+          />
         </div>
-      ) : null}
+        <span className="text-xs text-gray-400">{proteinProgress.toFixed(0)}%</span>
+      </div>
 
-      {/* LIPIDES */}
-      {plan === 'FITNESS' ? (
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-gray-700">🥑 Lipides</span>
-            <span className="text-sm font-bold">
-              {progress.totalFat.toFixed(1)} / {dailyGoals.fatsPerDay}g
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className={`h-3 rounded-full transition-all ${getProgressColor(fatProgress)}`}
-              style={{ width: `${fatProgress}%` }}
-            />
-          </div>
-          <div className="text-right text-xs text-gray-600 mt-1">
-            {fatProgress.toFixed(0)}%
-          </div>
+      {/* Glucides */}
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-yellow-400 font-semibold">🝞 Glucides</span>
+          <span className="text-white text-sm">
+            {todayStats.totalCarbs.toFixed(1)} / {goals.carbsPerDay}g
+          </span>
         </div>
-      ) : null}
+        <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-300"
+            style={{ width: `${Math.min(carbsProgress, 100)}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-400">{carbsProgress.toFixed(0)}%</span>
+      </div>
 
-      {/* MESSAGE DE MOTIVATION */}
-      <div className="mt-4 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200">
-        {calorieProgress < 50 ? (
-          <p className="text-sm text-teal-800">
-            💪 Continue! Tu as encore {(dailyGoals.caloriesPerDay - progress.totalKcal).toFixed(0)} kcal à consommer.
-          </p>
-        ) : calorieProgress < 80 ? (
-          <p className="text-sm text-teal-800">
-            🔥 Super! Tu es sur la bonne voie, reste constant!
-          </p>
-        ) : calorieProgress < 100 ? (
-          <p className="text-sm text-orange-800">
-            ⚠️ Attention, tu approches de ton objectif!
-          </p>
-        ) : (
-          <p className="text-sm text-red-800">
-            🚨 Objectif dépassé! Évite de manger davantage aujourd'hui.
-          </p>
-        )}
+      {/* Lipides */}
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-green-400 font-semibold">🥑 Lipides</span>
+          <span className="text-white text-sm">
+            {todayStats.totalFat.toFixed(1)} / {goals.fatsPerDay}g
+          </span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
+            style={{ width: `${Math.min(fatsProgress, 100)}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-400">{fatsProgress.toFixed(0)}%</span>
       </div>
     </div>
   );
