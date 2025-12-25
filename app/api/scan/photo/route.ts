@@ -17,6 +17,19 @@ interface ScanResponse {
   error?: string
 }
 
+interface ClariflaiConcept {
+  name: string
+  value: number
+}
+
+interface ClariflaiResponse {
+  outputs?: Array<{
+    data?: {
+      concepts?: ClariflaiConcept[]
+    }
+  }>
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<ScanResponse>> {
   try {
     const { image } = await request.json() as { image?: string }
@@ -55,16 +68,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanRespo
       throw new Error('Erreur Clarifai API')
     }
 
-    const clarifaiData = await clarifaiResponse.json() as unknown
-    const data = clarifaiData as Record<string, unknown>
-    const predictions = (data.outputs?.[0] as Record<string, unknown>)?.data?.concepts ?? []
+    const clarifaiData = await clarifaiResponse.json() as ClariflaiResponse
+    const predictions = clarifaiData.outputs?.[0]?.data?.concepts ?? []
 
     // Récupérer les informations nutritionnelles depuis USDA
     const foodItems = await Promise.all(
-      predictions.slice(0, 5).map(async (prediction: unknown) => {
-        const pred = prediction as Record<string, unknown>
-        const name = pred.name as string
-        const value = pred.value as number
+      predictions.slice(0, 5).map(async (prediction: ClariflaiConcept) => {
+        const name = prediction.name
+        const value = prediction.value
         
         try {
           const usdaResponse = await fetch(
