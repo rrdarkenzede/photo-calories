@@ -146,122 +146,124 @@ export default function UploadPhoto() {
   const totals = calculateTotals();
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-dashed border-blue-300">
-        <div className="text-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isAnalyzing || !canAddScan()}
-            className="inline-block text-6xl mb-4 hover:scale-110 transition-transform disabled:opacity-50"
-          >
-            📸
-          </button>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Prendre une Photo</h2>
-          <p className="text-gray-600 mb-6">Selectionne une image de ton repas pour l'analyser</p>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isAnalyzing || !canAddScan()}
-            className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition-all"
-          >
-            {isAnalyzing ? '⏳ Analyse...' : '📂 Selectionner une photo'}
-          </button>
-        </div>
-      </div>
-
-      {preview && (
-        <div className="space-y-4">
-          <div className="rounded-2xl overflow-hidden border-2 border-gray-200">
-            <img src={preview} alt="Preview" className="w-full h-64 object-cover" />
+    <>
+      <div className="space-y-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-dashed border-blue-300">
+          <div className="text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isAnalyzing || !canAddScan()}
+              className="inline-block text-6xl mb-4 hover:scale-110 transition-transform disabled:opacity-50"
+            >
+              📸
+            </button>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Prendre une Photo</h2>
+            <p className="text-gray-600 mb-6">Selectionne une image de ton repas pour l'analyser</p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isAnalyzing || !canAddScan()}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition-all"
+            >
+              {isAnalyzing ? '⏳ Analyse...' : '📂 Selectionner une photo'}
+            </button>
           </div>
+        </div>
 
-          {detectedFoods.length > 0 && (
-            <div className="bg-white rounded-2xl p-6 border-2 border-gray-200">
-              <h3 className="text-xl font-bold mb-4">🍽️ Aliments Detectes</h3>
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {detectedFoods.map((food, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-800">{food.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {food.quantity}{food.unit} (confiance: {(food.confidence * 100).toFixed(0)}%)
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-orange-600">{(food.nutrition.kcal * (food.quantity / 100)).toFixed(0)} kcal</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {preview && (
+          <div className="space-y-4">
+            <div className="rounded-2xl overflow-hidden border-2 border-gray-200">
+              <img src={preview} alt="Preview" className="w-full h-64 object-cover" />
+            </div>
 
-              <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                <h4 className="font-bold text-gray-800 mb-4">📊 Valeurs Totales</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-lg border-2 border-orange-200">
-                    <p className="text-sm text-gray-600">Calories</p>
-                    <p className="text-2xl font-bold text-orange-600">{totals.kcal.toFixed(0)}</p>
+            {detectedFoods.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 border-2 border-gray-200">
+                <h3 className="text-xl font-bold mb-4">🍽️ Aliments Detectes</h3>
+                <div className="space-y-3 max-h-48 overflow-y-auto">
+                  {detectedFoods.map((food, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-800">{food.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {food.quantity}{food.unit} (confiance: {(food.confidence * 100).toFixed(0)}%)
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-orange-600">{(food.nutrition.kcal * (food.quantity / 100)).toFixed(0)} kcal</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 pt-6 border-t-2 border-gray-200">
+                  <h4 className="font-bold text-gray-800 mb-4">📊 Valeurs Totales</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-lg border-2 border-orange-200">
+                      <p className="text-sm text-gray-600">Calories</p>
+                      <p className="text-2xl font-bold text-orange-600">{totals.kcal.toFixed(0)}</p>
+                    </div>
+                    {plan !== 'free' && (
+                      <>
+                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
+                          <p className="text-sm text-gray-600">Proteines</p>
+                          <p className="text-2xl font-bold text-blue-600">{totals.protein.toFixed(1)}g</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg border-2 border-yellow-200">
+                          <p className="text-sm text-gray-600">Glucides</p>
+                          <p className="text-2xl font-bold text-yellow-600">{totals.carbs.toFixed(1)}g</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200">
+                          <p className="text-sm text-gray-600">Lipides</p>
+                          <p className="text-2xl font-bold text-green-600">{totals.fat.toFixed(1)}g</p>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  {plan !== 'free' && (
-                    <>
-                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
-                        <p className="text-sm text-gray-600">Proteines</p>
-                        <p className="text-2xl font-bold text-blue-600">{totals.protein.toFixed(1)}g</p>
-                      </div>
-                      <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg border-2 border-yellow-200">
-                        <p className="text-sm text-gray-600">Glucides</p>
-                        <p className="text-2xl font-bold text-yellow-600">{totals.carbs.toFixed(1)}g</p>
-                      </div>
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200">
-                        <p className="text-sm text-gray-600">Lipides</p>
-                        <p className="text-2xl font-bold text-green-600">{totals.fat.toFixed(1)}g</p>
-                      </div>
-                    </>
-                  )}
+                </div>
+
+                <div className="mt-6 flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={countsTowardGoal}
+                    onChange={(e) => setCountsTowardGoal(e.target.checked)}
+                    className="w-5 h-5 rounded accent-blue-600"
+                  />
+                  <label className="text-gray-700 font-semibold">
+                    {countsTowardGoal ? '✅' : '⭕'} Compter vers mon objectif
+                  </label>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-bold hover:shadow-lg transition-all"
+                  >
+                    ✅ Valider
+                  </button>
+                  <button
+                    onClick={reset}
+                    className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-400 transition-all"
+                  >
+                    🔄 Nouvelle Photo
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+        )}
 
-              <div className="mt-6 flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={countsTowardGoal}
-                  onChange={(e) => setCountsTowardGoal(e.target.checked)}
-                  className="w-5 h-5 rounded accent-blue-600"
-                />
-                <label className="text-gray-700 font-semibold">
-                  {countsTowardGoal ? '✅' : '⭕'} Compter vers mon objectif
-                </label>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={handleSave}
-                  className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-bold hover:shadow-lg transition-all"
-                >
-                  ✅ Valider
-                </button>
-                <button
-                  onClick={reset}
-                  className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-400 transition-all"
-                >
-                  🔄 Nouvelle Photo
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+          <p className="text-sm text-blue-900">
+            💡 <strong>Astuce:</strong> Prends une photo claire de ton repas avec bonne luminosite pour une meilleure detection!
+          </p>
         </div>
-      )}
-
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <p className="text-sm text-blue-900">
-          💡 <strong>Astuce:</strong> Prends une photo claire de ton repas avec bonne luminosite pour une meilleure detection!
-        </p>
       </div>
-    </div>
+    </>
   );
 }
