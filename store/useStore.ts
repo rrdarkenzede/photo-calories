@@ -58,8 +58,8 @@ export interface Goals {
 }
 
 interface StoreState {
-  plan: 'free' | 'pro' | 'FITNESS';
-  setPlan: (newPlan: 'free' | 'pro' | 'FITNESS') => void;
+  plan: 'free' | 'pro' | 'fitness';
+  setPlan: (newPlan: 'free' | 'pro' | 'fitness') => void;
 
   scans: Scan[];
   scansToday: number;
@@ -95,7 +95,7 @@ interface StoreState {
 const PLAN_LIMITS = {
   free: 2,
   pro: 10,
-  FITNESS: 40,
+  fitness: 40,
 };
 
 export const useStore = create<StoreState>()(
