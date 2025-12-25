@@ -1,37 +1,138 @@
 'use client'
 
+import Link from 'next/link'
+import { useState } from 'react'
+
 export default function Settings() {
+  const [formData, setFormData] = useState({ name: 'Utilisateur', email: 'user@example.com', goal: 2500 })
+  const [saved, setSaved] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: name === 'goal' ? parseInt(value) : value }))
+  }
+
+  const handleSave = () => {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-      <header style={{ background: 'white', borderBottom: '1px solid #eee', padding: '1rem 2rem' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <a href="/dashboard" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '1rem' }}>← Retour au Dashboard</a>
+      {/* Header */}
+      <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0' }}>
+        <div className="container">
+          <Link href="/dashboard" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>← Retour</Link>
         </div>
       </header>
 
-      <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>⚙️ Paramètres</h1>
+      {/* Main */}
+      <main className="container" style={{ padding: '3rem 0', maxWidth: '600px' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', fontWeight: 700 }}>⚙️ Paramètres</h1>
 
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Profil</h2>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Nom</label>
-            <input type="text" defaultValue="Utilisateur" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '1rem' }} />
-          </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Email</label>
-            <input type="email" defaultValue="user@example.com" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '1rem' }} />
+        {/* Profile Section */}
+        <div style={{ background: 'var(--bg)', padding: '2rem', borderRadius: '12px', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 600 }}>Profil</h2>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Nom</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                transition: 'border-color 0.2s ease',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+            />
           </div>
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Objectif Calorique (kcal/jour)</label>
-            <input type="number" defaultValue="2500" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '1rem' }} />
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                transition: 'border-color 0.2s ease',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+            />
           </div>
-          <button style={{ width: '100%', padding: '0.75rem', background: '#0070f3', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1rem', cursor: 'pointer' }}>💾 Enregistrer</button>
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Objectif Calorique (kcal/jour)</label>
+            <input
+              type="number"
+              name="goal"
+              value={formData.goal}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                transition: 'border-color 0.2s ease',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+            />
+          </div>
+          <button
+            onClick={handleSave}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: 'var(--primary)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 600,
+              fontSize: '1rem',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary)')}
+          >
+            💾 Enregistrer
+          </button>
+          {saved && <p style={{ marginTop: '1rem', color: '#4caf50', fontWeight: 600, textAlign: 'center' }}>✓ Paramètres enregistrés avec succès!</p>}
         </div>
 
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#d32f2f' }}>Zone de Danger</h2>
-          <button style={{ width: '100%', padding: '0.75rem', background: '#d32f2f', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1rem', cursor: 'pointer' }}>🚪 Déconnexion</button>
+        {/* Danger Zone */}
+        <div style={{ background: 'var(--bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--danger)', boxShadow: '0 2px 8px rgba(211,47,47,0.1)' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: 'var(--danger)' }}>Zone de Danger</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Une fois déconnecté, vous devrez vous authentifier à nouveau.</p>
+          <button
+            onClick={() => alert('Déconnexion effectuée!')}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: 'var(--danger)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 600,
+              fontSize: '1rem',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#b71c1c')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--danger)')}
+          >
+            🚪 Déconnexion
+          </button>
         </div>
       </main>
     </div>
