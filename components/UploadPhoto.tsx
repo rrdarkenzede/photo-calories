@@ -167,7 +167,8 @@ export default function UploadPhoto() {
           >
             📸
           </button>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Prendre une Photo</n          <p className="text-gray-600 mb-6">Sélectionne une image de ton repas pour l\'analyser</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Prendre une Photo</h2>
+          <p className="text-gray-600 mb-6">Sélectionne une image de ton repas pour l'analyser</p>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing || !canAddScan()}
@@ -214,7 +215,7 @@ export default function UploadPhoto() {
                     <p className="text-sm text-gray-600">Calories</p>
                     <p className="text-2xl font-bold text-orange-600">{totals.kcal.toFixed(0)}</p>
                   </div>
-                  {plan !== 'FREE' && (
+                  {plan !== 'free' && (
                     <>
                       <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
                         <p className="text-sm text-gray-600">Protéines</p>
