@@ -142,7 +142,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
             </button>
           ))}
           <button onClick={() => setTab('plans')} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === 'plans' ? '#667eea' : 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ fontSize: '1.5rem' }}📄</div>
+            <div style={{ fontSize: '1.5rem' }}>📋</div>
             Plans
           </button>
         </div>
@@ -171,9 +171,9 @@ function UpgradePrompt({ feature }: { feature: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'white' }}>
       <div style={{ textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}🔐 {feature} verrouillé</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>🔐 {feature} verrouillé</h2>
         <p style={{ opacity: 0.7, marginBottom: '2rem' }}>Upgrade votre plan pour accéder à cette fonctionnalité</p>
-        <button style={{ padding: '1rem 2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}🔓 Déverrouiller</button>
+        <button style={{ padding: '1rem 2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>🔓 Déverrouiller</button>
       </div>
     </div>
   )
