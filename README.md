@@ -1,190 +1,174 @@
-# 📸 PhotoCalories API
+# 📸 PhotoCalories
 
-A modern food tracking API with AI-powered image recognition, barcode scanning, and nutrition calculation.
+**AI-powered food tracking app** - Scan your meals in seconds and automatically track nutrition.
 
-## 🚀 Features
+![Status](https://img.shields.io/badge/Status-Alpha-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Node](https://img.shields.io/badge/Node-18%2B-blue)
 
-- 📸 **Vision API** - Analyze food photos for nutritional content
-- 📍 **Barcode API** - Quick product lookup from barcode
-- 🥜 **Nutrition Calculator** - Calculate macros from ingredients
-- 📋 **History Tracking** - Track daily food intake
-- 💊 **Responsive** - Modern Next.js 14 + TypeScript
+## ✨ Features
 
-## 📦 API Endpoints
+### 📸 Photo Scanning
+- Snap a photo of your meal
+- AI detects food type and ingredients
+- Automatically calculates calories & macros
+- Saves detailed ingredient breakdown
 
-### 1. Vision Analysis
-**Endpoint:** `POST /api/vision`
+### 📍 Barcode Scanner
+- Quick product lookup
+- Search from OpenFoodFacts database
+- Instant nutrition info
 
-Analyze food image and extract nutritional information.
+### 🍳 Custom Recipes
+- Create recipes manually
+- Add ingredients with quantities
+- Auto-calculate totals
+- Save & reuse recipes
 
-```bash
-curl -X POST http://localhost:3000/api/vision \
-  -H "Content-Type: application/json" \
-  -d '{
-    "base64Image": "data:image/jpeg;base64,..."
-  }'
-```
+### 📋 Tracking
+- Complete daily history
+- Scan limits per plan
+- Macro breakdown
+- Monthly stats
 
-**Response:**
-```json
-{
-  "foodName": "Mixed Salad",
-  "calories": 250,
-  "protein": 12,
-  "carbs": 30,
-  "fat": 8,
-  "serving": "250g",
-  "confidence": 0.85
-}
-```
+### 💎 AI Coach (FITNESS plan)
+- Personalized nutrition advice
+- Weekly insights
+- Optimization tips
 
-### 2. Barcode Lookup
-**Endpoint:** `POST /api/barcode`
+## 🛦 Plans
 
-Lookup product information from barcode.
+| Feature | FREE | PRO | FITNESS |
+|---------|------|-----|----------|
+| Scans/day | **2** | **10** | **40** |
+| Photo scan | ✅ | ✅ | ✅ |
+| Barcode scan | ✅ | ✅ | ✅ |
+| Custom recipes | ❌ | ✅ | ✅ |
+| History | ➡️ 7d | ✅ | ✅ |
+| Stats | ❌ | ✅ | ✅ |
+| AI Coach | ❌ | ❌ | ✅ |
+| **Price** | **Free** | **4.99€/mo** | **9.99€/mo** |
 
-```bash
-curl -X POST http://localhost:3000/api/barcode \
-  -H "Content-Type: application/json" \
-  -d '{
-    "barcode": "5901234123457"
-  }'
-```
-
-**Response:**
-```json
-{
-  "name": "Organic Yogurt",
-  "brand": "YogurtCo",
-  "calories": 120,
-  "protein": 8,
-  "carbs": 15,
-  "fat": 2,
-  "servingSize": "100g"
-}
-```
-
-### 3. Nutrition Calculator
-**Endpoint:** `POST /api/nutrition`
-
-Calculate total nutrition from ingredients list.
-
-```bash
-curl -X POST http://localhost:3000/api/nutrition \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ingredients": [
-      {"name": "Chicken", "quantity": 200, "unit": "g"},
-      {"name": "Rice", "quantity": 150, "unit": "g"}
-    ]
-  }'
-```
-
-**Response:**
-```json
-{
-  "totalCalories": 500,
-  "totalProtein": 25,
-  "totalCarbs": 60,
-  "totalFat": 15,
-  "servings": 2,
-  "perServing": {
-    "calories": 250,
-    "protein": 12.5,
-    "carbs": 30,
-    "fat": 7.5
-  }
-}
-```
-
-## 🛠️ Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn
+- PostgreSQL (optional, for persistence)
 
 ### Installation
 
 ```bash
-# Clone repository
+# Clone repo
 git clone https://github.com/rrdarkenzede/photo-calories.git
 cd photo-calories
 
 # Install dependencies
 npm install
 
-# Create .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:3000" > .env.local
+# Setup environment
+cp .env.example .env.local
 
-# Run development server
+# Start dev server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to test APIs.
+Open [http://localhost:3000](http://localhost:3000)
 
-## 📚 Tech Stack
+## 📚 API Endpoints
 
-- **Framework:** Next.js 14
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Runtime:** Node.js
-- **Deployment:** Vercel
+### Scans
+```bash
+POST /api/scan
+{
+  "type": "photo",
+  "data": { "image": "base64..." }
+}
+```
+
+### History
+```bash
+GET /api/history?date=2025-12-25&range=day
+```
+
+### Recipes
+```bash
+GET /api/recipes
+POST /api/recipes
+PUT /api/recipes/:id
+DELETE /api/recipes/:id
+```
+
+### Stats
+```bash
+GET /api/stats?period=week
+```
+
+### Coach (FITNESS)
+```bash
+GET /api/coach
+```
+
+### Plan Switching (Testing)
+```bash
+POST /api/auth/set-plan
+{ "plan": "pro" }
+```
 
 ## 📁 Project Structure
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── vision/       # Image analysis
-│   │   ├── barcode/      # Product lookup
-│   │   └── nutrition/    # Macro calculation
-│   ├── page.tsx          # Home page
-│   └── layout.tsx        # Root layout
-├── types/
-│   └── index.ts          # Shared TypeScript types
-├── lib/
-│   └── ...              # Utility functions
-└── public/              # Static assets
+app/
+├── api/
+│   ├── scan/           # Main scanning
+│   ├── barcode/        # Product lookup
+│   ├── vision/         # Image analysis
+│   ├── nutrition/      # Macro calculation
+│   ├── recipes/        # Recipe CRUD
+│   ├── history/        # Scan history
+│   ├── stats/          # Analytics
+│   ├── coach/          # AI advice
+│   └── auth/           # Auth endpoints
+├── page.tsx         # Main dashboard
+└── layout.tsx       # Root layout
+
+lib/
+└── db.schema.sql   # Database schema
+
+types/
+└── index.ts        # TypeScript types
 ```
 
-## 🔘 Development
+## 🛠️ Current State
 
-### Add New API Endpoint
+### ✅ Implemented
+- Backend API structure
+- Frontend dashboard with tabs
+- Plan switching (for testing)
+- Database schema
+- TypeScript types
+- Tailwind styling
 
-1. Create route file: `app/api/yourfeature/route.ts`
-2. Define request/response types in `types/index.ts`
-3. Implement handler:
-
-```typescript
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function POST(req: NextRequest) {
-  try {
-    const data = await req.json();
-    
-    // Your logic here
-    
-    return NextResponse.json({ success: true, data });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 }
-    );
-  }
-}
-```
-
-## 😀 TODO
-
-- [ ] Integrate Google Vision API
-- [ ] Connect OpenFoodFacts database
-- [ ] Add authentication (JWT)
-- [ ] Database integration (PostgreSQL)
-- [ ] Rate limiting
-- [ ] API documentation (OpenAPI/Swagger)
+### ⚠️ TODO
+- [ ] Database integration (PostgreSQL/Supabase)
+- [ ] Google Vision API integration
+- [ ] OpenFoodFacts barcode lookup
+- [ ] Authentication (JWT)
+- [ ] Camera integration
+- [ ] Stripe payments
+- [ ] AI coach logic
+- [ ] Stats calculations
 - [ ] Unit tests
 - [ ] E2E tests
+
+## 📄 Tech Stack
+
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes
+- **Database:** PostgreSQL + Supabase (planned)
+- **Vision:** Google Cloud Vision API
+- **Auth:** JWT (planned)
+- **Payment:** Stripe (planned)
+- **Hosting:** Vercel
 
 ## 👤 Author
 
@@ -192,4 +176,4 @@ Rayane - [@rrdarkenzede](https://github.com/rrdarkenzede)
 
 ## 📄 License
 
-MIT - Feel free to use this project!
+MIT © 2025
