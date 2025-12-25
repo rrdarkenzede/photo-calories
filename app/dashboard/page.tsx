@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { Camera, TrendingUp, Book, Settings, LogOut, Menu, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -11,7 +11,6 @@ import Scanner from '@/components/Scanner'
 import { toast } from 'sonner'
 
 export default function DashboardPage() {
-  const router = useRouter()
   const [showScanner, setShowScanner] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stats, setStats] = useState<Record<string, number> | null>(null)
@@ -51,11 +50,6 @@ export default function DashboardPage() {
     toast.success('Scan enregistré avec succès !')
   }
 
-  const handleLogout = () => {
-    toast.success('Déconnexion réussie')
-    router.push('/')
-  }
-
   const handleViewRecipes = () => {
     toast.info('Redirection vers recettes...')
     // TODO: Créer page recettes
@@ -78,12 +72,12 @@ export default function DashboardPage() {
       <header className="glass glass-border sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
                 <Camera className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-dark-900 dark:text-white">PhotoCalories</h1>
-            </div>
+            </Link>
 
             <div className="hidden md:flex items-center gap-4">
               <Button
@@ -94,20 +88,23 @@ export default function DashboardPage() {
                 <Camera className="w-4 h-4" />
                 Scanner
               </Button>
-              <button
-                onClick={() => router.push('/settings')}
-                className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                aria-label="Paramètres"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleLogout}
-                className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                aria-label="Déconnexion"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+              <Link href="/settings">
+                <button
+                  className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                  aria-label="Paramètres"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+              </Link>
+              <Link href="/">
+                <button
+                  className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                  aria-label="Déconnexion"
+                  onClick={() => toast.success('Déconnexion réussie')}
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </Link>
             </div>
 
             <button
