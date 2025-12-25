@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Camera, BookOpen, History, BarChart3, Settings, Zap } from 'lucide-react';
 
 type Tab = 'dashboard' | 'scanner' | 'recipes' | 'history' | 'stats' | 'settings';
 type Plan = 'free' | 'pro' | 'fitness';
@@ -82,7 +81,7 @@ export default function Home() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Protein', value: 0, unit: 'g', icon: '💪', color: 'from-blue-600' },
-                { label: 'Carbs', value: 0, unit: 'g', icon: '🥖', color: 'from-yellow-600' },
+                { label: 'Carbs', value: 0, unit: 'g', icon: '🥦', color: 'from-yellow-600' },
                 { label: 'Fat', value: 0, unit: 'g', icon: '🥑', color: 'from-orange-600' },
               ].map((macro) => (
                 <div key={macro.label} className={`bg-gradient-to-br ${macro.color} to-gray-900 rounded-xl p-4 border border-white/10`}>
@@ -98,7 +97,7 @@ export default function Home() {
               onClick={() => setActiveTab('scanner')}
               className="w-full py-8 bg-gradient-to-r from-orange-600 to-amber-600 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-orange-500/50 transition-all flex items-center justify-center gap-3"
             >
-              <Camera size={28} />
+              📸
               Take a Photo
             </button>
 
@@ -120,7 +119,7 @@ export default function Home() {
         {activeTab === 'scanner' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 border border-gray-700/50 text-center">
-              <Camera size={64} className="mx-auto mb-4 text-orange-400" />
+              <p className="text-6xl mb-4">📸</p>
               <h2 className="text-2xl font-bold mb-2">Camera Scanner</h2>
               <p className="text-gray-400 mb-6">Take a photo of your food</p>
               <button className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold transition-all">
@@ -130,7 +129,7 @@ export default function Home() {
 
             {currentPlan !== 'free' && (
               <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 border border-gray-700/50 text-center">
-                <BookOpen size={64} className="mx-auto mb-4 text-orange-400" />
+                <p className="text-6xl mb-4">🍳</p>
                 <h2 className="text-2xl font-bold mb-2">Create Recipe</h2>
                 <p className="text-gray-400 mb-6">Add ingredients manually</p>
                 <button className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold transition-all">
@@ -141,13 +140,43 @@ export default function Home() {
           </div>
         )}
 
+        {/* Recipes Tab */}
+        {activeTab === 'recipes' && (
+          <div className="animate-fadeIn">
+            {currentPlan === 'free' ? (
+              <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center">
+                <p className="text-6xl mb-4">🔒</p>
+                <p className="text-gray-400 mb-4">Recipes are available on PRO plan</p>
+                <button onClick={() => setCurrentPlan('pro')} className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold">
+                  Upgrade to PRO
+                </button>
+              </div>
+            ) : (
+              <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center text-gray-400">
+                <p className="text-6xl mb-4">🍳</p>
+                <p>No recipes yet. Create your first recipe!</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* History Tab */}
         {activeTab === 'history' && (
           <div className="animate-fadeIn">
-            <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center text-gray-400">
-              <History size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No scans yet. Start by taking a photo!</p>
-            </div>
+            {currentPlan === 'free' ? (
+              <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center">
+                <p className="text-6xl mb-4">📋</p>
+                <p className="text-gray-400 mb-4">History is available on PRO plan</p>
+                <button onClick={() => setCurrentPlan('pro')} className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold">
+                  Upgrade to PRO
+                </button>
+              </div>
+            ) : (
+              <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center text-gray-400">
+                <p className="text-6xl mb-4">📝</p>
+                <p>No scans yet. Start by taking a photo!</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -156,16 +185,21 @@ export default function Home() {
           <div className="animate-fadeIn">
             {currentPlan === 'free' ? (
               <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center">
-                <Zap size={48} className="mx-auto mb-4 text-orange-400" />
-                <p className="text-gray-400 mb-4">Upgrade to PRO to view detailed stats</p>
+                <p className="text-6xl mb-4">⚡</p>
+                <p className="text-gray-400 mb-4">Stats are available on PRO plan</p>
                 <button onClick={() => setCurrentPlan('pro')} className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold">
                   Upgrade to PRO
                 </button>
               </div>
+            ) : currentPlan === 'fitness' ? (
+              <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center text-gray-400">
+                <p className="text-6xl mb-4">📊</p>
+                <p>Advanced stats coming soon!</p>
+              </div>
             ) : (
               <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 text-center text-gray-400">
-                <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
-                <p>Stats coming soon!</p>
+                <p className="text-6xl mb-4">📈</p>
+                <p>Stats will appear here.</p>
               </div>
             )}
           </div>
@@ -177,8 +211,9 @@ export default function Home() {
             <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
               <h3 className="font-bold mb-4">Settings</h3>
               <button className="w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left transition-all">
-                Profile Settings
+                ⚙️ Profile Settings
               </button>
+              <p className="text-xs text-gray-500 mt-4">Current Plan: <span className="text-orange-400 font-bold">{currentPlan.toUpperCase()}</span></p>
             </div>
           </div>
         )}
