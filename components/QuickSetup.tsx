@@ -48,10 +48,10 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
         {step === 1 && (
           <div>
             <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Salut! 👋</h2>
-            <p style={{ opacity: 0.7, marginBottom: '2rem', fontSize: '0.95rem' }}>On doit juste connaître quelques infos pour calculer tes calories journalières</p>
+            <p style={{ opacity: 0.9, marginBottom: '2rem', fontSize: '0.95rem', color: '#ffffff' }}>On doit juste connaître quelques infos pour calculer tes calories journalières</p>
             
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Quel est ton nom?</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#ffffff' }}>Quel est ton nom?</label>
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Marie" style={{ width: '100%', padding: '0.75rem', border: 'none', borderRadius: '12px', fontSize: '1rem', fontFamily: 'inherit' }} />
             </div>
 
@@ -64,22 +64,22 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
             <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '2rem' }}>Tes mesures</h2>
             
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600 }}>Âge: {form.age} ans</label>
+              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: '#ffffff' }}>Âge: {form.age} ans</label>
               <input type="range" min="13" max="100" value={form.age} onChange={(e) => setForm({ ...form, age: parseInt(e.target.value) })} style={{ width: '100%' }} />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600 }}>Poids: {form.weight} kg</label>
+              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: '#ffffff' }}>Poids: {form.weight} kg</label>
               <input type="range" min="40" max="200" value={form.weight} onChange={(e) => setForm({ ...form, weight: parseInt(e.target.value) })} style={{ width: '100%' }} />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600 }}>Taille: {form.height} cm</label>
+              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: '#ffffff' }}>Taille: {form.height} cm</label>
               <input type="range" min="140" max="220" value={form.height} onChange={(e) => setForm({ ...form, height: parseInt(e.target.value) })} style={{ width: '100%' }} />
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Genre</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#ffffff' }}>Genre</label>
               <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value as 'M' | 'F' | 'Other' })} style={{ width: '100%', padding: '0.75rem', border: 'none', borderRadius: '12px', fontFamily: 'inherit' }}>
                 <option value="M">Homme</option>
                 <option value="F">Femme</option>
