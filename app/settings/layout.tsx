@@ -1,5 +1,7 @@
-import { ReactNode } from 'react'
-
-export default function SettingsLayout({ children }: { children: ReactNode }) {
+export default function SettingsLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return children
 }

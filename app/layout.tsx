@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
-import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PhotoCalories - Nutrition par IA',
-  description: 'Scannez vos repas pour un suivi nutritionnel automatique',
+  title: 'PhotoCalories',
 }
 
 export default function RootLayout({
@@ -14,10 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body>
-        {children}
-        <Toaster position="bottom-right" />
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
