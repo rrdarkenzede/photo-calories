@@ -1,4 +1,4 @@
-export const API_KEYS = {
+export const API_CONFIG = {
   CLARIFAI_PAT: process.env.CLARIFAI_PAT || '',
   GOOGLE_VISION_API_KEY: process.env.GOOGLE_VISION_API_KEY || '',
   BARCODE_API_KEY: process.env.BARCODE_API_KEY || '',
