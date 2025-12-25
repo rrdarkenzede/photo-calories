@@ -1,40 +1,4 @@
-'use client'
-
-let supabase: any = null
-
-if (typeof window !== 'undefined') {
-  const { createClient } = require('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (supabaseUrl && supabaseAnonKey) {
-    supabase = createClient(supabaseUrl, supabaseAnonKey)
-  }
-}
-
-export { supabase }
-
-export type UserProfile = {
-  id: string
-  email: string
-  name: string
-  age: number
-  weight: number
-  height: number
-  gender: 'M' | 'F' | 'Other'
-  activity_level: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'athlete'
-  goal: 'weight_loss' | 'muscle_gain' | 'maintain' | 'bulk' | 'sports'
-  dietary_restrictions: string[]
-  plan: 'free' | 'pro' | 'fitness'
-  bmr: number
-  tdee: number
-  target_calories: number
-  target_protein: number
-  target_carbs: number
-  target_fat: number
-  scans_remaining: number
-  scans_limit: number
-}
+// Calculs scientifiques simples - PAS de connexion requise
 
 export const calculateBMR = (weight: number, height: number, age: number, gender: string) => {
   if (gender === 'M') {
