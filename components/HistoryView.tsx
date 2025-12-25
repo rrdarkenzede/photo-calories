@@ -2,7 +2,7 @@
 
 import { MealEntry } from '@/lib/calculations'
 
-export default function HistoryView({ meals }: { meals: MealEntry[] }) {
+export default function HistoryView({ meals, showMacros }: { meals: MealEntry[]; showMacros: boolean }) {
   const grouped = meals.reduce((acc, meal) => {
     if (!acc[meal.date]) acc[meal.date] = []
     acc[meal.date].push(meal)
@@ -28,7 +28,7 @@ export default function HistoryView({ meals }: { meals: MealEntry[] }) {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontWeight: 700 }}>{meal.calories}cal</div>
-                    {meal.protein && <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>P:{meal.protein}g</div>}
+                    {meal.protein && showMacros && <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>P:{meal.protein}g</div>}
                   </div>
                 </div>
               ))}

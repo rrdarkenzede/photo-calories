@@ -1,19 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getTodayMeals, decrementScans, getAllMeals, MealEntry, UserProfile, saveMeal } from '@/lib/calculations'
+import { getTodayMeals, decrementScans, getAllMeals, MealEntry, UserProfile, PLAN_FEATURES, Plan } from '@/lib/calculations'
 import AddMealModal from './AddMealModal'
 import CoachAI from './CoachAI'
 import AnalyticsView from './AnalyticsView'
 import HistoryView from './HistoryView'
 import RecipeBuilder from './RecipeBuilder'
+import PlansModal from './PlansModal'
 
 export default function Dashboard({ profile: initialProfile }: { profile: UserProfile }) {
   const [profile, setProfile] = useState(initialProfile)
   const [meals, setMeals] = useState<MealEntry[]>([])
   const [allMeals, setAllMeals] = useState<MealEntry[]>([])
-  const [tab, setTab] = useState<'home' | 'history' | 'analytics' | 'coach' | 'recipes'>('home')
+  const [tab, setTab] = useState<'home' | 'history' | 'analytics' | 'coach' | 'recipes' | 'plans'>('home')
   const [showAddMeal, setShowAddMeal] = useState(false)
+  const planFeatures = PLAN_FEATURES[profile.plan]
 
   useEffect(() => {
     setMeals(getTodayMeals())
@@ -22,12 +24,13 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 
   const addMeal = (meal: MealEntry) => {
     if (profile.scansRemaining <= 0) {
-      alert('Pas de scans restants! (Gratuit: 2/jour)')
+      alert('Pas de scans restants! Upgrade votre plan.')
+      setTab('plans')
       return
     }
     setMeals([...meals, meal])
     setAllMeals([...allMeals, meal])
-    saveMeal(meal)
+    decrementScans()
     setProfile({ ...profile, scansRemaining: profile.scansRemaining - 1 })
     setShowAddMeal(false)
   }
@@ -42,6 +45,10 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
   const carbPercent = Math.round((totalCarbs / profile.targetCarbs) * 100)
   const fatPercent = Math.round((totalFat / profile.targetFat) * 100)
 
+  if (tab === 'plans') {
+    return <PlansModal profile={profile} onUpgrade={(plan) => { setProfile({ ...profile, plan }); setTab('home') }} />
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', paddingBottom: '80px' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem' }}>
@@ -52,11 +59,11 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Salut {profile.name}! 💪</h1>
-                  <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8, fontSize: '0.9rem' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                  <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8, fontSize: '0.85rem' }}>{planFeatures.name} • {new Date().toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Scans restants</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800 }}>{profile.scansRemaining} / 2</div>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Scans restants</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800 }}>{profile.scansRemaining} / {planFeatures.scansPerDay}</div>
                 </div>
               </div>
             </header>
@@ -71,12 +78,14 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
               <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>{Math.max(0, profile.targetCalories - totalCal)} cal restantes</p>
             </div>
 
-            {/* Macros */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <StatCard label="🥩 Prot" current={totalProt} target={profile.targetProtein} percent={protPercent} />
-              <StatCard label="🥔 Carbs" current={totalCarbs} target={profile.targetCarbs} percent={carbPercent} />
-              <StatCard label="🧈 Gras" current={totalFat} target={profile.targetFat} percent={fatPercent} />
-            </div>
+            {/* Macros - Only if plan supports */}
+            {planFeatures.showMacros && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <StatCard label="🥩 Prot" current={totalProt} target={profile.targetProtein} percent={protPercent} />
+                <StatCard label="🥔 Carbs" current={totalCarbs} target={profile.targetCarbs} percent={carbPercent} />
+                <StatCard label="🧈 Gras" current={totalFat} target={profile.targetFat} percent={fatPercent} />
+              </div>
+            )}
 
             {/* Add Meal Button */}
             <button onClick={() => setShowAddMeal(true)} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', marginBottom: '1.5rem', cursor: 'pointer' }}>
@@ -97,7 +106,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{meal.calories}cal</div>
-                          {meal.protein && <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>}
+                          {meal.protein && planFeatures.showMacros && <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>}
                         </div>
                       </div>
                     </div>
@@ -108,10 +117,13 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
           </>
         )}
 
-        {tab === 'history' && <HistoryView meals={allMeals} />}
-        {tab === 'analytics' && <AnalyticsView meals={allMeals} profile={profile} />}
-        {tab === 'coach' && <CoachAI meals={meals} profile={profile} />}
-        {tab === 'recipes' && <RecipeBuilder />}
+        {tab === 'history' && <HistoryView meals={allMeals} showMacros={planFeatures.showMacros} />}
+        {tab === 'analytics' && planFeatures.analytics && <AnalyticsView meals={allMeals} profile={profile} />}
+        {tab === 'analytics' && !planFeatures.analytics && <UpgradePrompt feature="Analytics" />}
+        {tab === 'coach' && planFeatures.coach && <CoachAI meals={meals} profile={profile} />}
+        {tab === 'coach' && !planFeatures.coach && <UpgradePrompt feature="Coach IA" />}
+        {tab === 'recipes' && planFeatures.recipeBuilder && <RecipeBuilder />}
+        {tab === 'recipes' && !planFeatures.recipeBuilder && <UpgradePrompt feature="Recipe Builder" />}
       </div>
 
       {/* Bottom Navigation */}
@@ -129,6 +141,10 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
               {nav.label}
             </button>
           ))}
+          <button onClick={() => setTab('plans')} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === 'plans' ? '#667eea' : 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ fontSize: '1.5rem' }}📄</div>
+            Plans
+          </button>
         </div>
       </nav>
 
@@ -146,6 +162,18 @@ function StatCard({ label, current, target, percent }: { label: string; current:
       <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '0.5rem' }}>/ {target}g</div>
       <div style={{ height: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
         <div style={{ height: '100%', background: 'var(--primary)', width: `${Math.min(percent, 100)}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function UpgradePrompt({ feature }: { feature: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'white' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}🔐 {feature} verrouillé</h2>
+        <p style={{ opacity: 0.7, marginBottom: '2rem' }}>Upgrade votre plan pour accéder à cette fonctionnalité</p>
+        <button style={{ padding: '1rem 2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}🔓 Déverrouiller</button>
       </div>
     </div>
   )
