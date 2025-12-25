@@ -70,6 +70,12 @@ interface StoreState {
   deleteScan: (id: string) => void;
   getTodayScans: () => Scan[];
 
+  // ✅ NOUVEAU: Propriétés totales pour Header
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+
   recipes: Recipe[];
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: number) => void;
@@ -101,6 +107,11 @@ export const useStore = create<StoreState>()(
       scansDate: new Date().toISOString().split('T')[0],
       recipes: [],
       goals: null,
+      // ✅ Valeurs par défaut
+      totalCalories: 0,
+      totalProtein: 0,
+      totalCarbs: 0,
+      totalFat: 0,
 
       setPlan: (newPlan) => {
         set({ plan: newPlan });
@@ -129,31 +140,78 @@ export const useStore = create<StoreState>()(
           set({
             scansToday: 0,
             scansDate: today,
-            scans: [],
+            scans: [scan],
+            // ✅ MET À JOUR les totaux
+            totalCalories: scan.kcal,
+            totalProtein: scan.protein,
+            totalCarbs: scan.carbs,
+            totalFat: scan.fat,
           });
-        }
-
-        if (!state.canAddScan()) {
-          alert(`🚫 Limite de ${PLAN_LIMITS[state.plan]} scans atteinte!`);
           return;
         }
 
-        set((state) => ({
-          scans: [scan, ...state.scans],
-          scansToday: state.scansToday + 1,
-        }));
+        if (!state.canAddScan()) {
+          alert(`🚭 Limite de ${PLAN_LIMITS[state.plan]} scans atteinte!`);
+          return;
+        }
+
+        // ✅ CORRECTION: Ajoute le scan, ne remplace pas
+        set((state) => {
+          const todayScans = state.scans.filter(
+            (s) => s.timestamp.split('T')[0] === today && s.countsTowardGoal
+          );
+          const newTotal = {
+            totalKcal: todayScans.reduce((sum, s) => sum + s.kcal, 0) + scan.kcal,
+            totalProtein: todayScans.reduce((sum, s) => sum + s.protein, 0) + scan.protein,
+            totalCarbs: todayScans.reduce((sum, s) => sum + s.carbs, 0) + scan.carbs,
+            totalFat: todayScans.reduce((sum, s) => sum + s.fat, 0) + scan.fat,
+          };
+
+          return {
+            scans: [scan, ...state.scans],
+            scansToday: state.scansToday + 1,
+            totalCalories: newTotal.totalKcal,
+            totalProtein: newTotal.totalProtein,
+            totalCarbs: newTotal.totalCarbs,
+            totalFat: newTotal.totalFat,
+          };
+        });
       },
 
       removeScan: (id) => {
-        set((state) => ({
-          scans: state.scans.filter((s) => s.id !== id),
-        }));
+        set((state) => {
+          const updatedScans = state.scans.filter((s) => s.id !== id);
+          const today = new Date().toISOString().split('T')[0];
+          const todayScans = updatedScans.filter(
+            (s) => s.timestamp.split('T')[0] === today && s.countsTowardGoal
+          );
+
+          return {
+            scans: updatedScans,
+            totalCalories: todayScans.reduce((sum, s) => sum + s.kcal, 0),
+            totalProtein: todayScans.reduce((sum, s) => sum + s.protein, 0),
+            totalCarbs: todayScans.reduce((sum, s) => sum + s.carbs, 0),
+            totalFat: todayScans.reduce((sum, s) => sum + s.fat, 0),
+          };
+        });
       },
 
       deleteScan: (id) => {
-        set((state) => ({
-          scans: state.scans.filter((s) => s.id !== id),
-        }));
+        set((state) => {
+          const updatedScans = state.scans.filter((s) => s.id !== id);
+          const today = new Date().toISOString().split('T')[0];
+          const todayScans = updatedScans.filter(
+            (s) => s.timestamp.split('T')[0] === today && s.countsTowardGoal
+          );
+
+          return {
+            scans: updatedScans,
+            totalCalories: todayScans.reduce((sum, s) => sum + s.kcal, 0),
+            totalProtein: todayScans.reduce((sum, s) => sum + s.protein, 0),
+            totalCarbs: todayScans.reduce((sum, s) => sum + s.carbs, 0),
+            totalFat: todayScans.reduce((sum, s) => sum + s.fat, 0),
+          };
+        });
       },
 
       getTodayScans: () => {
