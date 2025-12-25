@@ -1,61 +1,77 @@
-export const PLANS = {
+// ✅ Configuration des plans d'abonnement
+
+export interface PlanConfig {
+  name: string;
+  emoji: string;
+  color: string;
+  scanLimit: number;
+  features: string[];
+  price?: number;
+}
+
+export const PLANS: Record<string, PlanConfig> = {
   FREE: {
-    id: 'free',
     name: 'Gratuit',
+    emoji: '🌟',
+    color: 'bg-gray-100 text-gray-800',
+    scanLimit: 2,
+    features: [
+      '📋 2 scans par jour',
+      '🔍 Reconnaissance d\'aliments basique',
+      '📊 Calories affichées',
+      '📋 Historique limité',
+    ],
     price: 0,
-    scansPerDay: 2,
-    features: {
-      showCalories: true,
-      showMacros: false, // ❌ Pas de macros
-      showDetails: false,
-      canSetGoal: false,
-      canUseCoach: false,
-      canSaveRecipes: false,
-      canEditIngredients: false,
-      canViewRecipes: true, // ✅ Peut VOIR les recettes
-    },
   },
   PRO: {
-    id: 'pro',
     name: 'Pro',
-    price: 5,
-    scansPerDay: 15,
-    features: {
-      showCalories: true,
-      showMacros: true, // ✅ Protéines, Glucides, Lipides
-      showDetails: false, // ❌ Pas de détails (fibres, sucres, etc.)
-      canSetGoal: true, // ✅ Objectif calorique personnalisé
-      canUseCoach: false,
-      canSaveRecipes: false,
-      canEditIngredients: false,
-      canViewRecipes: true, // ✅ Peut VOIR les recettes
-    },
+    emoji: '🌟',
+    color: 'bg-blue-100 text-blue-800',
+    scanLimit: 15,
+    features: [
+      '📋 15 scans par jour',
+      '🔍 Reconnaissance d\'aliments avancée',
+      '📊 Calories + Macros',
+      '📋 Historique complet',
+      '🜟 Géstion des recettes',
+      '🏓️ Coach nutritionnel basique',
+    ],
+    price: 4.99,
   },
   FITNESS: {
-    id: 'fitness',
     name: 'Fitness',
-    price: 15, // ✅ 15€
-    scansPerDay: 40,
-    features: {
-      showCalories: true,
-      showMacros: true,
-      showDetails: true, // ✅ Fibres, Sucres, Sel, Allergènes, etc.
-      canSetGoal: true,
-      canUseCoach: true, // ✅ Coach IA
-      canSaveRecipes: true, // ✅ Sauvegarder recettes
-      canEditIngredients: true, // ✅ Modifier ingrédients
-      canViewRecipes: true,
-    },
+    emoji: '👊',
+    color: 'bg-green-100 text-green-800',
+    scanLimit: 40,
+    features: [
+      '📋 40 scans par jour',
+      '🔍 Reconnaissance d\'aliments Pro+',
+      '📊 Calories + Macros + Micros',
+      '📋 Historique illimité',
+      '🜟 Géstion des recettes avancée',
+      '🏓️ Coach nutritionnel IA complet',
+      '📈 Analyisde de progression',
+      '📧 Suggestions personnalisées',
+    ],
+    price: 9.99,
   },
 };
 
-export type PlanId = 'free' | 'pro' | 'fitness';
-
-export function getPlanById(planId: PlanId) {
-  return PLANS[planId.toUpperCase() as keyof typeof PLANS];
+export function getPlanFeatures(plan: string): string[] {
+  return PLANS[plan]?.features || [];
 }
 
-export function canPerformAction(planId: PlanId, action: string): boolean {
-  const plan = getPlanById(planId);
-  return (plan.features as any)[action] || false;
+export function getScanLimit(plan: string): number {
+  return PLANS[plan]?.scanLimit || 0;
+}
+
+export function getPlanName(plan: string): string {
+  return PLANS[plan]?.name || 'Unknown';
+}
+
+export function getAllPlans() {
+  return Object.entries(PLANS).map(([key, value]) => ({
+    id: key,
+    ...value,
+  }));
 }
