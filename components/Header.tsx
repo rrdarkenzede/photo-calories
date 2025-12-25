@@ -9,7 +9,7 @@ export default function Header() {
   const planLabels: Record<string, string> = {
     free: 'FREE',
     pro: 'PRO',
-    FITNESS: 'FITNESS',
+    fitness: 'FITNESS',
   };
 
   return (
@@ -23,7 +23,7 @@ export default function Header() {
               <span className="text-orange-400">Calories</span>
             </h1>
             <p className="text-gray-400 text-sm md:text-base font-semibold">
-              🔍 Scanne • 📊 Analyse • 🎯 Optimise
+              🔍 Scanne • 📋 Analyse • 🎯 Optimise
             </p>
           </div>
 
@@ -33,7 +33,7 @@ export default function Header() {
             <div className="flex items-center gap-3">
               <select
                 value={plan}
-                onChange={(e) => setPlan(e.target.value as 'free' | 'pro' | 'FITNESS')}
+                onChange={(e) => setPlan(e.target.value as 'free' | 'pro' | 'fitness')}
                 className="px-4 py-2 rounded-xl font-bold text-sm md:text-base border border-orange-500/40 bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500/60"
               >
                 <option value="free" className="bg-gray-900 text-white">
@@ -42,7 +42,7 @@ export default function Header() {
                 <option value="pro" className="bg-gray-900 text-white">
                   ⭐ PRO
                 </option>
-                <option value="FITNESS" className="bg-gray-900 text-white">
+                <option value="fitness" className="bg-gray-900 text-white">
                   💎 FITNESS
                 </option>
               </select>
