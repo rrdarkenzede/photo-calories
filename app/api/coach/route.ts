@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface CoachMessage {
+  id: number;
+  message: string;
+  type: 'encouragement' | 'tip' | 'warning';
+  basedOn: string;
+  createdAt: string;
+}
+
 export async function GET(req: NextRequest) {
   try {
     // TODO: Authenticate user
@@ -13,7 +21,7 @@ export async function GET(req: NextRequest) {
     //   - Is user consistent?
     //   - What's the trend?
 
-    const messages = [
+    const messages: CoachMessage[] = [
       // Example:
       // {
       //   id: 1,
