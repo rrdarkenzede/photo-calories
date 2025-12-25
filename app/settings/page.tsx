@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, CSSProperties } from 'react'
 
 export default function Settings() {
   const [formData, setFormData] = useState({ name: 'Utilisateur', email: 'user@example.com', goal: 2500 })
@@ -15,6 +15,15 @@ export default function Settings() {
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  const inputStyle: CSSProperties = {
+    width: '100%',
+    padding: '0.75rem',
+    border: '1px solid var(--border)',
+    borderRadius: '6px',
+    fontSize: '1rem',
+    transition: 'border-color 0.2s ease',
   }
 
   return (
@@ -40,16 +49,9 @@ export default function Settings() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s ease',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
             />
           </div>
           <div style={{ marginBottom: '1.5rem' }}>
@@ -59,16 +61,9 @@ export default function Settings() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s ease',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
             />
           </div>
           <div style={{ marginBottom: '2rem' }}>
@@ -78,16 +73,9 @@ export default function Settings() {
               name="goal"
               value={formData.goal}
               onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s ease',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
             />
           </div>
           <button

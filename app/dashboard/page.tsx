@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, CSSProperties } from 'react'
 
 const stats = [
   { label: 'Calories Aujourd\'hui', value: '1850', goal: '2500', color: '#ff6b6b' },
@@ -20,6 +20,27 @@ const recipes = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'stats' | 'recipes'>('stats')
 
+  const handleRecipeHover = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget as HTMLDivElement
+    target.style.transform = 'translateY(-4px)'
+    target.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)'
+  }
+
+  const handleRecipeLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget as HTMLDivElement
+    target.style.transform = 'translateY(0)'
+    target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+  }
+
+  const baseRecipeStyle: CSSProperties = {
+    background: 'var(--bg)',
+    padding: '1.5rem',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    cursor: 'pointer',
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       {/* Header */}
@@ -29,7 +50,7 @@ export default function Dashboard() {
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)' }}>📷 PhotoCalories</h1>
           </Link>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600 }}>📸 Scanner</button>
+            <button style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600 }}>📷 Scanner</button>
             <Link href="/settings"><button style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px' }}>⚙️</button></Link>
             <Link href="/"><button style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px' }}>🚪</button></Link>
           </div>
@@ -98,20 +119,12 @@ export default function Dashboard() {
             <h2 style={{ fontSize: '2rem', marginBottom: '2rem', fontWeight: 700 }}>Recettes Suggérées</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {recipes.map((recipe) => (
-                <div key={recipe.title} style={{
-                  background: 'var(--bg)',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  cursor: 'pointer',
-                }} onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)'
-                }} onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
-                }}>
+                <div
+                  key={recipe.title}
+                  style={baseRecipeStyle}
+                  onMouseEnter={handleRecipeHover}
+                  onMouseLeave={handleRecipeLeave}
+                >
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 600 }}>{recipe.title}</h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem' }}>{recipe.desc}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', fontSize: '0.875rem' }}>
