@@ -41,8 +41,6 @@ export const calculateMacros = (tdee: number, goal: string, weight: number) => {
   }
 }
 
-export type Plan = 'free' | 'pro' | 'fitness'
-
 export type UserProfile = {
   name: string
   age: number
@@ -51,17 +49,12 @@ export type UserProfile = {
   gender: 'M' | 'F' | 'Other'
   activityLevel: string
   goal: string
-  restrictions: string[]
-  preferences: string[]
-  metabolism: string
   bmr: number
   tdee: number
   targetCalories: number
   targetProtein: number
   targetCarbs: number
   targetFat: number
-  scansRemaining: number
-  plan: Plan
   createdAt: string
 }
 
@@ -75,48 +68,6 @@ export type MealEntry = {
   carbs?: number
   fat?: number
   items: string[]
-}
-
-export const PLAN_FEATURES = {
-  free: {
-    name: 'Gratuit',
-    price: 0,
-    scansPerDay: 2,
-    historyDays: 7,
-    showMacros: false,
-    analytics: false,
-    coach: false,
-    fitnesSync: false,
-    recipeBuilder: false,
-    modifyObjectives: false,
-    ads: true,
-  },
-  pro: {
-    name: 'Pro',
-    price: 4.99,
-    scansPerDay: 10,
-    historyDays: 90,
-    showMacros: true,
-    analytics: true,
-    coach: false,
-    fitnesSync: false,
-    recipeBuilder: true,
-    modifyObjectives: 'calories_only',
-    ads: false,
-  },
-  fitness: {
-    name: 'Fitness+',
-    price: 9.99,
-    scansPerDay: 40,
-    historyDays: 999,
-    showMacros: true,
-    analytics: true,
-    coach: true,
-    fitnesSync: true,
-    recipeBuilder: true,
-    modifyObjectives: 'all',
-    ads: false,
-  },
 }
 
 export const saveProfile = (profile: UserProfile) => {
@@ -155,21 +106,4 @@ export const getAllMeals = (): MealEntry[] => {
     return JSON.parse(localStorage.getItem('photocal_meals') || '[]')
   }
   return []
-}
-
-export const decrementScans = () => {
-  const profile = getProfile()
-  if (profile && profile.scansRemaining > 0) {
-    profile.scansRemaining--
-    saveProfile(profile)
-  }
-}
-
-export const upgradePlan = (plan: Plan) => {
-  const profile = getProfile()
-  if (profile) {
-    profile.plan = plan
-    profile.scansRemaining = PLAN_FEATURES[plan].scansPerDay
-    saveProfile(profile)
-  }
 }
