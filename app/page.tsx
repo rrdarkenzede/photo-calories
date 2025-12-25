@@ -1,3 +1,5 @@
+'use client'
+
 export default function Home() {
   return (
     <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
