@@ -6,9 +6,9 @@ export default function PlanSelector() {
   const { plan, setPlan } = useStore();
 
   const plans = [
-    { id: 'FREE' as const, emoji: '🆓', label: 'Gratuit', color: 'from-gray-500 to-gray-600' },
-    { id: 'PRO' as const, emoji: '⭐', label: 'Pro', color: 'from-yellow-500 to-orange-500' },
-    { id: 'FITNESS' as const, emoji: '💎', label: 'Fitness', color: 'from-purple-500 to-pink-500' },
+    { id: 'free' as const, emoji: '🆓', label: 'Gratuit', color: 'from-gray-500 to-gray-600' },
+    { id: 'pro' as const, emoji: '⭐', label: 'Pro', color: 'from-yellow-500 to-orange-500' },
+    { id: 'fitness' as const, emoji: '💎', label: 'Fitness', color: 'from-purple-500 to-pink-500' },
   ];
 
   return (
