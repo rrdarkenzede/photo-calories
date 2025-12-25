@@ -6,7 +6,7 @@ import { useStore } from '@/store/useStore';
 interface UpgradePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  currentPlan: 'free' | 'pro' | 'FITNESS';
+  currentPlan: 'free' | 'pro' | 'fitness';
 }
 
 export default function UpgradePopup({ isOpen, onClose, currentPlan }: UpgradePopupProps) {
@@ -23,7 +23,7 @@ export default function UpgradePopup({ isOpen, onClose, currentPlan }: UpgradePo
       color: 'from-blue-500 to-cyan-500',
     },
     {
-      id: 'FITNESS',
+      id: 'fitness',
       name: 'Fitness',
       price: '$9.99/mois',
       features: ['40 scans/jour', 'Tous les macros + micros', 'Coach IA complet'],
@@ -75,7 +75,7 @@ export default function UpgradePopup({ isOpen, onClose, currentPlan }: UpgradePo
 
               <button
                 onClick={() => {
-                  setPlan(plan.id as 'pro' | 'FITNESS');
+                  setPlan(plan.id as 'pro' | 'fitness');
                   onClose();
                 }}
                 disabled={currentPlan === plan.id}
