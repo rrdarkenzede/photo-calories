@@ -1,179 +1,254 @@
-# 📸 PhotoCalories
+# 📸 PhotoCalories 2.0
 
-**AI-powered food tracking app** - Scan your meals in seconds and automatically track nutrition.
+> **Application moderne de suivi nutritionnel par IA**
 
-![Status](https://img.shields.io/badge/Status-Alpha-orange)
+Scannez vos repas en photo ou code-barres pour un suivi nutritionnel automatique et précis, alimenté par l'intelligence artificielle.
+
+![Status](https://img.shields.io/badge/Version-2.0-brightgreen)
+![Next.js](https://img.shields.io/badge/Next.js-14.2-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Node](https://img.shields.io/badge/Node-18%2B-blue)
 
-## ✨ Features
+## ✨ Nouveautés v2.0
 
-### 📸 Photo Scanning
-- Snap a photo of your meal
-- AI detects food type and ingredients
-- Automatically calculates calories & macros
-- Saves detailed ingredient breakdown
+- 🎨 **Design complètement refait** - Interface moderne et élégante
+- 🔍 **Intégration multi-API** - Clarifai + USDA + OpenFoodFacts
+- 📱 **Composants animés** - Framer Motion pour une expérience fluide
+- 🌚 **Mode sombre** - Support du thème sombre natif
+- ⚡ **Performance optimisée** - Chargement rapide et réactif
 
-### 📍 Barcode Scanner
-- Quick product lookup
-- Search from OpenFoodFacts database
-- Instant nutrition info
+## 🚀 Technologies
 
-### 🍳 Custom Recipes
-- Create recipes manually
-- Add ingredients with quantities
-- Auto-calculate totals
-- Save & reuse recipes
+### Frontend
+- **Next.js 14** - Framework React avec App Router
+- **TypeScript** - Typage statique
+- **Tailwind CSS** - Styling moderne et responsive
+- **Framer Motion** - Animations fluides
+- **Lucide React** - Icônes modernes
+- **Zustand** - Gestion d'état légère
+- **Sonner** - Notifications toastées
 
-### 📋 Tracking
-- Complete daily history
-- Scan limits per plan
-- Macro breakdown
-- Monthly stats
+### APIs & Services
+- **Clarifai API** - Reconnaissance d'images alimentaires
+- **USDA FoodData Central** - Base de données nutritionnelles complète
+- **OpenFoodFacts** - Scanner de codes-barres
+- **Supabase** (prévu) - Base de données et authentification
 
-### 💎 AI Coach (FITNESS plan)
-- Personalized nutrition advice
-- Weekly insights
-- Optimization tips
+## 🛠️ Installation
 
-## 🛦 Plans
-
-| Feature | FREE | PRO | FITNESS |
-|---------|------|-----|----------|
-| Scans/day | **2** | **10** | **40** |
-| Photo scan | ✅ | ✅ | ✅ |
-| Barcode scan | ✅ | ✅ | ✅ |
-| Custom recipes | ❌ | ✅ | ✅ |
-| History | ➡️ 7d | ✅ | ✅ |
-| Stats | ❌ | ✅ | ✅ |
-| AI Coach | ❌ | ❌ | ✅ |
-| **Price** | **Free** | **4.99€/mo** | **9.99€/mo** |
-
-## 🚀 Quick Start
-
-### Prerequisites
+### Prérequis
 - Node.js 18+
-- PostgreSQL (optional, for persistence)
+- npm ou yarn
+- Clés API (Clarifai, USDA)
 
-### Installation
+### Étapes
 
 ```bash
-# Clone repo
+# Cloner le repo
 git clone https://github.com/rrdarkenzede/photo-calories.git
 cd photo-calories
 
-# Install dependencies
+# Changer de branche
+git checkout redesign-modern
+
+# Installer les dépendances
 npm install
 
-# Setup environment
+# Configurer les variables d'environnement
 cp .env.example .env.local
+```
 
-# Start dev server
+Modifiez `.env.local` avec vos clés API :
+
+```env
+NEXT_PUBLIC_CLARIFAI_API_KEY=votre_cle_clarifai
+NEXT_PUBLIC_USDA_API_KEY=votre_cle_usda
+NEXT_PUBLIC_OPENFOODFACTS_API=https://world.openfoodfacts.org
+```
+
+```bash
+# Lancer le serveur de développement
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Ouvrez [http://localhost:3000](http://localhost:3000) 🎉
 
-## 📚 API Endpoints
+## 🎯 Fonctionnalités
 
-### Scans
+### 📸 Scanner Photo
+- Prise de photo via webcam ou import d'image
+- Détection automatique des aliments (Clarifai)
+- Récupération des informations nutritionnelles (USDA)
+- Calcul automatique des calories et macros
+
+### 🔷 Scanner Code-barres
+- Scan de codes-barres en temps réel
+- Base de données OpenFoodFacts (900k+ produits)
+- Informations nutritionnelles détaillées
+
+### 📊 Suivi Nutritionnel
+- Dashboard avec statistiques quotidiennes
+- Graphiques de progression
+- Historique des repas
+- Objectifs personnalisables
+
+### 🍳 Recettes Personnalisées
+- Création de recettes
+- Calcul automatique des valeurs nutritionnelles
+- Sauvegarde et réutilisation
+
+### 💪 Coach IA (Plan FITNESS)
+- Conseils nutritionnels personnalisés
+- Suggestions d'optimisation
+- Insights hebdomadaires
+
+## 💳 Plans d'abonnement
+
+| Fonctionnalité | GRATUIT | PRO | FITNESS |
+|------------------|---------|-----|----------|
+| Scans/jour | 2 | 10 | 40 |
+| Historique | 7j | ∞ | ∞ |
+| Recettes | ❌ | ✅ | ✅ |
+| Statistiques | ❌ | ✅ | ✅ |
+| Coach IA | ❌ | ❌ | ✅ |
+| **Prix** | **0€** | **4.99€/mois** | **9.99€/mois** |
+
+## 📁 Structure du Projet
+
+```
+photo-calories/
+├── app/
+│   ├── api/                  # Routes API
+│   │   ├── scan/
+│   │   │   ├── photo/        # Scan photo
+│   │   │   └── barcode/      # Scan code-barres
+│   │   ├── search/          # Recherche aliments
+│   │   └── meals/           # CRUD repas
+│   ├── page.tsx             # Page d'accueil
+│   ├── layout.tsx           # Layout principal
+│   └── globals.css          # Styles globaux
+│
+├── components/
+│   ├── ui/                  # Composants UI réutilisables
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── Badge.tsx
+│   │   └── Input.tsx
+│   ├── Scanner.tsx         # Composant scanner
+│   └── StatsCard.tsx       # Carte de statistiques
+│
+├── lib/
+│   ├── utils.ts             # Utilitaires
+│   ├── constants.ts         # Constantes
+│   └── api-config.ts        # Configuration APIs
+│
+├── types/
+│   └── index.ts             # Types TypeScript
+│
+└── package.json
+```
+
+## 🔌 API Routes
+
+### Scan Photo
 ```bash
-POST /api/scan
-{
-  "type": "photo",
-  "data": { "image": "base64..." }
-}
+POST /api/scan/photo
+Body: { "image": "base64..." }
+Response: { "success": true, "foods": [...], "totalCalories": 450 }
 ```
 
-### History
+### Scan Code-barres
 ```bash
-GET /api/history?date=2025-12-25&range=day
+POST /api/scan/barcode
+Body: { "barcode": "3017620422003" }
+Response: { "success": true, "product": {...} }
 ```
 
-### Recipes
+### Recherche Aliments
 ```bash
-GET /api/recipes
-POST /api/recipes
-PUT /api/recipes/:id
-DELETE /api/recipes/:id
+GET /api/search/food?query=chicken
+Response: { "success": true, "foods": [...] }
 ```
 
-### Stats
+### Repas
 ```bash
-GET /api/stats?period=week
+GET /api/meals?date=2025-12-25
+POST /api/meals
+Body: { "type": "lunch", "foods": [...] }
 ```
 
-### Coach (FITNESS)
-```bash
-GET /api/coach
+## 🎨 Composants UI
+
+### Button
+```tsx
+import Button from '@/components/ui/Button'
+
+<Button variant="primary" size="lg">
+  Mon bouton
+</Button>
 ```
 
-### Plan Switching (Testing)
-```bash
-POST /api/auth/set-plan
-{ "plan": "pro" }
+### Card
+```tsx
+import Card from '@/components/ui/Card'
+
+<Card hover gradient>
+  Contenu
+</Card>
 ```
 
-## 📁 Project Structure
+### Scanner
+```tsx
+import Scanner from '@/components/Scanner'
 
-```
-app/
-├── api/
-│   ├── scan/           # Main scanning
-│   ├── barcode/        # Product lookup
-│   ├── vision/         # Image analysis
-│   ├── nutrition/      # Macro calculation
-│   ├── recipes/        # Recipe CRUD
-│   ├── history/        # Scan history
-│   ├── stats/          # Analytics
-│   ├── coach/          # AI advice
-│   └── auth/           # Auth endpoints
-├── page.tsx         # Main dashboard
-└── layout.tsx       # Root layout
-
-lib/
-└── db.schema.sql   # Database schema
-
-types/
-└── index.ts        # TypeScript types
+<Scanner 
+  onClose={() => {}}
+  onScanComplete={(result) => {}}
+/>
 ```
 
-## 🛠️ Current State
+## 👥 Contribution
 
-### ✅ Implemented
-- Backend API structure
-- Frontend dashboard with tabs
-- Plan switching (for testing)
-- Database schema
-- TypeScript types
-- Tailwind styling
+Les contributions sont les bienvenues ! N'hésitez pas à :
 
-### ⚠️ TODO
-- [ ] Database integration (PostgreSQL/Supabase)
-- [ ] Google Vision API integration
-- [ ] OpenFoodFacts barcode lookup
-- [ ] Authentication (JWT)
-- [ ] Camera integration
-- [ ] Stripe payments
-- [ ] AI coach logic
-- [ ] Stats calculations
-- [ ] Unit tests
-- [ ] E2E tests
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit vos changements (`git commit -m 'Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
 
-## 📄 Tech Stack
+## 🛣️ Roadmap
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
-- **Backend:** Next.js API Routes
-- **Database:** PostgreSQL + Supabase (planned)
-- **Vision:** Google Cloud Vision API
-- **Auth:** JWT (planned)
-- **Payment:** Stripe (planned)
-- **Hosting:** Vercel
+- [x] Design moderne
+- [x] Intégration Clarifai
+- [x] Intégration USDA
+- [x] Intégration OpenFoodFacts
+- [x] Composants UI modernes
+- [ ] Scanner code-barres temps réel
+- [ ] Intégration Supabase
+- [ ] Authentification
+- [ ] Système de paiement Stripe
+- [ ] Application mobile (React Native)
+- [ ] Coach IA avancé
+- [ ] Export de données
+- [ ] Intégration wearables
 
-## 👤 Author
+## 📝 License
 
-Rayane - [@rrdarkenzede](https://github.com/rrdarkenzede)
+MIT © 2025 - Rayane [@rrdarkenzede](https://github.com/rrdarkenzede)
 
-## 📄 License
+## 🚀 Déploiement
 
-MIT © 2025
+### Vercel (Recommandé)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rrdarkenzede/photo-calories)
+
+### Variables d'environnement à configurer
+
+- `NEXT_PUBLIC_CLARIFAI_API_KEY`
+- `NEXT_PUBLIC_USDA_API_KEY`
+- `NEXT_PUBLIC_OPENFOODFACTS_API`
+
+---
+
+**Fait avec ❤️ par Rayane - Nutrition simplifiée par l'IA**
