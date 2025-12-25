@@ -1,17 +1,39 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Camera, Scan, Book, BarChart3, Sparkles, Menu, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { PLAN_FEATURES } from '@/lib/constants'
+import { toast } from 'sonner'
 
 export default function HomePage() {
+  const router = useRouter()
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro' | 'fitness'>('free')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const planInfo = PLAN_FEATURES[currentPlan]
+
+  const handleScanner = () => {
+    toast.loading('Redirection vers le scanner...')
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 500)
+  }
+
+  const handleStats = () => {
+    toast.loading('Chargement du tableau de bord...')
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 500)
+  }
+
+  const handleChoosePlan = (plan: 'free' | 'pro' | 'fitness') => {
+    setCurrentPlan(plan)
+    toast.success(`Plan ${PLAN_FEATURES[plan].name} sélectionné ! 🎉`)
+  }
 
   return (
     <div className="min-h-screen">
@@ -35,7 +57,11 @@ export default function HomePage() {
               <Badge variant="success">
                 {planInfo.scans} scans restants
               </Badge>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/settings')}
+              >
                 {planInfo.name}
               </Button>
             </div>
@@ -73,11 +99,20 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="gap-2">
+            <Button
+              size="lg"
+              className="gap-2"
+              onClick={handleScanner}
+            >
               <Camera className="w-5 h-5" />
               Scanner un repas
             </Button>
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={handleStats}
+            >
               <BarChart3 className="w-5 h-5" />
               Voir mes stats
             </Button>
@@ -180,7 +215,7 @@ export default function HomePage() {
               <Button
                 variant={key === 'pro' ? 'primary' : 'outline'}
                 className="w-full"
-                onClick={() => setCurrentPlan(key as 'free' | 'pro' | 'fitness')}
+                onClick={() => handleChoosePlan(key as 'free' | 'pro' | 'fitness')}
               >
                 {currentPlan === key ? 'Plan actuel' : 'Choisir ce plan'}
               </Button>
