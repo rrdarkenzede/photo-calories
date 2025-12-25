@@ -15,6 +15,11 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const planInfo = PLAN_FEATURES[currentPlan]
 
+  const handleGoToDashboard = () => {
+    console.log('Navigating to dashboard...')
+    window.location.href = '/dashboard'
+  }
+
   const handleChoosePlan = (plan: 'free' | 'pro' | 'fitness') => {
     setCurrentPlan(plan)
     toast.success(`Plan ${PLAN_FEATURES[plan].name} sélectionné ! 🎉`)
@@ -85,25 +90,23 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                className="gap-2"
-              >
-                <Camera className="w-5 h-5" />
-                Scanner un repas
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2"
-              >
-                <BarChart3 className="w-5 h-5" />
-                Voir mes stats
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              className="gap-2"
+              onClick={handleGoToDashboard}
+            >
+              <Camera className="w-5 h-5" />
+              Scanner un repas
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={handleGoToDashboard}
+            >
+              <BarChart3 className="w-5 h-5" />
+              Voir mes stats
+            </Button>
           </div>
         </motion.div>
       </section>
