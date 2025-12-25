@@ -1,14 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { API_CONFIG } from '@/lib/api-config'
 
-export async function GET(request: NextRequest) {
+interface FoodSearchResponse {
+  success: boolean
+  foods?: Array<{
+    id: string
+    name: string
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    fiber: number
+    quantity: number
+    unit: string
+  }>
+  totalResults?: number
+  error?: string
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse<FoodSearchResponse>> {
   try {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get('query')
 
     if (!query) {
       return NextResponse.json(
-        { error: 'Recherche requise' },
+        { success: false, error: 'Recherche requise' },
         { status: 400 }
       )
     }
@@ -22,33 +39,38 @@ export async function GET(request: NextRequest) {
       throw new Error('Erreur USDA API')
     }
 
-    const data = await response.json()
+    const data = await response.json() as unknown
+    const d = data as Record<string, unknown>
+    const foodsArray = (d.foods as Array<Record<string, unknown>> | undefined) ?? []
 
-    const foods = data.foods.map((food: any) => {
-      const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
-        switch (nutrient.nutrientName) {
+    const foods = foodsArray.map((food: Record<string, unknown>) => {
+      const nutrients = (food.foodNutrients as Array<Record<string, unknown>> | undefined ?? []).reduce((acc: Record<string, number>, nutrient: Record<string, unknown>) => {
+        const nutrientName = nutrient.nutrientName as string
+        const nutrientValue = nutrient.value as number
+        
+        switch (nutrientName) {
           case 'Energy':
-            acc.calories = nutrient.value
+            acc.calories = nutrientValue
             break
           case 'Protein':
-            acc.protein = nutrient.value
+            acc.protein = nutrientValue
             break
           case 'Carbohydrate, by difference':
-            acc.carbs = nutrient.value
+            acc.carbs = nutrientValue
             break
           case 'Total lipid (fat)':
-            acc.fat = nutrient.value
+            acc.fat = nutrientValue
             break
           case 'Fiber, total dietary':
-            acc.fiber = nutrient.value
+            acc.fiber = nutrientValue
             break
         }
         return acc
       }, {})
 
       return {
-        id: food.fdcId.toString(),
-        name: food.description,
+        id: (food.fdcId as number).toString(),
+        name: food.description as string,
         calories: nutrients.calories || 0,
         protein: nutrients.protein || 0,
         carbs: nutrients.carbs || 0,
@@ -62,12 +84,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       foods,
-      totalResults: data.totalHits,
+      totalResults: (d.totalHits as number) || 0,
     })
   } catch (error) {
     console.error('Erreur recherche aliments:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la recherche' },
+      { success: false, error: 'Erreur lors de la recherche' },
       { status: 500 }
     )
   }

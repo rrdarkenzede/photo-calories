@@ -1,9 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// TODO: Implémenter avec Supabase/PostgreSQL
-// Pour l'instant, retourne des données de démo
+interface MealsResponse {
+  success: boolean
+  meals: Array<{
+    id: string
+    date: string
+    type: string
+    foods: Array<{
+      name: string
+      calories: number
+      protein: number
+      carbs: number
+      fat: number
+    }>
+    totalCalories: number
+    totalProtein: number
+    totalCarbs: number
+    totalFat: number
+  }>
+  totalCalories: number
+}
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse<MealsResponse>> {
   try {
     const searchParams = request.nextUrl.searchParams
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
@@ -12,7 +30,7 @@ export async function GET(request: NextRequest) {
     const meals = [
       {
         id: '1',
-        date: date,
+        date,
         type: 'breakfast',
         foods: [
           {
@@ -45,15 +63,15 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erreur récupération repas:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération' },
+      { success: false, meals: [], totalCalories: 0 },
       { status: 500 }
     )
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<{ success: boolean; meal?: Record<string, unknown>; error?: string }>> {
   try {
-    const meal = await request.json()
+    const meal = await request.json() as unknown
 
     // TODO: Sauvegarder dans la base de données
     console.log('Nouveau repas:', meal)
@@ -69,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erreur ajout repas:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de l\'ajout' },
+      { success: false, error: 'Erreur lors de l\'ajout' },
       { status: 500 }
     )
   }

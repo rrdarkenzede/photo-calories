@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { API_CONFIG } from '@/lib/api-config'
 
-export async function POST(request: NextRequest) {
+interface ScanResponse {
+  success: boolean
+  foods?: Array<{
+    name: string
+    confidence: number
+    description: string
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    fiber: number
+  }>
+  totalCalories?: number
+  error?: string
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<ScanResponse>> {
   try {
-    const { image } = await request.json()
+    const { image } = await request.json() as { image?: string }
 
     if (!image) {
       return NextResponse.json(
-        { error: 'Image requise' },
+        { success: false, error: 'Image requise' },
         { status: 400 }
       )
     }
@@ -39,60 +55,75 @@ export async function POST(request: NextRequest) {
       throw new Error('Erreur Clarifai API')
     }
 
-    const clarifaiData = await clarifaiResponse.json()
-    const predictions = clarifaiData.outputs[0]?.data?.concepts || []
+    const clarifaiData = await clarifaiResponse.json() as unknown
+    const data = clarifaiData as Record<string, unknown>
+    const predictions = (data.outputs?.[0] as Record<string, unknown>)?.data?.concepts ?? []
 
     // Récupérer les informations nutritionnelles depuis USDA
     const foodItems = await Promise.all(
-      predictions.slice(0, 5).map(async (prediction: any) => {
-        const usdaResponse = await fetch(
-          `${API_CONFIG.usda.baseUrl}/foods/search?query=${encodeURIComponent(prediction.name)}&api_key=${API_CONFIG.usda.apiKey}&pageSize=1`
-        )
+      predictions.slice(0, 5).map(async (prediction: unknown) => {
+        const pred = prediction as Record<string, unknown>
+        const name = pred.name as string
+        const value = pred.value as number
+        
+        try {
+          const usdaResponse = await fetch(
+            `${API_CONFIG.usda.baseUrl}/foods/search?query=${encodeURIComponent(name)}&api_key=${API_CONFIG.usda.apiKey}&pageSize=1`
+          )
 
-        if (!usdaResponse.ok) {
-          return null
-        }
-
-        const usdaData = await usdaResponse.json()
-        const food = usdaData.foods[0]
-
-        if (!food) return null
-
-        const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
-          switch (nutrient.nutrientName) {
-            case 'Energy':
-              acc.calories = nutrient.value
-              break
-            case 'Protein':
-              acc.protein = nutrient.value
-              break
-            case 'Carbohydrate, by difference':
-              acc.carbs = nutrient.value
-              break
-            case 'Total lipid (fat)':
-              acc.fat = nutrient.value
-              break
-            case 'Fiber, total dietary':
-              acc.fiber = nutrient.value
-              break
+          if (!usdaResponse.ok) {
+            return null
           }
-          return acc
-        }, {})
 
-        return {
-          name: prediction.name,
-          confidence: prediction.value,
-          description: food.description,
-          calories: nutrients.calories || 0,
-          protein: nutrients.protein || 0,
-          carbs: nutrients.carbs || 0,
-          fat: nutrients.fat || 0,
-          fiber: nutrients.fiber || 0,
+          const usdaData = await usdaResponse.json() as unknown
+          const ud = usdaData as Record<string, unknown>
+          const foods = ud.foods as Array<Record<string, unknown>> | undefined
+          const food = foods?.[0]
+
+          if (!food) return null
+
+          const nutrients = (food.foodNutrients as Array<Record<string, unknown>>).reduce((acc: Record<string, number>, nutrient: Record<string, unknown>) => {
+            const nutrientName = nutrient.nutrientName as string
+            const nutrientValue = nutrient.value as number
+            
+            switch (nutrientName) {
+              case 'Energy':
+                acc.calories = nutrientValue
+                break
+              case 'Protein':
+                acc.protein = nutrientValue
+                break
+              case 'Carbohydrate, by difference':
+                acc.carbs = nutrientValue
+                break
+              case 'Total lipid (fat)':
+                acc.fat = nutrientValue
+                break
+              case 'Fiber, total dietary':
+                acc.fiber = nutrientValue
+                break
+            }
+            return acc
+          }, {})
+
+          return {
+            name,
+            confidence: value,
+            description: food.description as string,
+            calories: nutrients.calories || 0,
+            protein: nutrients.protein || 0,
+            carbs: nutrients.carbs || 0,
+            fat: nutrients.fat || 0,
+            fiber: nutrients.fiber || 0,
+          }
+        } catch (error) {
+          console.error('USDA fetch error:', error)
+          return null
         }
       })
     )
 
-    const validFoods = foodItems.filter(item => item !== null)
+    const validFoods = foodItems.filter((item) => item !== null)
 
     return NextResponse.json({
       success: true,
@@ -102,7 +133,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erreur scan photo:', error)
     return NextResponse.json(
-      { error: 'Erreur lors du scan' },
+      { success: false, error: 'Erreur lors du scan' },
       { status: 500 }
     )
   }
