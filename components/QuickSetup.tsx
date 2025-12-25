@@ -27,7 +27,7 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
       gender: form.gender,
       activityLevel: 'moderate',
       goal: 'maintain',
-      plan: form.selectedPlan || 'free',
+      plan: 'free',
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       targetCalories: macros.calories,
@@ -102,17 +102,16 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
                 { value: 'fitness', label: '💪 Fitness+', desc: '40 scans/jour + Coach IA' },
               ].map(plan => (
                 <button key={plan.value} onClick={() => {
-                  const selectedForm = { ...form, selectedPlan: plan.value as any }
-                  const bmr = calculateBMR(selectedForm.weight, selectedForm.height, selectedForm.age, selectedForm.gender)
+                  const bmr = calculateBMR(form.weight, form.height, form.age, form.gender)
                   const tdee = calculateTDEE(bmr, 'moderate')
-                  const macros = calculateMacros(tdee, 'maintain', selectedForm.weight)
+                  const macros = calculateMacros(tdee, 'maintain', form.weight)
                   
                   const newProfile: UserProfile = {
-                    name: selectedForm.name,
-                    age: selectedForm.age,
-                    weight: selectedForm.weight,
-                    height: selectedForm.height,
-                    gender: selectedForm.gender,
+                    name: form.name,
+                    age: form.age,
+                    weight: form.weight,
+                    height: form.height,
+                    gender: form.gender,
                     activityLevel: 'moderate',
                     goal: 'maintain',
                     plan: plan.value as any,
