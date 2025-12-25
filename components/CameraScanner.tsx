@@ -201,13 +201,13 @@ export default function CameraScanner() {
                 </div>
                 <div className="p-3 bg-purple-50 border border-purple-300 rounded-lg">
                   <p className="text-sm text-purple-800">
-                    💎 <strong>Upgrade vers FITNESS</strong> pour détails complets!
+                    💎 <strong>Upgrade vers Fitness</strong> pour détails complets!
                   </p>
                 </div>
               </>
             )}
 
-            {plan === 'FITNESS' && (
+            {plan === 'fitness' && (
               <>
                 <div className="grid grid-cols-4 gap-4 mb-4">
                   <div className="bg-white rounded-xl p-4 text-center shadow-md">
@@ -259,7 +259,7 @@ export default function CameraScanner() {
                         {(food.confidence * 100).toFixed(0)}%
                       </span>
                     </div>
-                    {plan === 'FITNESS' && food.nutriScore && (
+                    {plan === 'fitness' && food.nutriScore && (
                       <span
                         className={`
                         px-3 py-1 rounded-full text-xs font-bold
@@ -281,7 +281,7 @@ export default function CameraScanner() {
                     </div>
                   )}
 
-                  {(plan === 'pro' || plan === 'FITNESS') && (
+                  {(plan === 'pro' || plan === 'fitness') && (
                     <div className="grid grid-cols-4 gap-2 text-sm text-gray-600">
                       <div className="text-center">
                         <div className="font-bold text-red-600">{food.kcal.toFixed(0)}</div>
@@ -302,7 +302,7 @@ export default function CameraScanner() {
                     </div>
                   )}
 
-                  {plan === 'FITNESS' && (
+                  {plan === 'fitness' && (
                     <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 mt-2">
                       <div className="text-center">Sucres: {(food.sugar || 0).toFixed(1)}g</div>
                       <div className="text-center">Sel: {(food.salt || 0).toFixed(2)}g</div>
@@ -313,7 +313,7 @@ export default function CameraScanner() {
               ))}
             </div>
 
-            {(plan === 'pro' || plan === 'FITNESS') && (
+            {(plan === 'pro' || plan === 'fitness') && (
               <label className="flex items-center gap-3 bg-white p-4 rounded-xl border-2 border-gray-300 cursor-pointer hover:border-teal-500 transition-all mt-4">
                 <input
                   type="checkbox"
