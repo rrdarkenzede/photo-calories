@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getProfile, UserProfile } from '@/lib/calculations'
+import { UserProfile } from '@/lib/calculations'
 import Dashboard from '@/components/Dashboard'
 import QuickSetup from '@/components/QuickSetup'
 
@@ -10,8 +10,18 @@ export default function AppPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const saved = getProfile()
-    setProfile(saved)
+    // Load profile from localStorage (client-side only)
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('photocal_profile')
+      if (saved) {
+        try {
+          setProfile(JSON.parse(saved))
+        } catch (e) {
+          console.error('Failed to parse profile:', e)
+          setProfile(null)
+        }
+      }
+    }
     setLoading(false)
   }, [])
 
