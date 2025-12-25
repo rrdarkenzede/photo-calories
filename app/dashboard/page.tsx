@@ -1,25 +1,40 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, CSSProperties } from 'react'
-
-const stats = [
-  { label: 'Calories Aujourd\'hui', value: '1850', goal: '2500', color: '#ff6b6b' },
-  { label: 'Repas Enregistrés', value: '3', color: '#4ecdc4' },
-  { label: 'Moyenne Quotidienne', value: '2100', color: '#45b7d1' },
-  { label: 'Scans Restants', value: '5', color: '#96ceb4' },
-]
+import { useState, CSSProperties, useEffect } from 'react'
 
 const recipes = [
-  { title: 'Salade Méditerranéenne', desc: 'Salade fraîche avec légumes et féta', cal: 350, pro: 12, carbs: 15, fat: 26 },
-  { title: 'Poulet Grillé', desc: 'Filet de poulet avec légumes rôtis', cal: 450, pro: 45, carbs: 20, fat: 18 },
-  { title: 'Smoothie Bowl', desc: 'Açaï avec fruits et granola', cal: 280, pro: 8, carbs: 48, fat: 7 },
-  { title: 'Poke Bowl', desc: 'Riz, saumon, algues et sauce soja', cal: 520, pro: 38, carbs: 55, fat: 12 },
+  { id: '1', title: 'Salade Méditerranéenne', desc: 'Salade fraîche avec légumes et féta', cal: 350, pro: 12, carbs: 15, fat: 26 },
+  { id: '2', title: 'Poulet Grillé', desc: 'Filet de poulet avec légumes rôtis', cal: 450, pro: 45, carbs: 20, fat: 18 },
+  { id: '3', title: 'Smoothie Bowl', desc: 'Açaï avec fruits et granola', cal: 280, pro: 8, carbs: 48, fat: 7 },
+  { id: '4', title: 'Poke Bowl', desc: 'Riz, saumon, algues et sauce soja', cal: 520, pro: 38, carbs: 55, fat: 12 },
 ]
 
 export default function Dashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'stats' | 'recipes'>('stats')
+  const [todayCalories, setTodayCalories] = useState(0)
+  const [todayMeals, setTodayMeals] = useState(0)
+
+  useEffect(() => {
+    const history = JSON.parse(localStorage.getItem('scanHistory') || '[]')
+    const today = new Date().toDateString()
+    const todayScans = history.filter((item: any) => new Date(item.date).toDateString() === today)
+    const calories = todayScans.reduce((sum: number, item: any) => sum + item.calories, 0)
+    setTodayCalories(calories)
+    setTodayMeals(todayScans.length)
+  }, [])
+
+  const stats = [
+    { label: 'Calories Aujourd\'hui', value: todayCalories.toString(), goal: '2500', color: '#ff6b6b' },
+    { label: 'Repas Enregistrés', value: todayMeals.toString(), color: '#4ecdc4' },
+    { label: 'Objectif', value: '2500', color: '#45b7d1' },
+    { label: 'Restant', value: (2500 - todayCalories).toString(), color: '#96ceb4' },
+  ]
+
+  const handleRecipeClick = (id: string) => {
+    router.push(`/recipes/${id}`)
+  }
 
   const handleRecipeHover = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.currentTarget
@@ -49,7 +64,8 @@ export default function Dashboard() {
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 onClick={() => router.push('/')} style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', cursor: 'pointer' }}>📷 PhotoCalories</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={() => alert('Scanner non implémenté')} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>📷 Scanner</button>
+            <button onClick={() => router.push('/scanner')} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>📷 Scanner</button>
+            <button onClick={() => router.push('/history')} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>📊</button>
             <button onClick={() => router.push('/settings')} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>⚙️</button>
             <button onClick={() => router.push('/')} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>🚪</button>
           </div>
@@ -119,8 +135,9 @@ export default function Dashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {recipes.map((recipe) => (
                 <div
-                  key={recipe.title}
+                  key={recipe.id}
                   style={baseRecipeStyle}
+                  onClick={() => handleRecipeClick(recipe.id)}
                   onMouseEnter={handleRecipeHover}
                   onMouseLeave={handleRecipeLeave}
                 >

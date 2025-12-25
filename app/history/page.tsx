@@ -1,147 +1,195 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Calendar, Trash2, Download, Filter } from 'lucide-react'
-import Button from '@/components/ui/Button'
-import Card from '@/components/ui/Card'
-import { toast } from 'sonner'
 
-export default function HistoryPage() {
-  const [meals, setMeals] = useState<unknown[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+interface ScanResult {
+  id: string
+  image: string
+  food: string
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+  date: string
+}
+
+export default function History() {
+  const router = useRouter()
+  const [history, setHistory] = useState<ScanResult[]>([])
+  const [filter, setFilter] = useState<'all' | 'today' | 'week'>('all')
 
   useEffect(() => {
-    const fetchMeals = async () => {
-      try {
-        const response = await fetch('/api/meals')
-        const data = await response.json() as unknown
-        const d = data as Record<string, unknown>
-        setMeals((d.meals as unknown[]) || [])
-      } catch (error) {
-        console.error('Erreur chargement repas:', error)
-        toast.error('Erreur lors du chargement')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchMeals()
+    const stored = JSON.parse(localStorage.getItem('scanHistory') || '[]')
+    setHistory(stored)
   }, [])
 
-  const handleDelete = (id: string) => {
-    setMeals(meals.filter((meal: unknown) => (meal as Record<string, unknown>).id !== id))
-    toast.success('Repas supprimé')
+  const filterHistory = () => {
+    const now = new Date()
+    if (filter === 'today') {
+      return history.filter(item => {
+        const itemDate = new Date(item.date)
+        return itemDate.toDateString() === now.toDateString()
+      })
+    }
+    if (filter === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      return history.filter(item => new Date(item.date) > weekAgo)
+    }
+    return history
   }
 
-  const handleDownload = () => {
-    toast.success('Téléchargement lancé')
-  }
+  const filteredHistory = filterHistory()
+  const totalCalories = filteredHistory.reduce((sum, item) => sum + item.calories, 0)
+  const totalProtein = filteredHistory.reduce((sum, item) => sum + item.protein, 0)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    )
+  const deleteItem = (id: string) => {
+    const newHistory = history.filter(item => item.id !== id)
+    setHistory(newHistory)
+    localStorage.setItem('scanHistory', JSON.stringify(newHistory))
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-900 dark:to-dark-800 p-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-dark-900 dark:text-white flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-primary-500" />
-              Historique
-            </h1>
-            <p className="text-dark-600 dark:text-dark-400 mt-2">Vos repas enregistrés</p>
+    <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
+      {/* Header */}
+      <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button onClick={() => router.push('/dashboard')} style={{ color: 'var(--primary)', background: 'transparent', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>← Retour</button>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>📊 Historique</h1>
+          <div style={{ width: '60px' }} />
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="container" style={{ padding: '2rem 0' }}>
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+          <button
+            onClick={() => setFilter('all')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: filter === 'all' ? 'var(--primary)' : 'var(--bg)',
+              color: filter === 'all' ? 'white' : 'var(--text)',
+              border: filter === 'all' ? 'none' : '1px solid var(--border)',
+              borderRadius: '8px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Tout
+          </button>
+          <button
+            onClick={() => setFilter('today')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: filter === 'today' ? 'var(--primary)' : 'var(--bg)',
+              color: filter === 'today' ? 'white' : 'var(--text)',
+              border: filter === 'today' ? 'none' : '1px solid var(--border)',
+              borderRadius: '8px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Aujourd'hui
+          </button>
+          <button
+            onClick={() => setFilter('week')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: filter === 'week' ? 'var(--primary)' : 'var(--bg)',
+              color: filter === 'week' ? 'white' : 'var(--text)',
+              border: filter === 'week' ? 'none' : '1px solid var(--border)',
+              borderRadius: '8px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            7 derniers jours
+          </button>
+        </div>
+
+        {/* Summary */}
+        {filteredHistory.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ background: 'var(--bg)', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Total Calories</p>
+              <p style={{ fontSize: '2rem', fontWeight: 700, color: '#ff6b6b' }}>{totalCalories}</p>
+            </div>
+            <div style={{ background: 'var(--bg)', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Total Protéines</p>
+              <p style={{ fontSize: '2rem', fontWeight: 700, color: '#4ecdc4' }}>{totalProtein}g</p>
+            </div>
+            <div style={{ background: 'var(--bg)', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Repas Scannés</p>
+              <p style={{ fontSize: '2rem', fontWeight: 700, color: '#45b7d1' }}>{filteredHistory.length}</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleDownload} className="gap-2">
-            <Download className="w-5 h-5" />
-            Exporter
-          </Button>
-        </div>
+        )}
 
-        {/* Filter */}
-        <div className="flex gap-3 mb-6">
-          {['all', 'today', 'week', 'month'].map((f) => (
+        {/* History List */}
+        {filteredHistory.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--bg)', borderRadius: '12px' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🍽️</div>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Aucun repas scanné</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Commencez à scanner vos repas pour voir l'historique</p>
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg transition-all ${
-                filter === f
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white dark:bg-dark-800 text-dark-700 dark:text-dark-200'
-              }`}
+              onClick={() => router.push('/scanner')}
+              style={{
+                padding: '1rem 2rem',
+                background: 'var(--primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
-              {f === 'all' && 'Tous'}
-              {f === 'today' && 'Aujourd\'hui'}
-              {f === 'week' && 'Cette semaine'}
-              {f === 'month' && 'Ce mois'}
+              📷 Scanner maintenant
             </button>
-          ))}
-        </div>
-
-        {/* Meals List */}
-        <div className="space-y-4">
-          {meals.length > 0 ? (
-            meals.map((meal: unknown, index: number) => {
-              const m = meal as Record<string, unknown>
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {filteredHistory.map((item) => (
+              <div key={item.id} style={{
+                background: 'var(--bg)',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'center',
+              }}>
+                <img src={item.image} alt={item.food} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{item.food}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                    {new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+                    <span><strong>{item.calories}</strong> kcal</span>
+                    <span><strong>{item.protein}g</strong> pro</span>
+                    <span><strong>{item.carbs}g</strong> carbs</span>
+                    <span><strong>{item.fat}g</strong> fat</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => deleteItem(item.id)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'var(--danger)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                  }}
                 >
-                  <Card hover>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-dark-500 capitalize">{m.type as string}</p>
-                        <h3 className="text-lg font-semibold mb-3">{m.date as string}</h3>
-                        <div className="grid grid-cols-4 gap-4">
-                          <div>
-                            <p className="text-xs text-dark-500 mb-1">Cal</p>
-                            <p className="font-semibold">{m.totalCalories as number} kcal</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-dark-500 mb-1">Protéines</p>
-                            <p className="font-semibold">{m.totalProtein as number}g</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-dark-500 mb-1">Glucides</p>
-                            <p className="font-semibold">{m.totalCarbs as number}g</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-dark-500 mb-1">Lipides</p>
-                            <p className="font-semibold">{m.totalFat as number}g</p>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(m.id as string)}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
-                        aria-label="Supprimer"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </Card>
-                </motion.div>
-              )
-            })
-          ) : (
-            <Card>
-              <div className="text-center py-12">
-                <Calendar className="w-12 h-12 text-dark-300 mx-auto mb-4" />
-                <p className="text-dark-500">Aucun repas enregistré</p>
+                  🗑️
+                </button>
               </div>
-            </Card>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   )
 }
