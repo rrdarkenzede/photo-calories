@@ -1,28 +1,28 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Toaster } from 'sonner'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PhotoCalories - Scan. Analyze. Optimize.',
-  description: 'Advanced food tracking with AI-powered image recognition',
-  icons: {
-    icon: '📸',
-  },
-};
+  title: 'PhotoCalories - Suivi nutritionnel par IA',
+  description: 'Scannez vos repas et suivez votre nutrition avec l\'intelligence artificielle',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body className="antialiased bg-black text-white">
-        {children}
+    <html lang="fr" suppressHydrationWarning>
+      <body className={inter.className}>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 dark:from-dark-950 dark:via-dark-900 dark:to-dark-800">
+          {children}
+        </div>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
-  );
+  )
 }
