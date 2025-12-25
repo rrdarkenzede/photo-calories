@@ -1,43 +1,46 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const MOCK_PRODUCTS = {
-  '3017760000011': { code: '3017760000011', name: 'Coca-Cola 330ml', kcal: 139, protein: 0, carbs: 39, fat: 0 },
-  '5900951000731': { code: '5900951000731', name: 'Nestlé KitKat', kcal: 210, protein: 3, carbs: 27, fat: 10 },
-  '3045320001234': { code: '3045320001234', name: 'Yaourt Nature', kcal: 59, protein: 3.5, carbs: 4.7, fat: 0.4 },
-};
+interface BarcodeRequest {
+  barcode: string;
+}
 
-export async function GET(request: Request) {
+interface ProductData {
+  name: string;
+  brand: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  servingSize: string;
+  imageUrl?: string;
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
+    const { barcode } = (await req.json()) as BarcodeRequest;
 
-    if (!code) {
+    if (!barcode) {
       return NextResponse.json(
         { error: 'No barcode provided' },
         { status: 400 }
       );
     }
 
-    // Vérifier si le produit existe dans notre mock DB
-    const product = MOCK_PRODUCTS[code as keyof typeof MOCK_PRODUCTS];
+    // TODO: Integrate with OpenFoodFacts or similar
+    const mockProduct: ProductData = {
+      name: 'Organic Yogurt',
+      brand: 'YogurtCo',
+      calories: 120,
+      protein: 8,
+      carbs: 15,
+      fat: 2,
+      servingSize: '100g',
+    };
 
-    if (product) {
-      return NextResponse.json({
-        success: true,
-        product,
-      });
-    }
-
-    // Si non trouvé, retourner un produit générique
-    return NextResponse.json({
-      success: false,
-      product: null,
-      message: 'Product not found in database',
-    });
+    return NextResponse.json(mockProduct);
   } catch (error) {
-    console.error('Barcode error:', error);
     return NextResponse.json(
-      { error: 'Failed to search product' },
+      { error: 'Failed to lookup product' },
       { status: 500 }
     );
   }
