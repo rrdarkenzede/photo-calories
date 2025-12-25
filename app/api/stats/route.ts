@@ -1,5 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface DailyStat {
+  date: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  scans: number;
+}
+
+interface StatsResponse {
+  period: string | null;
+  data: DailyStat[];
+  summary: {
+    averageCalories: number;
+    averageProtein: number;
+    averageCarbs: number;
+    averageFat: number;
+    totalScans: number;
+  };
+  goals: {
+    dailyCalories: number;
+    dailyProtein: number;
+    dailyCarbs: number;
+    dailyFat: number;
+  };
+  progress: {
+    caloriesPercentage: number;
+    proteinPercentage: number;
+    carbsPercentage: number;
+    fatPercentage: number;
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     // TODO: Authenticate user
@@ -9,7 +42,7 @@ export async function GET(req: NextRequest) {
     // TODO: Fetch daily_summaries from database for given period
     // TODO: Calculate averages and trends
 
-    const stats = {
+    const stats: StatsResponse = {
       period,
       data: [
         // Example:
