@@ -6,8 +6,9 @@ import AddMealModal from './AddMealModal'
 import AnalyticsView from './AnalyticsView'
 import HistoryView from './HistoryView'
 import RecipeBuilder from './RecipeBuilder'
+import CoachTab from './CoachTab'
 
-type TabType = 'home' | 'history' | 'analytics' | 'recipes'
+type TabType = 'home' | 'history' | 'analytics' | 'coach' | 'recipes'
 
 export default function Dashboard({ profile: initialProfile }: { profile: UserProfile }) {
   const [profile, setProfile] = useState(initialProfile)
@@ -35,6 +36,11 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
     setShowPlanDropdown(false)
   }
 
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile)
+    saveProfile(updatedProfile)
+  }
+
   const totalCal = meals.reduce((sum, m) => sum + m.calories, 0)
   const totalProt = meals.reduce((sum, m) => sum + (m.protein || 0), 0)
   const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs || 0), 0)
@@ -54,11 +60,11 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
             <header className="glass" style={{ padding: '1.5rem', borderRadius: '16px', marginBottom: '1.5rem', color: 'white' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Salut {profile.name}! \ud83d\udcaa</h1>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Salut {profile.name}! 💪</h1>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <button onClick={() => setShowPlanDropdown(!showPlanDropdown)} style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
-                    {PLAN_FEATURES[profile.plan].name} \ud83d\udd13
+                    {PLAN_FEATURES[profile.plan].name} 🔑
                   </button>
                   
                   {showPlanDropdown && (
@@ -74,11 +80,11 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
                                 <h3 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{plan.name}</h3>
                                 <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', opacity: 0.7 }}>{plan.price === 0 ? 'Gratuit' : plan.price + '/mois'}</p>
                               </div>
-                              {isActive && <span style={{ fontSize: '1.2rem' }}>\u2713</span>}
+                              {isActive && <span style={{ fontSize: '1.2rem' }}>✓</span>}
                             </div>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>
                               {plan.features.slice(0, 2).map((f, i) => (
-                                <li key={i}>\u2022 {f}</li>
+                                <li key={i}>• {f}</li>
                               ))}
                             </ul>
                           </div>
@@ -103,14 +109,14 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 
             {/* Macros */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <StatCard label="\ud83e\udd69 Prot" current={totalProt} target={profile.targetProtein} percent={protPercent} />
-              <StatCard label="\ud83e\udd54 Carbs" current={totalCarbs} target={profile.targetCarbs} percent={carbPercent} />
-              <StatCard label="\ud83e\uddc8 Gras" current={totalFat} target={profile.targetFat} percent={fatPercent} />
+              <StatCard label="🥩 Prot" current={totalProt} target={profile.targetProtein} percent={protPercent} />
+              <StatCard label="🥔 Carbs" current={totalCarbs} target={profile.targetCarbs} percent={carbPercent} />
+              <StatCard label="🧈 Gras" current={totalFat} target={profile.targetFat} percent={fatPercent} />
             </div>
 
             {/* Add Meal Button */}
             <button onClick={() => setShowAddMeal(true)} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', marginBottom: '1.5rem', cursor: 'pointer' }}>
-              \ud83d\udcf8 Ajouter un repas
+              📸 Ajouter un repas
             </button>
 
             {/* Meals List */}
@@ -140,6 +146,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 
         {tab === 'history' && <HistoryView meals={allMeals} showMacros={true} />}
         {tab === 'analytics' && <AnalyticsView meals={allMeals} profile={profile} />}
+        {tab === 'coach' && <CoachTab profile={profile} onProfileUpdate={handleProfileUpdate} />}
         {tab === 'recipes' && <RecipeBuilder />}
       </div>
 
@@ -147,10 +154,10 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', justifyContent: 'space-around' }}>
           {[
-            { id: 'home' as const, icon: '\ud83c\udfe0', label: 'Accueil' },
-            { id: 'history' as const, icon: '\ud83d\udcdc', label: 'Historique' },
-            { id: 'analytics' as const, icon: '\ud83d\udcc8', label: 'Stats' },
-            { id: 'recipes' as const, icon: '\ud83d\udc68\u200d\ud83c\udf73', label: 'Recettes' },
+            { id: 'home' as const, icon: '🏠', label: 'Accueil' },
+            { id: 'history' as const, icon: '📜', label: 'Historique' },
+            { id: 'analytics' as const, icon: '📈', label: 'Stats' },
+            { id: 'coach' as const, icon: '🤖', label: 'Coach' },
           ].map(nav => (
             <button key={nav.id} onClick={() => setTab(nav.id)} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === nav.id ? '#667eea' : 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
               <div style={{ fontSize: '1.5rem' }}>{nav.icon}</div>

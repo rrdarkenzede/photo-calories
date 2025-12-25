@@ -14,7 +14,7 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
   })
 
   const handleComplete = () => {
-    // Default values for Free/Pro (no detailed questionnaire)
+    // Default values (questionnaire is in Coach tab for Fitness+)
     const bmr = calculateBMR(form.weight, form.height, form.age, form.gender)
     const tdee = calculateTDEE(bmr, 'moderate') // Default moderate activity
     const macros = calculateMacros(tdee, 'maintain', form.weight) // Default maintain goal
@@ -27,7 +27,7 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
       gender: form.gender,
       activityLevel: 'moderate',
       goal: 'maintain',
-      plan: 'free',
+      plan: form.selectedPlan || 'free',
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       targetCalories: macros.calories,
@@ -92,110 +92,46 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
 
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#1a1a1a' }}>Choisis ton plan 🎯</h2>
-            <p style={{ color: '#555', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Le questionnaire pointu c'est seulement si tu prends Fitness+</p>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#1a1a1a' }}>Choisis ton plan 💎</h2>
+            <p style={{ color: '#555', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Tu pourras customizer tout dans l'onglet Coach si tu prends Fitness+</p>
             
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {[
                 { value: 'free', label: '📱 Gratuit', desc: '2 scans/jour, historique 7j' },
                 { value: 'pro', label: '⭐ Pro', desc: '10 scans/jour, historique 90j' },
-                { value: 'fitness', label: '💪 Fitness+', desc: 'Questionnaire + Coach IA, 40 scans/jour' },
+                { value: 'fitness', label: '💪 Fitness+', desc: '40 scans/jour + Coach IA' },
               ].map(plan => (
                 <button key={plan.value} onClick={() => {
+                  const selectedForm = { ...form, selectedPlan: plan.value as any }
+                  const bmr = calculateBMR(selectedForm.weight, selectedForm.height, selectedForm.age, selectedForm.gender)
+                  const tdee = calculateTDEE(bmr, 'moderate')
+                  const macros = calculateMacros(tdee, 'maintain', selectedForm.weight)
+                  
                   const newProfile: UserProfile = {
-                    name: form.name,
-                    age: form.age,
-                    weight: form.weight,
-                    height: form.height,
-                    gender: form.gender,
+                    name: selectedForm.name,
+                    age: selectedForm.age,
+                    weight: selectedForm.weight,
+                    height: selectedForm.height,
+                    gender: selectedForm.gender,
                     activityLevel: 'moderate',
                     goal: 'maintain',
                     plan: plan.value as any,
-                    bmr: 0,
-                    tdee: 0,
-                    targetCalories: 0,
-                    targetProtein: 0,
-                    targetCarbs: 0,
-                    targetFat: 0,
+                    bmr: Math.round(bmr),
+                    tdee: Math.round(tdee),
+                    targetCalories: macros.calories,
+                    targetProtein: macros.protein,
+                    targetCarbs: macros.carbs,
+                    targetFat: macros.fat,
                     createdAt: new Date().toISOString(),
                   }
                   saveProfile(newProfile)
-                  if (plan.value === 'fitness') {
-                    setStep(4) // Go to detailed questionnaire
-                  } else {
-                    // Calculate with defaults and complete
-                    const bmr = calculateBMR(form.weight, form.height, form.age, form.gender)
-                    const tdee = calculateTDEE(bmr, 'moderate')
-                    const macros = calculateMacros(tdee, 'maintain', form.weight)
-                    const finalProfile: UserProfile = {
-                      ...newProfile,
-                      bmr: Math.round(bmr),
-                      tdee: Math.round(tdee),
-                      targetCalories: macros.calories,
-                      targetProtein: macros.protein,
-                      targetCarbs: macros.carbs,
-                      targetFat: macros.fat,
-                    }
-                    saveProfile(finalProfile)
-                    onComplete(finalProfile)
-                  }
-                }} style={{ padding: '1rem', border: '2px solid #e0e0e0', borderRadius: '12px', background: 'white', color: '#1a1a1a', fontWeight: 600, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem' }}>
+                  onComplete(newProfile)
+                }} style={{ padding: '1rem', border: '2px solid #e0e0e0', borderRadius: '12px', background: 'white', color: '#1a1a1a', fontWeight: 600, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem', transition: 'all 0.2s' }}>
                   <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>{plan.label}</div>
                   <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>{plan.desc}</div>
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#1a1a1a' }}>Ton activité 🏃</h2>
-            <p style={{ color: '#555', marginBottom: '1.5rem', fontSize: '0.85rem' }}>Ceci déterminera tes objectifs en calories</p>
-            
-            <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '2rem' }}>
-              {[
-                { value: 'sedentary', label: 'Sédentaire (peu/pas d\'exercice)' },
-                { value: 'light', label: 'Léger (1-3j/semaine)' },
-                { value: 'moderate', label: 'Modéré (3-4j/semaine)' },
-                { value: 'very_active', label: 'Actif (5-6j/semaine)' },
-                { value: 'athlete', label: 'Athlète (6-7j/semaine)' },
-              ].map(opt => {
-                const currentForm = form as any
-                return (
-                  <button key={opt.value} onClick={() => (currentForm as any).activityLevel = opt.value} style={{ padding: '1rem', border: '2px solid #e0e0e0', borderRadius: '12px', background: 'white', color: '#1a1a1a', fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem' }}>
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button onClick={() => setStep(5)} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>Suivant</button>
-          </div>
-        )}
-
-        {step === 5 && (
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#1a1a1a' }}>Ton objectif 🎯</h2>
-            <p style={{ color: '#555', marginBottom: '1.5rem', fontSize: '0.85rem' }}>C'est celui-ci qui détermine tes macros</p>
-            
-            <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '2rem' }}>
-              {[
-                { value: 'weight_loss', label: 'Perte de poids' },
-                { value: 'maintain', label: 'Maintenir mon poids' },
-                { value: 'muscle_gain', label: 'Prise de muscle' },
-                { value: 'bulk', label: 'Prise de masse' },
-              ].map(opt => {
-                const currentForm = form as any
-                return (
-                  <button key={opt.value} onClick={() => (currentForm as any).goal = opt.value} style={{ padding: '1rem', border: '2px solid #e0e0e0', borderRadius: '12px', background: 'white', color: '#1a1a1a', fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem' }}>
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button onClick={handleComplete} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '1.05rem' }}>Démarrer 🚀</button>
           </div>
         )}
       </div>
