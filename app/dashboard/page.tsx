@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, CSSProperties } from 'react'
 
 const stats = [
@@ -19,6 +18,9 @@ const recipes = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'stats' | 'recipes'>('stats')
+
+  const goToHome = () => window.location.href = '/'
+  const goToSettings = () => window.location.href = '/settings'
 
   const handleRecipeHover = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.currentTarget as HTMLDivElement
@@ -46,13 +48,11 @@ export default function Dashboard() {
       {/* Header */}
       <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)' }}>📷 PhotoCalories</h1>
-          </Link>
+          <h1 onClick={goToHome} style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', cursor: 'pointer' }}>📷 PhotoCalories</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600 }}>📷 Scanner</button>
-            <Link href="/settings"><button style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px' }}>⚙️</button></Link>
-            <Link href="/"><button style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px' }}>🚪</button></Link>
+            <button onClick={() => alert('Scanner non implémenté')} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>📷 Scanner</button>
+            <button onClick={goToSettings} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>⚙️</button>
+            <button onClick={goToHome} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>🚪</button>
           </div>
         </div>
       </header>

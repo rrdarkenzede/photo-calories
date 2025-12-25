@@ -1,11 +1,13 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, CSSProperties } from 'react'
 
 export default function Settings() {
   const [formData, setFormData] = useState({ name: 'Utilisateur', email: 'user@example.com', goal: 2500 })
   const [saved, setSaved] = useState(false)
+
+  const goToDashboard = () => window.location.href = '/dashboard'
+  const goToHome = () => window.location.href = '/'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -31,7 +33,7 @@ export default function Settings() {
       {/* Header */}
       <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0' }}>
         <div className="container">
-          <Link href="/dashboard" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>← Retour</Link>
+          <button onClick={goToDashboard} style={{ color: 'var(--primary)', background: 'transparent', border: 'none', textDecoration: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>← Retour</button>
         </div>
       </header>
 
@@ -90,6 +92,7 @@ export default function Settings() {
               fontWeight: 600,
               fontSize: '1rem',
               transition: 'background-color 0.2s ease',
+              cursor: 'pointer',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary-hover)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary)')}
@@ -104,7 +107,7 @@ export default function Settings() {
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: 'var(--danger)' }}>Zone de Danger</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Une fois déconnecté, vous devrez vous authentifier à nouveau.</p>
           <button
-            onClick={() => alert('Déconnexion effectuée!')}
+            onClick={goToHome}
             style={{
               width: '100%',
               padding: '0.75rem',
@@ -115,6 +118,7 @@ export default function Settings() {
               fontWeight: 600,
               fontSize: '1rem',
               transition: 'background-color 0.2s ease',
+              cursor: 'pointer',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#b71c1c')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--danger)')}
