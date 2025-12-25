@@ -1,73 +1,24 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-  }
-
-  * {
-    @apply border-gray-200 dark:border-dark-700;
-  }
-  
-  body {
-    @apply text-dark-900 dark:text-dark-100;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@layer utilities {
-  .glass {
-    @apply bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl;
-  }
-  
-  .glass-border {
-    @apply border border-white/20 dark:border-dark-700/50;
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #fafafa;
+  color: #333;
 }
 
-/* Scrollbar personnalisé */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-dark-800;
+button {
+  font-family: inherit;
 }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-dark-600 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-dark-500;
-}
-
-/* Animations personnalisées */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  background-size: 1000px 100%;
+ul {
+  list-style: none;
 }
