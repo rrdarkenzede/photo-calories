@@ -4,15 +4,17 @@ import { HTMLAttributes, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   hover?: boolean
   gradient?: boolean
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, hover = false, gradient = false, children, ...props }, ref) => {
+    const MotionDiv = motion.div
+
     return (
-      <motion.div
+      <MotionDiv
         ref={ref}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -27,10 +29,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
           'shadow-sm',
           className
         )}
-        {...props}
+        {...(props as any)}
       >
         {children}
-      </motion.div>
+      </MotionDiv>
     )
   }
 )

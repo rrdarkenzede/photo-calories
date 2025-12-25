@@ -2,9 +2,9 @@
 
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import { motion, MotionProps } from 'framer-motion'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
@@ -26,8 +26,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'px-7 py-3.5 text-lg',
     }
 
+    const MotionButton = motion.button
+
     return (
-      <motion.button
+      <MotionButton
         ref={ref}
         whileTap={{ scale: 0.95 }}
         className={cn(
@@ -37,7 +39,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         disabled={disabled || isLoading}
-        {...props}
+        {...(props as any)}
       >
         {isLoading ? (
           <>
@@ -48,7 +50,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             Chargement...
           </>
         ) : children}
-      </motion.button>
+      </MotionButton>
     )
   }
 )
