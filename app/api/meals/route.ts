@@ -69,20 +69,42 @@ export async function GET(request: NextRequest): Promise<NextResponse<MealsRespo
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<{ success: boolean; meal?: Record<string, unknown>; error?: string }>> {
+interface PostMealRequest {
+  [key: string]: unknown
+}
+
+interface PostMealResponse {
+  success: boolean
+  meal?: {
+    id: string
+    createdAt: string
+    [key: string]: unknown
+  }
+  error?: string
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<PostMealResponse>> {
   try {
-    const meal = await request.json() as unknown
+    const mealData = await request.json() as PostMealRequest
 
     // TODO: Sauvegarder dans la base de données
-    console.log('Nouveau repas:', meal)
+    console.log('Nouveau repas:', mealData)
+
+    const mealResponse: PostMealResponse['meal'] = {
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    }
+
+    // Ajouter les propriétés du meal original
+    Object.entries(mealData).forEach(([key, value]) => {
+      if (mealResponse) {
+        mealResponse[key] = value
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      meal: {
-        id: Date.now().toString(),
-        ...meal,
-        createdAt: new Date().toISOString(),
-      },
+      meal: mealResponse,
     })
   } catch (error) {
     console.error('Erreur ajout repas:', error)
