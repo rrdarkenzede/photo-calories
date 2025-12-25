@@ -46,7 +46,7 @@ export interface Scan {
   fiber?: number;
   timestamp: string;
   countsTowardGoal: boolean;
-  type: 'barcode' | 'photo';
+  type: 'barcode' | 'photo' | 'recipe';
   mealId?: string;
 }
 
