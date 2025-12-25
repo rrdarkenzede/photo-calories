@@ -41,6 +41,8 @@ export const calculateMacros = (tdee: number, goal: string, weight: number) => {
   }
 }
 
+export type Plan = 'free' | 'pro' | 'fitness'
+
 export type UserProfile = {
   name: string
   age: number
@@ -49,6 +51,7 @@ export type UserProfile = {
   gender: 'M' | 'F' | 'Other'
   activityLevel: string
   goal: string
+  plan: Plan
   bmr: number
   tdee: number
   targetCalories: number
@@ -68,6 +71,43 @@ export type MealEntry = {
   carbs?: number
   fat?: number
   items: string[]
+}
+
+export const PLAN_FEATURES = {
+  free: {
+    name: 'Gratuit',
+    price: 0,
+    features: [
+      '2 scans/jour',
+      'Historique 7 jours',
+      'Calories seulement',
+      'Avec pub',
+    ]
+  },
+  pro: {
+    name: 'Pro',
+    price: 4.99,
+    features: [
+      '10 scans/jour',
+      'Historique 90 jours',
+      'Macros détaillés',
+      'Analytics avancées',
+      'Recipe Builder',
+      'Sans pub',
+    ]
+  },
+  fitness: {
+    name: 'Fitness+',
+    price: 9.99,
+    features: [
+      '40 scans/jour',
+      'Historique illimité',
+      'Coach IA 24/7',
+      'Fitness Apps Sync',
+      'Tout déverrouillé',
+      'Sans pub',
+    ]
+  },
 }
 
 export const saveProfile = (profile: UserProfile) => {
@@ -106,4 +146,8 @@ export const getAllMeals = (): MealEntry[] => {
     return JSON.parse(localStorage.getItem('photocal_meals') || '[]')
   }
   return []
+}
+
+export const changePlan = (profile: UserProfile, newPlan: Plan): UserProfile => {
+  return { ...profile, plan: newPlan }
 }

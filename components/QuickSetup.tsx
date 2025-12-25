@@ -28,6 +28,7 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
       gender: form.gender,
       activityLevel: form.activityLevel,
       goal: form.goal,
+      plan: 'free',
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       targetCalories: macros.calories,
@@ -46,8 +47,8 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
       <div className="glass" style={{ padding: '3rem', borderRadius: '24px', maxWidth: '500px', width: '100%', color: 'white' }}>
         {step === 1 && (
           <div>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Salut! 👋</h2>
-            <p style={{ opacity: 0.7, marginBottom: '2rem', fontSize: '0.95rem' }}>On doit juste connaître quelques infos pour calculer tes calories journalières</p>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Salut! \ud83d\udc4b</h2>
+            <p style={{ opacity: 0.7, marginBottom: '2rem', fontSize: '0.95rem' }}>On doit juste conna\u00eetre quelques infos pour calculer tes calories journali\u00e8res</p>
             
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Quel est ton nom?</label>
@@ -92,18 +93,18 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
 
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '2rem' }}>Ton niveau d'activité</h2>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '2rem' }}>Ton niveau d'activit\u00e9</h2>
             
             <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '2rem' }}>
               {[
-                { value: 'sedentary', label: 'Sédentaire (peu/pas d\'exercice)' },
-                { value: 'light', label: 'Léger (1-3j/semaine)' },
-                { value: 'moderate', label: 'Modéré (3-4j/semaine)' },
+                { value: 'sedentary', label: 'S\u00e9dentaire (peu/pas d\'exercice)' },
+                { value: 'light', label: 'L\u00e9ger (1-3j/semaine)' },
+                { value: 'moderate', label: 'Mod\u00e9r\u00e9 (3-4j/semaine)' },
                 { value: 'very_active', label: 'Actif (5-6j/semaine)' },
-                { value: 'athlete', label: 'Athlète (6-7j/semaine)' },
+                { value: 'athlete', label: 'Athl\u00e8te (6-7j/semaine)' },
               ].map(opt => (
                 <button key={opt.value} onClick={() => setForm({ ...form, activityLevel: opt.value })} style={{ padding: '1rem', border: form.activityLevel === opt.value ? '2px solid rgba(255,255,255,0.9)' : '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', background: form.activityLevel === opt.value ? 'rgba(255,255,255,0.15)' : 'transparent', color: 'white', fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem' }}>
-                  {form.activityLevel === opt.value && '✓ '}{opt.label}
+                  {form.activityLevel === opt.value && '\u2713 '}{opt.label}
                 </button>
               ))}
             </div>
@@ -124,12 +125,12 @@ export default function QuickSetup({ onComplete }: { onComplete: (profile: UserP
                 { value: 'bulk', label: 'Prise de masse' },
               ].map(opt => (
                 <button key={opt.value} onClick={() => setForm({ ...form, goal: opt.value })} style={{ padding: '1rem', border: form.goal === opt.value ? '2px solid rgba(255,255,255,0.9)' : '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', background: form.goal === opt.value ? 'rgba(255,255,255,0.15)' : 'transparent', color: 'white', fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontSize: '0.95rem' }}>
-                  {form.goal === opt.value && '✓ '}{opt.label}
+                  {form.goal === opt.value && '\u2713 '}{opt.label}
                 </button>
               ))}
             </div>
 
-            <button onClick={handleComplete} style={{ width: '100%', padding: '1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '1.05rem' }}>Démarrer 🚀</button>
+            <button onClick={handleComplete} style={{ width: '100%', padding: '1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '1.05rem' }}>D\u00e9marrer \ud83d\ude80</button>
           </div>
         )}
       </div>
