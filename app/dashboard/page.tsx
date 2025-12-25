@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, CSSProperties } from 'react'
 
 const stats = [
@@ -17,19 +18,17 @@ const recipes = [
 ]
 
 export default function Dashboard() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'stats' | 'recipes'>('stats')
 
-  const goToHome = () => window.location.href = '/'
-  const goToSettings = () => window.location.href = '/settings'
-
   const handleRecipeHover = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.currentTarget as HTMLDivElement
+    const target = e.currentTarget
     target.style.transform = 'translateY(-4px)'
     target.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)'
   }
 
   const handleRecipeLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.currentTarget as HTMLDivElement
+    const target = e.currentTarget
     target.style.transform = 'translateY(0)'
     target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
   }
@@ -48,11 +47,11 @@ export default function Dashboard() {
       {/* Header */}
       <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 onClick={goToHome} style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', cursor: 'pointer' }}>📷 PhotoCalories</h1>
+          <h1 onClick={() => router.push('/')} style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', cursor: 'pointer' }}>📷 PhotoCalories</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={() => alert('Scanner non implémenté')} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>📷 Scanner</button>
-            <button onClick={goToSettings} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>⚙️</button>
-            <button onClick={goToHome} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>🚪</button>
+            <button onClick={() => router.push('/settings')} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>⚙️</button>
+            <button onClick={() => router.push('/')} style={{ padding: '0.5rem 1.5rem', background: 'var(--bg-alt)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>🚪</button>
           </div>
         </div>
       </header>

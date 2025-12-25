@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 const plans = [
@@ -28,15 +29,8 @@ const plans = [
 ]
 
 export default function Home() {
+  const router = useRouter()
   const [selectedPlan, setSelectedPlan] = useState('free')
-
-  const goToDashboard = () => {
-    window.location.href = '/dashboard'
-  }
-
-  const scrollToBottom = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-  }
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -44,7 +38,7 @@ export default function Home() {
       <nav style={{ borderBottom: '1px solid var(--border)', padding: '1rem 0', position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>📷 PhotoCalories</h1>
-          <button onClick={goToDashboard} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Tableau de bord</button>
+          <button onClick={() => router.push('/dashboard')} style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Tableau de bord</button>
         </div>
       </nav>
 
@@ -54,8 +48,8 @@ export default function Home() {
           <h2 style={{ fontSize: '3.5rem', marginBottom: '1rem', fontWeight: 700 }}>Votre coach nutritionnel IA</h2>
           <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>Scannez vos repas en photo. L'IA analyse automatiquement vos calories, macros et micronutriments.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={goToDashboard} style={{ padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>📸 Commencer</button>
-            <button onClick={scrollToBottom} style={{ padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--bg)', color: 'var(--primary)', border: '2px solid var(--primary)', borderRadius: '8px', cursor: 'pointer' }}>En savoir plus</button>
+            <button onClick={() => router.push('/dashboard')} style={{ padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>📸 Commencer</button>
+            <button onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} style={{ padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--bg)', color: 'var(--primary)', border: '2px solid var(--primary)', borderRadius: '8px', cursor: 'pointer' }}>En savoir plus</button>
           </div>
         </div>
       </section>

@@ -1,13 +1,12 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, CSSProperties } from 'react'
 
 export default function Settings() {
+  const router = useRouter()
   const [formData, setFormData] = useState({ name: 'Utilisateur', email: 'user@example.com', goal: 2500 })
   const [saved, setSaved] = useState(false)
-
-  const goToDashboard = () => window.location.href = '/dashboard'
-  const goToHome = () => window.location.href = '/'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -33,7 +32,7 @@ export default function Settings() {
       {/* Header */}
       <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0' }}>
         <div className="container">
-          <button onClick={goToDashboard} style={{ color: 'var(--primary)', background: 'transparent', border: 'none', textDecoration: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>← Retour</button>
+          <button onClick={() => router.push('/dashboard')} style={{ color: 'var(--primary)', background: 'transparent', border: 'none', textDecoration: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>← Retour</button>
         </div>
       </header>
 
@@ -107,7 +106,7 @@ export default function Settings() {
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: 'var(--danger)' }}>Zone de Danger</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Une fois déconnecté, vous devrez vous authentifier à nouveau.</p>
           <button
-            onClick={goToHome}
+            onClick={() => router.push('/')}
             style={{
               width: '100%',
               padding: '0.75rem',
