@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 
 interface ScannerProps {
   onClose: () => void
-  onScanComplete: (result: any) => void
+  onScanComplete: (result: unknown) => void
 }
 
 export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
@@ -52,41 +52,16 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
         body: JSON.stringify({ image: capturedImage }),
       })
 
-      const data = await response.json()
+      const data = await response.json() as unknown
 
-      if (data.success) {
+      if (response.ok) {
         toast.success('Scan réussi !')
         onScanComplete(data)
       } else {
-        toast.error(data.error || 'Erreur lors du scan')
+        toast.error('Erreur lors du scan')
       }
     } catch (error) {
-      toast.error('Erreur de connexion')
-    } finally {
-      setIsScanning(false)
-    }
-  }
-
-  const scanBarcode = async (barcode: string) => {
-    setIsScanning(true)
-    toast.loading('Recherche du produit...')
-
-    try {
-      const response = await fetch('/api/scan/barcode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ barcode }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Produit trouvé !')
-        onScanComplete(data)
-      } else {
-        toast.error(data.error || 'Produit non trouvé')
-      }
-    } catch (error) {
+      console.error('Scanner error:', error)
       toast.error('Erreur de connexion')
     } finally {
       setIsScanning(false)
@@ -110,7 +85,6 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
           className="w-full max-w-2xl"
         >
           <Card className="p-6">
-            {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold">Scanner un repas</h2>
@@ -121,17 +95,17 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-700 transition-colors"
+                aria-label="Fermer"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Mode Selection */}
             {!mode && (
               <div className="grid md:grid-cols-2 gap-4">
                 <button
                   onClick={() => setMode('photo')}
-                  className="p-8 rounded-xl border-2 border-dark-200 dark:border-dark-700 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950 transition-all group"
+                  className="p-8 rounded-xl border-2 border-dark-200 dark:border-dark-700 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950 transition-all"
                 >
                   <Camera className="w-12 h-12 mx-auto mb-4 text-primary-500" />
                   <h3 className="text-lg font-semibold mb-2">Photo</h3>
@@ -142,18 +116,17 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
 
                 <button
                   onClick={() => setMode('barcode')}
-                  className="p-8 rounded-xl border-2 border-dark-200 dark:border-dark-700 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950 transition-all group"
+                  className="p-8 rounded-xl border-2 border-dark-200 dark:border-dark-700 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950 transition-all"
                 >
                   <Scan className="w-12 h-12 mx-auto mb-4 text-primary-500" />
                   <h3 className="text-lg font-semibold mb-2">Code-barres</h3>
                   <p className="text-sm text-dark-500">
-                    Scannez le code-barres d'un produit
+                    Scannez le code-barres d\'un produit
                   </p>
                 </button>
               </div>
             )}
 
-            {/* Photo Mode */}
             {mode === 'photo' && (
               <div className="space-y-4">
                 {!capturedImage ? (
@@ -184,6 +157,7 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
                         accept="image/*"
                         onChange={handleFileUpload}
                         className="hidden"
+                        aria-label="Importer une image"
                       />
                     </div>
                   </>
@@ -192,7 +166,7 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
                     <div className="aspect-video rounded-xl overflow-hidden">
                       <img
                         src={capturedImage}
-                        alt="Captured"
+                        alt="Image capturée"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -218,7 +192,6 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
               </div>
             )}
 
-            {/* Barcode Mode */}
             {mode === 'barcode' && (
               <div className="space-y-4">
                 <div className="p-8 text-center">
@@ -227,14 +200,12 @@ export default function Scanner({ onClose, onScanComplete }: ScannerProps) {
                     Présentez le code-barres devant la caméra
                   </p>
                 </div>
-                {/* TODO: Intégrer html5-qrcode pour scan en temps réel */}
                 <Button variant="outline" onClick={() => setMode(null)} className="w-full">
                   Retour
                 </Button>
               </div>
             )}
 
-            {/* Back Button */}
             {mode && mode !== 'barcode' && (
               <Button
                 variant="ghost"

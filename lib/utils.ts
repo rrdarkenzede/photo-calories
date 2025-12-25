@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
@@ -18,6 +18,6 @@ export function formatCalories(calories: number): string {
   return `${Math.round(calories)} kcal`
 }
 
-export function formatMacro(value: number, unit: string = 'g'): string {
+export function formatMacro(value: number, unit = 'g'): string {
   return `${Math.round(value)}${unit}`
 }

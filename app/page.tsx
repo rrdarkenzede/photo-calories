@@ -33,7 +33,7 @@ export default function HomePage() {
 
             <div className="hidden md:flex items-center gap-4">
               <Badge variant="success">
-                {planInfo.scans - 0} scans restants
+                {planInfo.scans} scans restants
               </Badge>
               <Button variant="outline" size="sm">
                 {planInfo.name}
@@ -43,6 +43,7 @@ export default function HomePage() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800"
+              aria-label="Menu"
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
@@ -64,7 +65,7 @@ export default function HomePage() {
             Suivez votre nutrition
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">
-              avec l'IA
+              avec l&apos;IA
             </span>
           </h2>
           <p className="text-xl text-dark-600 dark:text-dark-300 mb-12 max-w-2xl mx-auto">
@@ -159,19 +160,19 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={plan.recipes ? 'text-primary-500' : 'text-dark-300'}>
-                    {plan.recipes ? '✓' : '✗'}
+                    {plan.recipes ? '✓' : '✕'}
                   </span>
                   Recettes personnalisées
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={plan.stats ? 'text-primary-500' : 'text-dark-300'}>
-                    {plan.stats ? '✓' : '✗'}
+                    {plan.stats ? '✓' : '✕'}
                   </span>
                   Statistiques avancées
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={plan.coach ? 'text-primary-500' : 'text-dark-300'}>
-                    {plan.coach ? '✓' : '✗'}
+                    {plan.coach ? '✓' : '✕'}
                   </span>
                   Coach IA
                 </li>
@@ -179,7 +180,7 @@ export default function HomePage() {
               <Button
                 variant={key === 'pro' ? 'primary' : 'outline'}
                 className="w-full"
-                onClick={() => setCurrentPlan(key as any)}
+                onClick={() => setCurrentPlan(key as 'free' | 'pro' | 'fitness')}
               >
                 {currentPlan === key ? 'Plan actuel' : 'Choisir ce plan'}
               </Button>

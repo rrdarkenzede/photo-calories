@@ -10,7 +10,7 @@ interface StatsCardProps {
   value: string | number
   goal?: string | number
   icon: LucideIcon
-  color: string
+  color: 'blue' | 'green' | 'orange' | 'purple'
   progress?: number
 }
 
