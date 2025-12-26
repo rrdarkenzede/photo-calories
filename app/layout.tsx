@@ -25,16 +25,12 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark')
-              } else {
-                document.documentElement.classList.remove('dark')
-              }
+              document.documentElement.classList.remove('dark')
             `,
           }}
         />
       </head>
-      <body className={`${geist.className} bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300`}>
+      <body className={`${geist.className} bg-gradient-to-br from-green-50 to-emerald-50 text-slate-900 transition-colors duration-300`}>
         {children}
       </body>
     </html>
