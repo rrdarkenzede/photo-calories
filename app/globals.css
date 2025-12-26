@@ -3,12 +3,15 @@
 @import 'tailwindcss/utilities';
 
 * {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(15, 23, 42, 0.5);
 }
 
 ::-webkit-scrollbar {
@@ -17,23 +20,85 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(15, 23, 42, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #10b981;
+  background: rgba(59, 130, 246, 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #059669;
+  background: rgba(59, 130, 246, 0.7);
 }
 
-/* Vibrant Animations */
+body {
+  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold tracking-tight;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg;
+}
+
+.btn-secondary {
+  @apply px-6 py-3 rounded-xl font-bold text-white bg-gray-700 hover:bg-gray-600 transition-all duration-300 hover:scale-105 active:scale-95;
+}
+
+.btn-ghost {
+  @apply px-6 py-3 rounded-xl font-bold text-white hover:bg-white/10 transition-all duration-300;
+}
+
+/* Cards */
+.card {
+  @apply rounded-2xl border border-gray-700 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md p-6 transition-all duration-300 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10;
+}
+
+.card-highlight {
+  @apply card border-blue-500/50 shadow-lg shadow-blue-500/20;
+}
+
+/* Inputs */
+.input-field {
+  @apply w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300;
+}
+
+.input-field::placeholder {
+  @apply text-gray-500;
+}
+
+/* Badge */
+.badge {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r;
+}
+
+.badge-primary {
+  @apply badge from-blue-500/20 to-purple-500/20 text-blue-300;
+}
+
+.badge-success {
+  @apply badge from-green-500/20 to-emerald-500/20 text-green-300;
+}
+
+.badge-warning {
+  @apply badge from-yellow-500/20 to-orange-500/20 text-yellow-300;
+}
+
+.badge-danger {
+  @apply badge from-red-500/20 to-pink-500/20 text-red-300;
+}
+
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -41,10 +106,10 @@ html {
   }
 }
 
-@keyframes slideInRight {
+@keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
@@ -52,10 +117,21 @@ html {
   }
 }
 
-@keyframes slideDown {
+@keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateY(-12px);
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -63,142 +139,144 @@ html {
   }
 }
 
-@keyframes bounce-soft {
+@keyframes pulse-glow {
   0%, 100% {
-    transform: translateY(0);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
   50% {
-    transform: translateY(-8px);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
   }
 }
 
-@keyframes glow-pulse {
+@keyframes blob {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    transform: translate(0, 0) scale(1);
   }
-  50% {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
 }
 
-.animate-slide-in-right {
-  animation: slideInRight 0.5s ease-out;
+.animate-slideInLeft {
+  animation: slideInLeft 0.6s ease-out;
 }
 
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out;
+.animate-slideInRight {
+  animation: slideInRight 0.6s ease-out;
 }
 
-.animate-bounce-soft {
-  animation: bounce-soft 2s ease-in-out infinite;
+.animate-slideInUp {
+  animation: slideInUp 0.6s ease-out;
 }
 
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Light Mode Only */
-body {
-  @apply bg-gradient-to-br from-green-50 to-emerald-50 text-slate-900;
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-/* Cards */
-.card {
-  @apply rounded-2xl border-2 border-green-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 p-6;
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.card-vibrant {
-  @apply rounded-2xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm p-6;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-/* Bright Buttons */
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 hover:from-green-700 hover:via-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl px-6 py-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-.btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 bg-white text-green-600 border-2 border-green-300 hover:border-green-500 hover:bg-green-50 font-semibold rounded-xl px-6 py-3 transition-all duration-300 active:scale-95;
-}
-
-.btn-danger {
-  @apply inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold rounded-xl px-6 py-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg;
-}
-
-/* Input styles */
-.input {
-  @apply w-full px-4 py-3 border-2 border-green-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-400/30 transition-all duration-200 font-medium;
-}
-
-.input:disabled {
-  @apply bg-green-50 cursor-not-allowed opacity-60;
-}
-
-/* Badge */
-.badge {
-  @apply inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold;
-}
-
-.badge-primary {
-  @apply bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md;
-}
-
-.badge-success {
-  @apply bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-md;
-}
-
-.badge-warning {
-  @apply bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md;
-}
-
-/* Progress bar */
+/* Progress Bar */
 .progress-bar {
-  @apply w-full h-3 bg-green-200 rounded-full overflow-hidden border-2 border-green-300;
+  @apply h-2 bg-gray-800 rounded-full overflow-hidden;
 }
 
-.progress-fill {
-  @apply h-full bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 transition-all duration-500 ease-out;
+.progress-bar-fill {
+  @apply h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500;
 }
 
-/* Select styling */
-select.input {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 40px;
+/* Utility Classes */
+.glass {
+  @apply backdrop-blur-md bg-white/10;
 }
 
-/* Mobile optimizations */
+.gradient-text {
+  @apply bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent;
+}
+
+.gradient-border {
+  @apply border-2 border-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-border;
+}
+
+/* Mobile */
 @media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+
   .card {
-    @apply rounded-xl p-4;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger {
-    @apply px-4 py-2.5 text-sm font-bold;
-  }
-
-  .input {
-    @apply py-2.5 px-3 text-base;
+    @apply p-4;
   }
 }
 
-a {
-  @apply transition-all duration-300;
+/* Responsive grid */
+.grid-responsive {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
 }
 
-input[type='radio'] {
-  @apply cursor-pointer w-5 h-5 accent-green-600;
+/* Table styles */
+.table-striped tbody tr:nth-child(odd) {
+  @apply bg-gray-800/30;
 }
 
+.table-striped tbody tr:hover {
+  @apply bg-gray-800/60;
+}
+
+/* Scrollable containers */
+.scrollable-content {
+  @apply overflow-y-auto max-h-96;
+}
+
+/* Focus states */
 button:focus-visible,
+a:focus-visible,
 input:focus-visible,
-select:focus-visible {
-  @apply outline-none;
+select:focus-visible,
+textarea:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-500;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply w-6 h-6 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin;
+}
+
+/* Toast notifications */
+.toast {
+  @apply fixed bottom-4 right-4 px-6 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white shadow-lg z-50;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-40;
+}
+
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-200;
 }
