@@ -8,6 +8,14 @@ import { Meal, Ingredient } from '@/lib/types';
 import { ArrowLeft, Loader2, Check, Search } from 'lucide-react';
 import Link from 'next/link';
 
+const NUTRI_SCORE_COLORS: Record<string, string> = {
+  'A': '#2ecc71',
+  'B': '#a4d65e',
+  'C': '#ffc844',
+  'D': '#f7931e',
+  'E': '#e74c3c',
+};
+
 export default function BarcodePage() {
   const { currentPlan, addMeal, incrementScans } = useAppStore();
   const [barcode, setBarcode] = useState('');
@@ -102,6 +110,10 @@ export default function BarcodePage() {
     setBarcode('');
     setMealName('');
     setQuantity(1);
+  };
+
+  const getNutriScoreColor = (score: string): string => {
+    return NUTRI_SCORE_COLORS[score] || '#bdc3c7';
   };
 
   return (
@@ -225,15 +237,10 @@ export default function BarcodePage() {
                     </p>
                   )}
                   {product.nutriScore && (
-                    <div className="inline-block px-3 py-1 rounded-lg font-bold text-white mb-3"
+                    <div
+                      className="inline-block px-3 py-1 rounded-lg font-bold text-white mb-3"
                       style={{
-                        backgroundColor: {
-                          'A': '#2ecc71',
-                          'B': '#a4d65e',
-                          'C': '#ffc844',
-                          'D': '#f7931e',
-                          'E': '#e74c3c',
-                        }[product.nutriScore] || '#bdc3c7'
+                        backgroundColor: getNutriScoreColor(product.nutriScore),
                       }}
                     >
                       Nutri-Score {product.nutriScore}
