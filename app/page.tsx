@@ -1,470 +1,401 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Camera, Zap, TrendingUp, Award, ArrowRight, Sparkles, Star, Flame, Heart } from 'lucide-react';
+import { Camera, Zap, TrendingUp, Award, ArrowRight, Check, ChevronRight, BarChart3, Lock, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LandingPage() {
   const router = useRouter();
   const { scrollYProgress } = useScroll();
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  
-  // Parallax effects
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  // Mouse tracking
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden relative">
-      {/* CRAZY Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Gradient meshes */}
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            rotate: [0, 180, 360],
-            opacity: [0.4, 0.7, 0.4],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          className="absolute -top-1/2 -left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1.3, 1, 1.3],
-            rotate: [360, 180, 0],
-            opacity: [0.4, 0.7, 0.4],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-          className="absolute -bottom-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-cyan-500 via-green-500 to-yellow-500 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.5, 1],
-            x: [0, 100, 0],
-            y: [0, -100, 0],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 18, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-full blur-3xl"
-        />
-        
-        {/* Mouse follower glow */}
-        <motion.div
-          animate={{
-            x: mousePosition.x - 200,
-            y: mousePosition.y - 200,
-          }}
-          transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-          className="absolute w-[400px] h-[400px] bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl"
-        />
-
-        {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            animate={{
-              y: [0, -100, 0],
-              x: [0, Math.random() * 100 - 50, 0],
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 5 + 3,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            className="absolute w-2 h-2 bg-white rounded-full"
-          />
-        ))}
-      </div>
-
-      {/* Glassmorphism overlay */}
-      <div className="fixed inset-0 backdrop-blur-[100px] bg-black/40" />
-
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -50 }}
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <motion.nav
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, type: 'spring' }}
-        className="relative z-50 container mx-auto px-6 py-8"
+        className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200"
       >
-        <div className="flex items-center justify-between">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.9 }}
-            className="flex items-center gap-3 cursor-pointer"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/50"
-            >
-              <Zap className="w-7 h-7 text-white" />
-            </motion.div>
-            <span className="text-3xl font-black bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">PhotoCalories</span>
-          </motion.div>
-          
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 2 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => router.push('/dashboard')}
-            className="px-8 py-3 bg-white/10 backdrop-blur-xl rounded-2xl font-bold hover:bg-white/20 transition border-2 border-white/20 hover:border-white/40 shadow-xl"
-          >
-            Connexion
-          </motion.button>
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">PhotoCalories</span>
+            </div>
+            
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Fonctionnalités</a>
+              <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Tarifs</a>
+              <a href="#faq" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">FAQ</a>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+              >
+                Connexion
+              </button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/dashboard?plan=free')}
+                className="px-6 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition"
+              >
+                Essayer gratuitement
+              </motion.button>
+            </div>
+          </div>
         </div>
-      </motion.header>
+      </motion.nav>
 
-      {/* HERO SECTION - ULTRA WILD */}
-      <motion.div style={{ y: y1, opacity }} className="relative z-40 container mx-auto px-6 py-20 md:py-32">
-        <div className="max-w-6xl mx-auto text-center">
-          {/* Floating badges */}
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, type: 'spring' }}
-            className="flex items-center justify-center gap-4 mb-8 flex-wrap"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto mb-16"
           >
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-xl rounded-full border-2 border-pink-400/30 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full mb-8"
             >
-              <Sparkles className="w-5 h-5 text-pink-400" />
-              <span className="text-sm font-bold text-pink-300">IA en 2 sec</span>
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-600">Détection IA en 2 secondes</span>
             </motion.div>
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500/20 to-green-500/20 backdrop-blur-xl rounded-full border-2 border-cyan-400/30 shadow-2xl"
-            >
-              <Star className="w-5 h-5 text-cyan-400" />
-              <span className="text-sm font-bold text-cyan-300">700k+ produits</span>
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-xl rounded-full border-2 border-orange-400/30 shadow-2xl"
-            >
-              <Flame className="w-5 h-5 text-orange-400" />
-              <span className="text-sm font-bold text-orange-300">Précision 95%</span>
-            </motion.div>
+
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              Suivez votre nutrition
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                avec intelligence
+              </span>
+            </h1>
+
+            <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
+              Scannez vos repas. Obtenez instantanément calories, macros et nutriments.
+              <br className="hidden md:block" />
+              L'intelligence artificielle au service de votre santé.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/dashboard?plan=free')}
+                className="px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition flex items-center gap-2 shadow-lg"
+              >
+                Commencer gratuitement
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
+              <button
+                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-8 py-4 bg-white text-gray-900 font-semibold rounded-full border-2 border-gray-900 hover:bg-gray-50 transition"
+              >
+                Voir les tarifs
+              </button>
+            </div>
+
+            <p className="mt-6 text-sm text-gray-500">
+              Aucune carte bancaire requise • 2 scans gratuits par jour
+            </p>
           </motion.div>
 
-          {/* GIANT Title */}
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, type: 'spring', bounce: 0.4 }}
-            className="text-6xl md:text-9xl font-black mb-8 leading-[0.9]"
-          >
-            <motion.span
-              animate={{
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-              className="inline-block bg-gradient-to-r from-pink-400 via-purple-400 via-cyan-400 via-green-400 to-pink-400 bg-[length:200%_auto] bg-clip-text text-transparent"
-            >
-              Scanne.
-            </motion.span>
-            <br />
-            <motion.span
-              animate={{
-                backgroundPosition: ['100% 50%', '0% 50%', '100% 50%'],
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-              className="inline-block bg-gradient-to-r from-cyan-400 via-green-400 via-yellow-400 via-orange-400 to-cyan-400 bg-[length:200%_auto] bg-clip-text text-transparent"
-            >
-              Connais.
-            </motion.span>
-            <br />
-            <motion.span
-              animate={{
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-              className="inline-block bg-gradient-to-r from-orange-400 via-red-400 via-pink-400 via-purple-400 to-orange-400 bg-[length:200%_auto] bg-clip-text text-transparent"
-            >
-              Atteins.
-            </motion.span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
+          {/* Hero Image Placeholder */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-2xl md:text-4xl text-gray-200 mb-12 max-w-3xl mx-auto font-semibold"
+            className="relative max-w-5xl mx-auto"
           >
-            L'IA qui 
-            <span className="text-pink-400 font-black"> explose</span> tous les compteurs.
-            <br />
-            Plus de calculs. Que des 
-            <span className="text-cyan-400 font-black">résultats</span>.
-          </motion.p>
-
-          {/* MEGA CTA */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5, type: 'spring' }}
-            className="flex flex-col items-center gap-6"
-          >
-            <motion.button
-              whileHover={{ scale: 1.1, rotate: 2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.push('/dashboard?plan=free')}
-              className="group relative px-16 py-7 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 rounded-3xl font-black text-2xl shadow-2xl shadow-purple-500/50 hover:shadow-purple-500/80 transition-all overflow-hidden"
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white">
+              <div className="aspect-video flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
+                <div className="text-center p-12">
+                  <Camera className="w-24 h-24 text-blue-600 mx-auto mb-6" />
+                  <p className="text-2xl font-bold text-gray-900 mb-2">Interface intuitive</p>
+                  <p className="text-gray-600">Scannez, analysez, progressez</p>
+                </div>
+              </div>
+            </div>
+            {/* Floating cards */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute -left-8 top-1/4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block"
             >
-              <motion.div
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-0 group-hover:opacity-100"
-              />
-              <span className="relative z-10 flex items-center gap-3">
-                🚀 COMMENCER GRATUITEMENT
-                <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
-              </span>
-            </motion.button>
-
-            <motion.p
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-sm text-gray-400 font-semibold"
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Check className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">450 kcal</p>
+                  <p className="text-sm text-gray-600">Détecté en 2s</p>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+              className="absolute -right-8 bottom-1/4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block"
             >
-              ✨ Aucune CB • 2 scans gratuits/jour • Upgrade quand tu veux
-            </motion.p>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">Objectif atteint</p>
+                  <p className="text-sm text-gray-600">-2kg ce mois</p>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
-      </motion.div>
+      </section>
 
-      {/* FEATURES - FLOATING CARDS */}
-      <motion.div style={{ y: y2 }} className="relative z-40 container mx-auto px-6 py-32">
-        <motion.h2
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-black text-center mb-20"
-        >
-          <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            Pourquoi c'est OUF?
-          </span>
-        </motion.h2>
-
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {[
-            {
-              icon: Camera,
-              title: 'Scan en 2 sec',
-              desc: 'Photo → IA → Nutrition. BOOM. Done.',
-              gradient: 'from-pink-500 to-purple-500',
-              color: 'pink',
-            },
-            {
-              icon: TrendingUp,
-              title: 'Précision 95%',
-              desc: 'Clarifai AI + OpenFoodFacts. Les VRAIES données.',
-              gradient: 'from-cyan-500 to-blue-500',
-              color: 'cyan',
-            },
-            {
-              icon: Award,
-              title: 'Coach IA',
-              desc: 'Objectifs sur mesure. Conseils 24/7. TON coach.',
-              gradient: 'from-orange-500 to-red-500',
-              color: 'orange',
-            },
-          ].map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 100, rotateX: 45 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: i * 0.2, type: 'spring' }}
-              whileHover={{ scale: 1.05, y: -10, rotateY: 5 }}
-              className="relative p-10 bg-white/5 backdrop-blur-2xl rounded-[3rem] border-2 border-white/10 hover:border-white/30 transition-all group cursor-pointer overflow-hidden"
-              style={{ perspective: 1000 }}
-            >
+      {/* Stats Section */}
+      <section className="py-16 bg-gray-50 border-y border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            {[
+              { value: '700,000+', label: 'Produits reconnus' },
+              { value: '95%', label: 'Précision IA' },
+              { value: '2 sec', label: 'Temps de scan' },
+            ].map((stat, i) => (
               <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 90, 0],
-                }}
-                transition={{ duration: 20, repeat: Infinity }}
-                className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-20 blur-3xl`}
-              />
-              
-              <motion.div
-                whileHover={{ rotate: 360, scale: 1.2 }}
-                transition={{ duration: 0.6 }}
-                className={`relative w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-${feature.color}-500/50`}
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
               >
-                <feature.icon className="w-10 h-10 text-white" />
+                <p className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                <p className="text-gray-600 font-medium">{stat.label}</p>
               </motion.div>
-              
-              <h3 className="text-3xl font-black mb-4">{feature.title}</h3>
-              <p className="text-xl text-gray-300 font-medium">{feature.desc}</p>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
-      </motion.div>
+      </section>
 
-      {/* PRICING - NEON CARDS */}
-      <div className="relative z-40 container mx-auto px-6 py-32">
-        <motion.h2
-          initial={{ opacity: 0, scale: 0.5 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="text-5xl md:text-7xl font-black text-center mb-8"
-        >
-          <span className="bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            Choisis ton POWER
-          </span>
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-2xl text-center text-gray-400 mb-20 font-semibold"
-        >
-          Commence gratuit. Upgrade quand t'es CHAUD 🔥
-        </motion.p>
+      {/* Features Section */}
+      <section id="features" className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Tout ce dont vous avez besoin
+            </h2>
+            <p className="text-xl text-gray-600">
+              Une technologie puissante pour des résultats concrets
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* FREE */}
-          <motion.div
-            initial={{ opacity: 0, x: -100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.05, y: -10 }}
-            onClick={() => router.push('/dashboard?plan=free')}
-            className="relative p-10 bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-2xl rounded-[3rem] border-2 border-gray-600/50 hover:border-gray-400/80 transition-all cursor-pointer overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-500/20 to-transparent opacity-0 group-hover:opacity-100 transition" />
-            
-            <h3 className="text-3xl font-black mb-3">FREE</h3>
-            <div className="text-6xl font-black mb-8">$0<span className="text-2xl text-gray-400">/mois</span></div>
-            
-            <ul className="space-y-4 mb-10">
-              {['2 scans/jour', 'Calories', 'Historique 7j'].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-xl">
-                  <span className="text-2xl">✨</span>
-                  <span className="font-semibold">{item}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <button className="w-full py-5 bg-white/10 hover:bg-white/20 rounded-2xl font-black text-lg transition">
-              START FREE
-            </button>
-          </motion.div>
+          <div className="grid md:grid-cols-2 gap-16">
+            {[
+              {
+                icon: Camera,
+                title: 'Détection instantanée',
+                description: 'Photographiez votre repas. Notre IA identifie automatiquement tous les aliments avec une précision de 95%.',
+                color: 'blue',
+              },
+              {
+                icon: BarChart3,
+                title: 'Analyse complète',
+                description: 'Calories, protéines, glucides, lipides, Nutri-Score. Toutes les informations nutritionnelles en un clin dœil.',
+                color: 'cyan',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Suivi personnalisé',
+                description: 'Définissez vos objectifs. Suivez votre progression. Recevez des conseils adaptés à votre profil.',
+                color: 'green',
+              },
+              {
+                icon: Lock,
+                title: 'Sécurisé et privé',
+                description: 'Vos données sont chiffrées et protégées. Vous gardez le contrôle total sur vos informations.',
+                color: 'purple',
+              },
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex gap-6"
+              >
+                <div className={`w-14 h-14 bg-${feature.color}-100 rounded-2xl flex items-center justify-center flex-shrink-0`}>
+                  <feature.icon className={`w-7 h-7 text-${feature.color}-600`} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          {/* PRO - HIGHLIGHTED */}
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.08, y: -15, rotateY: 5 }}
-            onClick={() => router.push('/dashboard?plan=pro')}
-            className="relative p-10 bg-gradient-to-br from-blue-600/30 to-cyan-600/30 backdrop-blur-2xl rounded-[3rem] border-4 border-cyan-400/60 hover:border-cyan-400 transition-all cursor-pointer overflow-hidden group shadow-2xl shadow-cyan-500/50"
-            style={{ perspective: 1000 }}
-          >
+      {/* Pricing Section */}
+      <section id="pricing" className="py-32 px-6 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Choisissez votre plan
+            </h2>
+            <p className="text-xl text-gray-600">
+              Commencez gratuitement, upgradez quand vous êtes prêt
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* FREE */}
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 blur-2xl"
-            />
-            
-            <motion.div
-              animate={{ y: [-5, 5, -5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute -top-6 left-1/2 -translate-x-1/2 px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full font-black shadow-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:border-gray-300 transition"
             >
-              🔥 POPULAIRE
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-gray-900">$0</span>
+                <span className="text-gray-600">/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['2 scans par jour', 'Calories uniquement', 'Historique 7 jours'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-gray-900 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => router.push('/dashboard?plan=free')}
+                className="w-full py-3 border-2 border-gray-900 text-gray-900 font-semibold rounded-full hover:bg-gray-50 transition"
+              >
+                Commencer gratuitement
+              </button>
             </motion.div>
-            
-            <h3 className="text-3xl font-black mb-3 mt-4">PRO</h3>
-            <div className="text-6xl font-black mb-8">$4.99<span className="text-2xl text-gray-300">/mois</span></div>
-            
-            <ul className="space-y-4 mb-10">
-              {['10 scans/jour', 'Macros complets', 'Historique 90j', 'Analytics'].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-xl">
-                  <span className="text-2xl">✅</span>
-                  <span className="font-bold">{item}</span>
-                </li>
-              ))}
-            </ul>
-            
+
+            {/* PRO */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-gray-900 rounded-3xl p-8 border-2 border-gray-900 relative shadow-2xl scale-105"
+            >
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-600 text-white text-sm font-semibold rounded-full">
+                Populaire
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">$4.99</span>
+                <span className="text-gray-400">/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['10 scans par jour', 'Macros détaillés (P/G/L)', 'Historique 90 jours', 'Export de données', 'Analytics avancés'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => router.push('/dashboard?plan=pro')}
+                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition"
+              >
+                Essayer Pro
+              </button>
+            </motion.div>
+
+            {/* FITNESS */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:border-gray-300 transition"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Fitness</h3>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-gray-900">$9.99</span>
+                <span className="text-gray-600">/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {['40 scans par jour', 'Toutes les données nutritionnelles', 'Historique illimité', 'Coach IA 24/7', 'Sync fitness apps', 'Recettes personnalisées'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-gray-900 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => router.push('/dashboard?plan=fitness')}
+                className="w-full py-3 border-2 border-gray-900 text-gray-900 font-semibold rounded-full hover:bg-gray-50 transition"
+              >
+                Essayer Fitness
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-32 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Prêt à transformer votre nutrition ?
+            </h2>
+            <p className="text-xl text-gray-600 mb-10">
+              Rejoignez des milliers d'utilisateurs qui atteignent leurs objectifs avec PhotoCalories.
+            </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full py-5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-cyan-500 hover:to-blue-500 rounded-2xl font-black text-xl shadow-2xl shadow-cyan-500/50 hover:shadow-cyan-500/80 transition"
+              onClick={() => router.push('/dashboard?plan=free')}
+              className="px-12 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition shadow-lg text-lg"
             >
-              UPGRADE PRO
+              Commencer gratuitement
             </motion.button>
           </motion.div>
-
-          {/* FITNESS */}
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.05, y: -10 }}
-            onClick={() => router.push('/dashboard?plan=fitness')}
-            className="relative p-10 bg-gradient-to-br from-purple-600/30 to-pink-600/30 backdrop-blur-2xl rounded-[3rem] border-2 border-purple-400/60 hover:border-purple-400 transition-all cursor-pointer overflow-hidden group shadow-2xl shadow-purple-500/30"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition" />
-            
-            <h3 className="text-3xl font-black mb-3">FITNESS</h3>
-            <div className="text-6xl font-black mb-8">$9.99<span className="text-2xl text-gray-300">/mois</span></div>
-            
-            <ul className="space-y-4 mb-10">
-              {['40 scans/jour', 'TOUT!', 'Illimité', 'Coach IA', 'Strava sync'].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-xl">
-                  <span className="text-2xl">🚀</span>
-                  <span className="font-bold">{item}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <button className="w-full py-5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 rounded-2xl font-black text-xl shadow-2xl shadow-purple-500/50 hover:shadow-purple-500/80 transition">
-              GO FITNESS
-            </button>
-          </motion.div>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-40 border-t border-white/10 mt-32">
-        <div className="container mx-auto px-6 py-12 text-center">
-          <motion.p
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{ duration: 5, repeat: Infinity }}
-            className="text-xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-[length:200%_auto] bg-clip-text text-transparent"
-          >
-            © 2025 PhotoCalories. Fait avec ❤️ et beaucoup de café ☕
-          </motion.p>
+      <footer className="border-t border-gray-200 py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-gray-900">PhotoCalories</span>
+            </div>
+            <p className="text-gray-600 text-sm">
+              © 2025 PhotoCalories. Tous droits réservés.
+            </p>
+            <div className="flex gap-6">
+              <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition">Confidentialité</a>
+              <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition">CGU</a>
+              <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition">Contact</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
