@@ -224,9 +224,19 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
     return null;
   }
 
+  const nutrition = {
+    calories: response.nutrition.calories,
+    protein: response.nutrition.protein,
+    carbs: response.nutrition.carbs,
+    fat: response.nutrition.fat,
+    fiber: response.nutrition.fiber || 0,
+    sugar: response.nutrition.sugars || 0,
+    sodium: response.nutrition.sodium || 0,
+  };
+
   return {
     id: Date.now().toString(),
-    date: new Date(),
+    date: new Date().toISOString().split('T')[0],
     name: response.analysis?.mainFood || translateFood(response.nutrition.description),
     ingredients: [
       {
@@ -234,23 +244,9 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
         name: translateFood(response.nutrition.description),
         quantity: 100,
         unit: 'g',
-        calories: response.nutrition.calories,
-        protein: response.nutrition.protein,
-        carbs: response.nutrition.carbs,
-        fat: response.nutrition.fat,
-        fiber: response.nutrition.fiber || 0,
-        sugar: response.nutrition.sugars || 0,
-        sodium: response.nutrition.sodium || 0,
       },
     ],
-    totalCalories: response.nutrition.calories,
-    totalProtein: response.nutrition.protein,
-    totalCarbs: response.nutrition.carbs,
-    totalFat: response.nutrition.fat,
-    totalFiber: response.nutrition.fiber,
-    totalSugar: response.nutrition.sugars,
-    totalSodium: response.nutrition.sodium,
-    mealType: 'snack' as const,
+    nutrition,
   };
 }
 
@@ -260,9 +256,19 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
 export function searchResultToMeal(result: SearchResult, quantity: number = 100) {
   const multiplier = quantity / 100;
 
+  const nutrition = {
+    calories: Math.round(result.calories * multiplier),
+    protein: Math.round(result.protein * multiplier * 10) / 10,
+    carbs: Math.round(result.carbs * multiplier * 10) / 10,
+    fat: Math.round(result.fat * multiplier * 10) / 10,
+    fiber: result.fiber ? Math.round(result.fiber * multiplier * 10) / 10 : 0,
+    sugar: result.sugar ? Math.round(result.sugar * multiplier * 10) / 10 : 0,
+    sodium: result.sodium ? Math.round(result.sodium * multiplier) : 0,
+  };
+
   return {
     id: Date.now().toString(),
-    date: new Date(),
+    date: new Date().toISOString().split('T')[0],
     name: translateFood(result.name),
     ingredients: [
       {
@@ -270,22 +276,8 @@ export function searchResultToMeal(result: SearchResult, quantity: number = 100)
         name: translateFood(result.name),
         quantity,
         unit: 'g',
-        calories: Math.round(result.calories * multiplier),
-        protein: Math.round(result.protein * multiplier * 10) / 10,
-        carbs: Math.round(result.carbs * multiplier * 10) / 10,
-        fat: Math.round(result.fat * multiplier * 10) / 10,
-        fiber: result.fiber ? Math.round(result.fiber * multiplier * 10) / 10 : 0,
-        sugar: result.sugar ? Math.round(result.sugar * multiplier * 10) / 10 : 0,
-        sodium: result.sodium ? Math.round(result.sodium * multiplier) : 0,
       },
     ],
-    totalCalories: Math.round(result.calories * multiplier),
-    totalProtein: Math.round(result.protein * multiplier * 10) / 10,
-    totalCarbs: Math.round(result.carbs * multiplier * 10) / 10,
-    totalFat: Math.round(result.fat * multiplier * 10) / 10,
-    totalFiber: result.fiber ? Math.round(result.fiber * multiplier * 10) / 10 : 0,
-    totalSugar: result.sugar ? Math.round(result.sugar * multiplier * 10) / 10 : 0,
-    totalSodium: result.sodium ? Math.round(result.sodium * multiplier) : 0,
-    mealType: 'snack' as const,
+    nutrition,
   };
 }
