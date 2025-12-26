@@ -159,7 +159,7 @@ export default function Home() {
                 <Camera className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-2xl md:text-3xl font-black gradient-text">
-                PhotoCalories
+                Bonjour Kamal
               </h1>
             </div>
             <motion.div
