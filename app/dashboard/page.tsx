@@ -38,12 +38,22 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
     if (!currentUser) {
-      router.push('/');
+      // User not authenticated - redirect to login
+      router.push('/login');
     }
     setIsDark(document.documentElement.classList.contains('dark'));
   }, [currentUser, router]);
 
-  if (!mounted) return null;
+  if (!mounted || !currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin inline-flex items-center justify-center w-12 h-12 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   const today = new Date().toLocaleDateString('fr-FR');
   const todaysMeals = meals.filter(
@@ -83,7 +93,7 @@ export default function Dashboard() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="fixed top-4 right-4 z-50 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 lg:hidden hover:bg-slate-50 dark:hover:bg-slate-700"
+        className="fixed top-4 right-4 z-50 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 lg:hidden hover:bg-slate-50 dark:hover:bg-slate-700 transition"
       >
         {mobileMenuOpen ? (
           <X className="w-6 h-6" />
@@ -120,7 +130,7 @@ export default function Dashboard() {
           <nav className="space-y-4">
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold transition"
               onClick={() => setMobileMenuOpen(false)}
             >
               <TrendingUp className="w-5 h-5" />
@@ -153,7 +163,7 @@ export default function Dashboard() {
 
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-3">
-                Plan: <span className="text-blue-600 dark:text-blue-400">{currentPlan}</span>
+                Plan: <span className="text-blue-600 dark:text-blue-400 capitalize">{currentPlan}</span>
               </p>
             </div>
 
