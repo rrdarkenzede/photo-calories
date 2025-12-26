@@ -1,25 +1,42 @@
-import type { Metadata } from 'next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
+import type { Metadata } from 'next';
+import { Geist } from 'next/font/google';
+import './globals.css';
+
+const geist = Geist({
+  subsets: ['latin'],
+});
 
 export const metadata: Metadata = {
-  title: 'Photo Calories - Scan & Track Your Meals',
-  description: 'AI-powered meal scanner using photos. Track calories, macros, and nutrition in real-time.',
-}
+  title: '📸 PhotoCalories - Comptez vos calories avec l\'IA',
+  description: 'Photographiez votre plat, l\'IA reconnaît les ingrédients et calcule automatiquement les calories et macronutriments.',
+  icons: {
+    icon: '/favicon.ico',
+  },
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark')
+              } else {
+                document.documentElement.classList.remove('dark')
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className={`${geist.className} bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-200`}>
         {children}
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
-  )
+  );
 }

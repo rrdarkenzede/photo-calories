@@ -35,7 +35,6 @@ export default function CoachPage() {
   const [profile, setProfile] = useState<Partial<CoachProfile>>(coachProfile || {});
 
   const calculateGoals = (prof: CoachProfile) => {
-    // Calcul BMR (Basal Metabolic Rate) avec Mifflin-St Jeor
     let bmr = 0;
     if (prof.gender === 'male') {
       bmr = 10 * prof.weight + 6.25 * prof.height - 5 * prof.age + 5;
@@ -43,7 +42,6 @@ export default function CoachPage() {
       bmr = 10 * prof.weight + 6.25 * prof.height - 5 * prof.age - 161;
     }
 
-    // Multiplication par activité
     const activityMultipliers: Record<ActivityLevel, number> = {
       sedentary: 1.2,
       light: 1.375,
@@ -53,16 +51,14 @@ export default function CoachPage() {
     };
     const tdee = bmr * activityMultipliers[prof.activityLevel as ActivityLevel];
 
-    // Ajustement selon objectif
     let dailyCalories = tdee;
     if (prof.goal === 'weightLoss') {
-      dailyCalories = tdee - 500; // -500 = 0.5kg/semaine
+      dailyCalories = tdee - 500;
     } else if (prof.goal === 'muscleGain') {
-      dailyCalories = tdee + 300; // +300 = croissance musculaire modérée
+      dailyCalories = tdee + 300;
     }
 
-    // Macros basées sur le poids corporel et l'objectif
-    const protein = prof.weight * 2.2; // 2.2g/kg pour muscle gain
+    const protein = prof.weight * 2.2;
     const fatCalories = dailyCalories * 0.25;
     const fat = fatCalories / 9;
     const carbCalories = dailyCalories - protein * 4 - fat * 9;
@@ -92,12 +88,13 @@ export default function CoachPage() {
 
   if (currentPlan !== 'fitness') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">🔒 Fitness Only</h1>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <div className="card max-w-md text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Fitness Only</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-6">Le Coach IA est réservé au plan Fitness</p>
-          <Link href="/dashboard" className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold">
-            Retour
+          <Link href="/dashboard" className="btn-primary w-full block text-center">
+            Retour au Dashboard
           </Link>
         </div>
       </div>
@@ -105,136 +102,168 @@ export default function CoachPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
-          <Link href="/dashboard" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+          <Link href="/dashboard" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Coach IA 🤖</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Calcule tes objectifs nutritionnels personnalisés</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Personnalise tes objectifs nutritionnels</p>
           </div>
         </div>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {step === 'form' ? (
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 space-y-6">
-            <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <form onSubmit={handleSubmit} className="card animate-fade-in space-y-8">
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
               <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <p className="text-sm text-blue-800 dark:text-blue-300">
-                Les objectifs seront calculés selon tes données. Sois honnête pour des résultats précis!
-              </p>
+              <p className="text-sm text-blue-800 dark:text-blue-300">Remplis honnêtement pour des résultats précis!</p>
             </div>
 
+            {/* Age */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Âge</label>
+              <input
+                type="number"
+                value={profile.age || ''}
+                onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
+                required
+                min="1"
+                max="120"
+                className="input"
+                placeholder="ex: 25"
+              />
+            </div>
+
+            {/* Grid: Weight & Height */}
             <div className="grid sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                  Âge (ans)
-                </label>
-                <input
-                  type="number"
-                  value={profile.age || ''}
-                  onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
-                  required
-                  min="18"
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                  Poids (kg)
-                </label>
+                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Poids (kg)</label>
                 <input
                   type="number"
                   value={profile.weight || ''}
                   onChange={(e) => setProfile({ ...profile, weight: parseFloat(e.target.value) })}
                   required
-                  step="0.1"
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-700 dark:text-white"
+                  step="0.5"
+                  min="10"
+                  max="300"
+                  className="input"
+                  placeholder="ex: 70"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                  Taille (cm)
-                </label>
+                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Taille (cm)</label>
                 <input
                   type="number"
                   value={profile.height || ''}
                   onChange={(e) => setProfile({ ...profile, height: parseInt(e.target.value) })}
                   required
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-700 dark:text-white"
+                  min="50"
+                  max="250"
+                  className="input"
+                  placeholder="ex: 180"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                  Sexe
-                </label>
-                <select
-                  value={profile.gender || ''}
-                  onChange={(e) => setProfile({ ...profile, gender: e.target.value as Gender })}
-                  required
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="">Sélectionne...</option>
-                  <option value="male">Homme</option>
-                  <option value="female">Femme</option>
-                </select>
               </div>
             </div>
 
+            {/* Gender */}
             <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-3">
-                Niveau d'activité
-              </label>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Sexe</label>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[
+                  { value: 'male', label: '👨 Homme', emoji: '👨' },
+                  { value: 'female', label: '👩 Femme', emoji: '👩' },
+                ].map((option) => (
+                  <label key={option.value} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      value={option.value}
+                      checked={profile.gender === option.value}
+                      onChange={(e) => setProfile({ ...profile, gender: e.target.value as Gender })}
+                      required
+                      className="sr-only"
+                    />
+                    <div className={`p-4 rounded-lg border-2 transition-all ${
+                      profile.gender === option.value
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}>
+                      <span className="text-xl mb-2 block">{option.emoji}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">{option.label}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Activity Level */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Niveau d'activité</label>
               <div className="space-y-2">
                 {[
-                  { value: 'sedentary', label: '🛋️ Sédentaire (pas ou peu d\'exercice)' },
-                  { value: 'light', label: '🚶 Léger (1-3 jours/semaine)' },
-                  { value: 'moderate', label: '🏃 Modéré (3-5 jours/semaine)' },
-                  { value: 'active', label: '💪 Actif (6-7 jours/semaine)' },
-                  { value: 'veryActive', label: '🔥 Très actif (entraînement intensif quotidien)' },
+                  { value: 'sedentary', label: '🛋️ Sédentaire', desc: 'Pas ou peu d\'exercice' },
+                  { value: 'light', label: '🚶 Léger', desc: '1-3 jours/semaine' },
+                  { value: 'moderate', label: '🏃 Modéré', desc: '3-5 jours/semaine' },
+                  { value: 'active', label: '💪 Actif', desc: '6-7 jours/semaine' },
+                  { value: 'veryActive', label: '🔥 Très actif', desc: 'Entraînement quotidien' },
                 ].map((option) => (
-                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <label key={option.value} className="cursor-pointer">
                     <input
                       type="radio"
                       value={option.value}
                       checked={profile.activityLevel === option.value}
                       onChange={(e) => setProfile({ ...profile, activityLevel: e.target.value as ActivityLevel })}
                       required
-                      className="w-4 h-4"
+                      className="sr-only"
                     />
-                    <span className="text-slate-900 dark:text-white">{option.label}</span>
+                    <div className={`p-4 rounded-lg border-2 transition-all ${
+                      profile.activityLevel === option.value
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}>
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-slate-900 dark:text-white">{option.label}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{option.desc}</p>
+                    </div>
                   </label>
                 ))}
               </div>
             </div>
 
+            {/* Goal */}
             <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-3">
-                Objectif
-              </label>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Objectif</label>
               <div className="space-y-2">
                 {[
-                  { value: 'weightLoss', label: '📉 Perte de poids (-500 kcal/jour)' },
-                  { value: 'maintenance', label: '➡️ Maintien (calories = TDEE)' },
-                  { value: 'muscleGain', label: '📈 Prise de muscle (+300 kcal/jour)' },
+                  { value: 'weightLoss', label: '📉 Perte de poids', desc: '-500 kcal/jour (~0.5kg/semaine)' },
+                  { value: 'maintenance', label: '➡️ Maintien', desc: 'Calories = TDEE' },
+                  { value: 'muscleGain', label: '📈 Prise de muscle', desc: '+300 kcal/jour' },
                 ].map((option) => (
-                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <label key={option.value} className="cursor-pointer">
                     <input
                       type="radio"
                       value={option.value}
                       checked={profile.goal === option.value}
                       onChange={(e) => setProfile({ ...profile, goal: e.target.value as Goal })}
                       required
-                      className="w-4 h-4"
+                      className="sr-only"
                     />
-                    <span className="text-slate-900 dark:text-white">{option.label}</span>
+                    <div className={`p-4 rounded-lg border-2 transition-all ${
+                      profile.goal === option.value
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}>
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-slate-900 dark:text-white">{option.label}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{option.desc}</p>
+                    </div>
                   </label>
                 ))}
               </div>
@@ -242,86 +271,68 @@ export default function CoachPage() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+              className="btn-primary w-full justify-center flex items-center gap-2"
             >
               <Zap className="w-5 h-5" />
               Calculer mes objectifs
             </button>
           </form>
         ) : (
-          <div className="space-y-6">
-            {/* Profile summary */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Profil</h2>
+          <div className="space-y-6 animate-fade-in">
+            {/* Profile Summary */}
+            <div className="card">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">📋 Ton Profil</h2>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">Âge</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{coachProfile?.age} ans</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">Poids</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{coachProfile?.weight} kg</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">Taille</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{coachProfile?.height} cm</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">Sexe</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {coachProfile?.gender ? GENDER_LABELS[coachProfile.gender as Gender] : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between sm:col-span-2">
-                  <span className="text-slate-600 dark:text-slate-400">Activité</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {coachProfile?.activityLevel ? ACTIVITY_LABELS[coachProfile.activityLevel as ActivityLevel] : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between sm:col-span-2">
-                  <span className="text-slate-600 dark:text-slate-400">Objectif</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {coachProfile?.goal ? GOAL_LABELS[coachProfile.goal as Goal] : 'N/A'}
-                  </span>
-                </div>
+                {[
+                  { label: 'Âge', value: `${coachProfile?.age} ans` },
+                  { label: 'Poids', value: `${coachProfile?.weight} kg` },
+                  { label: 'Taille', value: `${coachProfile?.height} cm` },
+                  { label: 'Sexe', value: GENDER_LABELS[coachProfile?.gender as Gender] || 'N/A' },
+                  { label: 'Activité', value: ACTIVITY_LABELS[coachProfile?.activityLevel as ActivityLevel] || 'N/A' },
+                  { label: 'Objectif', value: GOAL_LABELS[coachProfile?.goal as Goal] || 'N/A' },
+                ].map((item) => (
+                  <div key={item.label} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase">{item.label}</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">{item.value}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Calculated goals */}
+            {/* Calculated Goals */}
             {goals && (
-              <div className="bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Tes objectifs calculés</h2>
-                <div className="grid sm:grid-cols-5 gap-4">
-                  <div className="text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Calories/jour</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">{goals.calories}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Protéines</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">{goals.protein}g</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Glucides</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">{goals.carbs}g</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Lipides</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">{goals.fat}g</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Fibres</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">{goals.fiber}g</p>
-                  </div>
+              <div className="card-gradient">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">🎯 Tes Objectifs Calculés</h2>
+                <div className="grid sm:grid-cols-5 gap-3">
+                  {[
+                    { label: 'Calories', value: goals.calories, unit: '/jour' },
+                    { label: 'Protéines', value: goals.protein, unit: 'g' },
+                    { label: 'Glucides', value: goals.carbs, unit: 'g' },
+                    { label: 'Lipides', value: goals.fat, unit: 'g' },
+                    { label: 'Fibres', value: goals.fiber, unit: 'g' },
+                  ].map((item) => (
+                    <div key={item.label} className="text-center p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-2">{item.label}</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">{item.value}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{item.unit}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            <button
-              onClick={() => setStep('form')}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
-            >
-              Modifier le profil
-            </button>
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Link href="/dashboard" className="btn-secondary flex-1 block text-center">
+                ← Dashboard
+              </Link>
+              <button
+                onClick={() => setStep('form')}
+                className="btn-primary flex-1"
+              >
+                ✏️ Modifier
+              </button>
+            </div>
           </div>
         )}
       </main>
