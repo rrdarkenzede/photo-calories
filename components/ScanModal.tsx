@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose-photo' | 'camera' | 'upload' | 'choose-barcode' | 'barcode-camera' | 'barcode-input' | 'result'
+type ScanMode = 'choose-photo' | 'camera' | 'upload' | 'choose-barcode' | 'barcode-camera' | 'barcode-input' | 'search-name' | 'search-results' | 'result'
 type Tab = 'barcode' | 'analysis'
 type Plan = 'free' | 'pro' | 'fitness'
 
@@ -23,11 +23,14 @@ export default function ScanModal({
   const [result, setResult] = useState<any>(null)
   const [ingredients, setIngredients] = useState<Array<{ name: string; amount: string; nutrition?: any }>>([{ name: '', amount: '100g' }])
   const [barcodeInput, setBarcodeInput] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [barcodeStream, setBarcodeStream] = useState<MediaStream | null>(null)
+  const searchTimeoutRef = useRef<NodeJS.Timeout>()
 
   const calculatedNutrition = useMemo(() => {
     if (!result || !ingredients.length) return null
@@ -75,55 +78,10 @@ export default function ScanModal({
         videoRef.current.srcObject = mediaStream
       }
       setMode('barcode-camera')
-      // Start barcode detection
-      scanBarcodeFrame(mediaStream)
     } catch (err) {
       console.error('Camera error:', err)
       alert('Impossible d\'accéder à la caméra')
     }
-  }
-
-  const scanBarcodeFrame = (mediaStream: MediaStream) => {
-    if (!videoRef.current || !canvasRef.current) return
-
-    const ctx = canvasRef.current.getContext('2d')
-    if (!ctx) return
-
-    const video = videoRef.current
-    canvasRef.current.width = video.videoWidth
-    canvasRef.current.height = video.videoHeight
-
-    const scan = async () => {
-      if (mode !== 'barcode-camera') return
-
-      ctx.drawImage(video, 0, 0)
-      const imageData = canvasRef.current!.toDataURL('image/jpeg')
-
-      try {
-        // Try to decode using jsBarcode or similar
-        // For now, use the uploaded image
-        const response = await fetch('/api/decode-barcode', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: imageData }),
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          if (data.barcode) {
-            stopBarcodeCamera()
-            searchBarcode(data.barcode)
-            return
-          }
-        }
-      } catch (err) {
-        console.error('Barcode detection error:', err)
-      }
-
-      requestAnimationFrame(scan)
-    }
-
-    scan()
   }
 
   const stopPhotoCamera = () => {
@@ -216,6 +174,80 @@ export default function ScanModal({
     } catch (err) {
       console.error('Analysis error:', err)
       alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      setLoading(false)
+    }
+  }
+
+  const searchByName = async (name: string) => {
+    if (!name.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    try {
+      const response = await fetch('/api/search-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+
+      if (!response.ok) {
+        setSearchResults([])
+        return
+      }
+
+      const data = await response.json()
+      setSearchResults(data.products || [])
+      setMode('search-results')
+    } catch (err) {
+      console.error('Search error:', err)
+      setSearchResults([])
+    }
+  }
+
+  const handleSearchInput = (value: string) => {
+    setSearchInput(value)
+    
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    // Debounce search
+    if (value.trim().length > 1) {
+      searchTimeoutRef.current = setTimeout(() => {
+        searchByName(value)
+      }, 500)
+    } else {
+      setSearchResults([])
+    }
+  }
+
+  const selectProduct = async (product: any) => {
+    setLoading(true)
+    try {
+      const mockResult = {
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        code: product.code,
+        calories: product.calories,
+        protein: plan !== 'free' ? product.protein : undefined,
+        carbs: plan !== 'free' ? product.carbs : undefined,
+        fat: plan !== 'free' ? product.fat : undefined,
+        sugars: plan === 'fitness' ? product.sugars : undefined,
+        fiber: plan === 'fitness' ? product.fiber : undefined,
+        sodium: plan === 'fitness' ? product.sodium : undefined,
+        servingSize: product.servingSize,
+        type: 'search',
+      }
+      
+      setResult(mockResult)
+      setMode('result')
+    } catch (err) {
+      console.error('Error:', err)
+      alert('Erreur lors du chargement du produit')
+    } finally {
       setLoading(false)
     }
   }
@@ -314,6 +346,8 @@ export default function ScanModal({
     setImage(null)
     setIngredients([{ name: '', amount: '100g' }])
     setBarcodeInput('')
+    setSearchInput('')
+    setSearchResults([])
     if (tab === 'barcode') {
       setMode('choose-barcode')
     } else {
@@ -328,6 +362,8 @@ export default function ScanModal({
     setResult(null)
     setImage(null)
     setBarcodeInput('')
+    setSearchInput('')
+    setSearchResults([])
     if (newTab === 'barcode') {
       setMode('choose-barcode')
     } else {
@@ -339,6 +375,9 @@ export default function ScanModal({
     return () => {
       stopPhotoCamera()
       stopBarcodeCamera()
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -405,8 +444,11 @@ export default function ScanModal({
               <button onClick={startBarcodeCamera} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                 📱 Scanner avec caméra
               </button>
-              <button onClick={() => setMode('barcode-input')} style={{ padding: '1.2rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                ⌨️ Entrer manuellement
+              <button onClick={() => setMode('barcode-input')} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                ⌨️ Entré manuellement
+              </button>
+              <button onClick={() => setMode('search-name')} style={{ padding: '1.2rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                🔍 Chercher par nom
               </button>
             </div>
           )}
@@ -446,6 +488,77 @@ export default function ScanModal({
                   🔍 Chercher
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* SEARCH BY NAME */}
+          {tab === 'barcode' && mode === 'search-name' && !result && (
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c', marginBottom: '1rem', marginTop: 0 }}>Cherche un produit par nom</h3>
+              <input 
+                type="text" 
+                placeholder="Ex: Coca, Banane, Yaourt, Lait..." 
+                value={searchInput}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
+                autoFocus
+              />
+              
+              {searchInput.trim().length > 0 && searchResults.length === 0 && !loading && (
+                <div style={{ padding: '1rem', background: '#f7fafc', borderRadius: '12px', textAlign: 'center', color: '#718096', fontWeight: 600 }}>
+                  Aucun résultat pour "{searchInput}"
+                </div>
+              )}
+              
+              {searchResults.length > 0 && (
+                <div style={{ display: 'grid', gap: '0.8rem', maxHeight: '300px', overflowY: 'auto' }}>
+                  {searchResults.map((product, i) => (
+                    <button
+                      key={i}
+                      onClick={() => selectProduct(product)}
+                      style={{
+                        padding: '1rem',
+                        background: 'white',
+                        border: '2px solid #e2e8f0',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 150ms',
+                        textAlign: 'left',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.borderColor = '#667eea'
+                        e.currentTarget.style.background = '#f0f4ff'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.borderColor = '#e2e8f0'
+                        e.currentTarget.style.background = 'white'
+                      }}
+                    >
+                      {product.image && (
+                        <img src={product.image} alt={product.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', float: 'left', marginRight: '1rem', marginBottom: '0.5rem' }} />
+                      )}
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a202c' }}>{product.name}</div>
+                      {product.brand && (
+                        <div style={{ fontSize: '0.8rem', color: '#718096', marginBottom: '0.3rem' }}>Par: {product.brand}</div>
+                      )}
+                      <div style={{ fontSize: '0.85rem', color: '#667eea', fontWeight: 600 }}>{Math.round(product.calories)} cal</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {searchInput.trim().length <= 1 && searchResults.length === 0 && (
+                <div style={{ padding: '1rem', background: '#f7fafc', borderRadius: '12px', textAlign: 'center', color: '#718096', fontSize: '0.9rem' }}>
+                  Commence à écrire pour chercher...
+                </div>
+              )}
+              
+              <button 
+                onClick={() => setMode('choose-barcode')}
+                style={{ width: '100%', padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c', marginTop: '1rem' }}
+              >
+                Retour
+              </button>
             </div>
           )}
 
