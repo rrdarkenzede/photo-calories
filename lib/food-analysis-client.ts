@@ -1,9 +1,11 @@
 /**
  * Food Analysis Client
  * Helper functions to interact with the API endpoints
+ * All output is translated to French
  */
 
 import axios from 'axios';
+import { translateFood, translateNutrition } from './translations';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -55,13 +57,25 @@ export interface SearchResponse {
 /**
  * Analyse une image alimentaire
  * @param imageBase64 - Image en base64 (avec ou sans data: prefix)
- * @returns Analysis avec nutrition data
+ * @returns Analysis avec nutrition data (translated to French)
  */
 export async function analyzeFoodImage(imageBase64: string): Promise<AnalyzeResponse> {
   try {
     const response = await axios.post<AnalyzeResponse>('/api/analyze', {
       imageData: imageBase64,
     });
+
+    // Translate results to French
+    if (response.data.success && response.data.analysis) {
+      response.data.analysis.mainFood = translateFood(response.data.analysis.mainFood);
+      response.data.analysis.foods = response.data.analysis.foods.map(f => ({
+        ...f,
+        name: translateFood(f.name),
+      }));
+    }
+    if (response.data.nutrition) {
+      response.data.nutrition.description = translateFood(response.data.nutrition.description);
+    }
 
     return response.data;
   } catch (error) {
@@ -74,7 +88,7 @@ export async function analyzeFoodImage(imageBase64: string): Promise<AnalyzeResp
     }
     return {
       success: false,
-      error: 'Failed to analyze image',
+      error: 'Échec de l\'analyse d\'image',
     };
   }
 }
@@ -83,7 +97,7 @@ export async function analyzeFoodImage(imageBase64: string): Promise<AnalyzeResp
  * Recherche un aliment
  * @param query - Nom de l'aliment à rechercher
  * @param source - Source de données ('all', 'usda', 'openfoodfacts')
- * @returns Nutrition data from multiple sources
+ * @returns Nutrition data from multiple sources (translated to French)
  */
 export async function searchFood(
   query: string,
@@ -96,6 +110,14 @@ export async function searchFood(
         source,
       },
     });
+
+    // Translate results to French
+    if (response.data.success && response.data.results) {
+      response.data.results = response.data.results.map(item => ({
+        ...item,
+        name: translateFood(item.name),
+      }));
+    }
 
     return response.data;
   } catch (error) {
@@ -110,7 +132,7 @@ export async function searchFood(
     return {
       success: false,
       query,
-      error: 'Failed to search food',
+      error: 'Échec de la recherche d\'aliments',
     };
   }
 }
@@ -119,7 +141,7 @@ export async function searchFood(
  * Recherche multiple aliments
  * @param foods - Array d'aliments à rechercher
  * @param source - Source de données
- * @returns Results from all foods
+ * @returns Results from all foods (translated to French)
  */
 export async function searchMultipleFoods(
   foods: string[],
@@ -130,6 +152,14 @@ export async function searchMultipleFoods(
       foods,
       source,
     });
+
+    // Translate results to French
+    if (response.data.success && response.data.results) {
+      response.data.results = response.data.results.map(item => ({
+        ...item,
+        name: translateFood(item.name),
+      }));
+    }
 
     return response.data;
   } catch (error) {
@@ -144,7 +174,7 @@ export async function searchMultipleFoods(
     return {
       success: false,
       query: foods.join(', '),
-      error: 'Failed to search foods',
+      error: 'Échec de la recherche d\'aliments',
     };
   }
 }
@@ -152,13 +182,21 @@ export async function searchMultipleFoods(
 /**
  * Scan un code-barres
  * @param barcode - EAN/UPC barcode
- * @returns Product nutrition data from OpenFoodFacts
+ * @returns Product nutrition data from OpenFoodFacts (translated to French)
  */
 export async function scanBarcode(barcode: string): Promise<SearchResponse> {
   try {
     const response = await axios.post<SearchResponse>('/api/barcode', {
       barcode,
     });
+
+    // Translate results to French
+    if (response.data.success && response.data.results) {
+      response.data.results = response.data.results.map(item => ({
+        ...item,
+        name: translateFood(item.name),
+      }));
+    }
 
     return response.data;
   } catch (error) {
@@ -173,7 +211,7 @@ export async function scanBarcode(barcode: string): Promise<SearchResponse> {
     return {
       success: false,
       query: barcode,
-      error: 'Failed to scan barcode',
+      error: 'Échec du scan de code-barres',
     };
   }
 }
@@ -189,11 +227,11 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
   return {
     id: Date.now().toString(),
     date: new Date(),
-    name: response.analysis?.mainFood || response.nutrition.description,
+    name: response.analysis?.mainFood || translateFood(response.nutrition.description),
     ingredients: [
       {
         id: '1',
-        name: response.nutrition.description,
+        name: translateFood(response.nutrition.description),
         quantity: 100,
         unit: 'g',
         calories: response.nutrition.calories,
@@ -225,11 +263,11 @@ export function searchResultToMeal(result: SearchResult, quantity: number = 100)
   return {
     id: Date.now().toString(),
     date: new Date(),
-    name: result.name,
+    name: translateFood(result.name),
     ingredients: [
       {
         id: result.id,
-        name: result.name,
+        name: translateFood(result.name),
         quantity,
         unit: 'g',
         calories: Math.round(result.calories * multiplier),
