@@ -91,7 +91,6 @@ const FOOD_TRANSLATIONS: Record<string, string> = {
   'burger': 'burger',
   'hot dog': 'hot dog',
   'sandwich': 'sandwich',
-  'salad': 'salade',
   'soup': 'soupe',
   'pasta dish': 'plat de pâtes',
   
@@ -282,7 +281,6 @@ export function normalizeClairifaiName(name: string): string {
     'brown rice': 'rice',
     'cooked pasta': 'pasta',
     'green salad': 'salad',
-    'pizza pie': 'pizza',
   };
 
   return normalizations[name] || name;
