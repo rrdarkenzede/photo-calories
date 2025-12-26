@@ -18,6 +18,7 @@ import {
   X,
   ChevronDown,
 } from 'lucide-react';
+import { PLANS } from '@/lib/plans';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function Dashboard() {
     meals,
     logout,
     setPlan,
+    scansUsedToday,
   } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -36,36 +38,16 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
     if (!currentUser) {
-      // Auto create demo user if not logged in
-      // The user will be created when landing page button is clicked
+      router.push('/');
     }
-  }, [currentUser]);
+  }, [currentUser, router]);
 
-  if (!mounted) {
+  if (!mounted || !currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-green-200 border-t-green-600 mb-4" />
           <p className="text-slate-600 font-bold text-lg">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-            📸 PhotoCalories
-          </h1>
-          <p className="text-slate-600 font-bold text-lg">Création de votre session...</p>
-          <Link
-            href="/"
-            className="inline-block px-6 py-3 text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl font-bold hover:scale-105 transition-all duration-300"
-          >
-            Retour à l'accueil
-          </Link>
         </div>
       </div>
     );
@@ -86,6 +68,9 @@ export default function Dashboard() {
   const carbsProgress = dailyGoals ? (totalCarbs / dailyGoals.carbs) * 100 : 0;
   const fatProgress = dailyGoals ? (totalFat / dailyGoals.fat) * 100 : 0;
 
+  const maxScans = PLANS[currentPlan].scansPerDay;
+  const scansRemaining = maxScans - scansUsedToday;
+
   const handleLogout = () => {
     logout();
     router.push('/');
@@ -97,7 +82,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex flex-col">
       {/* Header */}
       <div className="border-b-2 border-green-200 sticky top-0 z-50 bg-white/80 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -106,7 +91,7 @@ export default function Dashboard() {
           </h1>
 
           {/* Plan Dropdown */}
-          <div className="relative">
+          <div className="relative hidden sm:block">
             <button
               onClick={() => setPlanMenuOpen(!planMenuOpen)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 font-bold text-green-700 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-95"
@@ -157,7 +142,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row">
+      <div className="flex flex-col lg:flex-row flex-1">
         {/* Sidebar */}
         <div
           className={`fixed lg:static w-64 h-screen bg-white border-r-2 border-green-200 p-4 overflow-y-auto transition-all duration-300 lg:translate-x-0 z-40 ${
@@ -197,7 +182,11 @@ export default function Dashboard() {
             </div>
 
             <div className="pt-4 border-t-2 border-green-200">
-              <p className="text-xs font-black text-slate-600 uppercase pl-4">Utilisateur</p>
+              <p className="text-xs font-black text-slate-600 uppercase pl-4">Scans</p>
+              <div className="mt-2 px-4 py-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300">
+                <p className="text-2xl font-black text-green-700">{scansRemaining}/{maxScans}</p>
+                <p className="text-xs font-bold text-slate-600 mt-1">Restants aujourd'hui</p>
+              </div>
             </div>
 
             <div className="pt-4 border-t-2 border-green-200 space-y-2">
@@ -234,11 +223,19 @@ export default function Dashboard() {
         </div>
 
         {/* Main */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
           {/* Bienvenue */}
           <div className="mb-6 animate-fade-in">
             <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Bienvenue 👋</p>
-            <h2 className="text-3xl font-black text-slate-900 mt-1">{currentUser?.email}</h2>
+            <div className="flex items-baseline justify-between mt-1">
+              <h2 className="text-3xl font-black text-slate-900">{currentUser?.email}</h2>
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-black text-slate-600 uppercase">Scans</p>
+                <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                  {scansRemaining}/{maxScans}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Stats Grid */}
@@ -308,31 +305,31 @@ export default function Dashboard() {
           <div className="grid sm:grid-cols-2 gap-3 mb-6">
             <Link
               href="/dashboard/camera"
-              className="card border-2 border-green-300 hover:border-green-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+              className="card border-2 border-green-300 hover:border-green-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group p-4"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Camera className="w-12 h-12 text-green-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
                 <div>
                   <p className="text-xs sm:text-sm font-bold text-slate-600 uppercase">Photo</p>
-                  <p className="text-lg sm:text-xl font-black text-slate-900 mt-1 group-hover:text-green-600 transition-all duration-300">
+                  <p className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-green-600 transition-all duration-300">
                     📷 Caméra
                   </p>
                 </div>
-                <Camera className="w-10 h-10 text-green-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
               </div>
             </Link>
 
             <Link
               href="/dashboard/barcode"
-              className="card border-2 border-emerald-300 hover:border-emerald-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+              className="card border-2 border-emerald-300 hover:border-emerald-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group p-4"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Barcode className="w-12 h-12 text-emerald-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
                 <div>
                   <p className="text-xs sm:text-sm font-bold text-slate-600 uppercase">Scan</p>
-                  <p className="text-lg sm:text-xl font-black text-slate-900 mt-1 group-hover:text-emerald-600 transition-all duration-300">
-                    💱 Code-barres
+                  <p className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-all duration-300">
+                    💱 Code
                   </p>
                 </div>
-                <Barcode className="w-10 h-10 text-emerald-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
               </div>
             </Link>
           </div>
@@ -368,7 +365,7 @@ export default function Dashboard() {
                     className="p-3 sm:p-4 rounded-lg border-2 border-green-200 hover:border-green-400 transition-all duration-300 group hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-bold text-slate-900 group-hover:text-green-600 transition-all duration-300 truncate">
                           {meal.name}
                         </p>
