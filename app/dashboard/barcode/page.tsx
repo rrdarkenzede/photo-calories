@@ -7,11 +7,10 @@ import { scanBarcode } from '@/lib/api-helpers';
 import { Meal, Ingredient } from '@/lib/types';
 import { ArrowLeft, Barcode, Loader2, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { PLANS } from '@/lib/plans';
 
 export default function BarcodePage() {
   const router = useRouter();
-  const { addMeal, incrementScans, currentPlan, scansUsedToday } = useAppStore();
+  const { addMeal, plan } = useAppStore();
 
   const [barcode, setBarcode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,17 +20,9 @@ export default function BarcodePage() {
   const [mealName, setMealName] = useState('');
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
 
-  const maxScans = PLANS[currentPlan].scansPerDay;
-  const scansRemaining = maxScans - scansUsedToday;
-
   const scanCode = async () => {
     if (!barcode.trim()) {
       setError('📝 Saisir un code-barres!');
-      return;
-    }
-
-    if (scansRemaining <= 0) {
-      setError('🚫 Limite de scans atteinte. Upgrade ton plan!');
       return;
     }
 
@@ -71,21 +62,19 @@ export default function BarcodePage() {
 
     const meal: Meal = {
       id: Date.now().toString(),
-      date: new Date(),
+      date: new Date().toISOString().split('T')[0],
       name: mealName || analysis.name,
       ingredients,
-      totalCalories: ingredients[0].calories,
-      totalProtein: ingredients[0].protein,
-      totalCarbs: ingredients[0].carbs,
-      totalFat: ingredients[0].fat,
-      totalFiber: ingredients[0].fiber,
-      totalSugar: ingredients[0].sugar,
-      totalSodium: ingredients[0].sodium,
+      nutrition: {
+        calories: ingredients[0].calories,
+        protein: ingredients[0].protein,
+        carbs: ingredients[0].carbs,
+        fat: ingredients[0].fat,
+      },
       mealType,
     };
 
     addMeal(meal);
-    incrementScans();
 
     alert('✅ Repas ajouté!');
     setAnalysis(null);
@@ -111,9 +100,9 @@ export default function BarcodePage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs font-black text-slate-600 uppercase">🔔 Scans</p>
+            <p className="text-xs font-black text-slate-600 uppercase">Plan</p>
             <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {scansRemaining} / {maxScans}
+              {plan}
             </p>
           </div>
         </div>
