@@ -23,9 +23,10 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
     setAllMeals(getAllMeals())
     const scans = { free: 2, pro: 10, fitness: 40 }
     setScansRemaining(scans[profile.plan] || 2)
-  }, [])
+  }, [profile.plan])
 
   const addMeal = (meal: MealEntry) => {
+    console.log('✅ Adding meal:', meal)
     setMeals([...meals, meal])
     setAllMeals([...allMeals, meal])
     setShowScan(false)
@@ -55,6 +56,11 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
   const protPercent = Math.round((totalProt / profile.targetProtein) * 100)
   const carbPercent = Math.round((totalCarbs / profile.targetCarbs) * 100)
   const fatPercent = Math.round((totalFat / profile.targetFat) * 100)
+
+  const openScanModal = () => {
+    console.log('🔓 Opening scan modal...')
+    setShowScan(true)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', paddingBottom: '80px' }}>
@@ -117,10 +123,18 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 
             {/* Big Action Buttons */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <button onClick={() => setShowScan(true)} disabled={scansRemaining === 0} style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}>
+              <button 
+                onClick={openScanModal} 
+                disabled={scansRemaining === 0} 
+                style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}
+              >
                 📸<br/>Scanner
               </button>
-              <button onClick={() => setShowScan(true)} disabled={scansRemaining === 0} style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}>
+              <button 
+                onClick={openScanModal} 
+                disabled={scansRemaining === 0} 
+                style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}
+              >
                 📤<br/>Upload
               </button>
             </div>
@@ -184,7 +198,15 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
       </nav>
 
       {/* Scan Modal */}
-      {showScan && <ScanModal onClose={() => setShowScan(false)} onAdd={addMeal} plan={profile.plan} />}
+      {showScan && (
+        <>
+          {console.log('📋 Rendering ScanModal')}
+          <ScanModal onClose={() => {
+            console.log('🔒 Closing scan modal')
+            setShowScan(false)
+          }} onAdd={addMeal} plan={profile.plan} />
+        </>
+      )}
       
       {/* Close dropdown when clicking outside */}
       {showPlanDropdown && <div onClick={() => setShowPlanDropdown(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />}
