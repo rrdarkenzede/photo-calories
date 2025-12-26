@@ -4,7 +4,18 @@ import { create } from 'zustand';
 import { PlanType, DailyStats, Meal, Recipe, CoachProfile } from './types';
 import { PLANS, DEFAULT_DAILY_GOALS } from './plans';
 
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 interface AppState {
+  // User management
+  currentUser: User | null;
+  setUser: (user: User) => void;
+  logout: () => void;
+
   // Plan management
   currentPlan: PlanType;
   setPlan: (plan: PlanType) => void;
@@ -38,9 +49,23 @@ interface AppState {
   scansUsedToday: number;
   incrementScans: () => void;
   resetScans: () => void;
+  totalScans: number;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  // User management
+  currentUser: null,
+  setUser: (user: User) => set({ currentUser: user }),
+  logout: () => set({ 
+    currentUser: null, 
+    todayStats: null,
+    meals: [],
+    recipes: [],
+    coachProfile: null,
+    dailyGoals: DEFAULT_DAILY_GOALS,
+    scansUsedToday: 0,
+  }),
+
   currentPlan: 'free',
   setPlan: (plan: PlanType) => set({ currentPlan: plan }),
 
@@ -181,4 +206,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   scansUsedToday: 0,
   incrementScans: () => set((state) => ({ scansUsedToday: state.scansUsedToday + 1 })),
   resetScans: () => set({ scansUsedToday: 0 }),
+  totalScans: 0,
 }));
