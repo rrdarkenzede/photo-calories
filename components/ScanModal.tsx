@@ -92,13 +92,11 @@ export default function ScanModal({
 
       const data = await response.json()
       
-      // Create ingredients list from detected foods
       const detectedIngredients = data.ingredients
         .filter((ing: any) => ing.confidence > 40)
         .map((ing: any) => ({
           name: ing.name,
           amount: '100g',
-          nutrition: ing.nutrition,
         }))
       
       const mockResult = {
@@ -108,13 +106,16 @@ export default function ScanModal({
         protein: plan !== 'free' ? data.nutrition.protein : undefined,
         carbs: plan !== 'free' ? data.nutrition.carbs : undefined,
         fat: plan !== 'free' ? data.nutrition.fat : undefined,
+        sugars: plan === 'fitness' ? data.nutrition.sugars : undefined,
+        fiber: plan === 'fitness' ? data.nutrition.fiber : undefined,
+        sodium: plan === 'fitness' ? data.nutrition.sodium : undefined,
         allFoods: data.foods,
         ingredients: detectedIngredients,
       }
       
       setResult(mockResult)
       if (plan === 'fitness' && detectedIngredients.length > 0) {
-        setIngredients(detectedIngredients.map(ing => ({ name: ing.name, amount: ing.amount })))
+        setIngredients(detectedIngredients)
       }
     } catch (err) {
       console.error('Analysis error:', err)
@@ -135,7 +136,6 @@ export default function ScanModal({
         protein: plan !== 'free' ? 0 : undefined,
         carbs: plan !== 'free' ? 35 : undefined,
         fat: plan !== 'free' ? 0 : undefined,
-        nutriScore: plan === 'fitness' ? 'E' : undefined,
       }
       
       setResult(mockResult)
@@ -281,6 +281,27 @@ export default function ScanModal({
                   </>
                 )}
               </div>
+
+              {plan === 'fitness' && (
+                <div>
+                  {result.sugars !== undefined && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600 }}>Sucres</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.sugars}g</div>
+                      </div>
+                      <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600 }}>Fibres</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.fiber}g</div>
+                      </div>
+                      <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600 }}>Sodium</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.sodium}mg</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {plan === 'fitness' && ingredients.length > 0 && (
                 <div style={{ marginTop: '1rem' }}>

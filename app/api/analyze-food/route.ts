@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { searchMultipleUSDAFoods } from '@/lib/usda-service'
 import { getNutritionByName } from '@/lib/nutrition-database'
 
 const CLARIFAI_API_KEY = process.env.NEXT_PUBLIC_CLARIFAI_API_KEY || '95cc52863ab2402baca61c72e1170fa9'
@@ -14,11 +15,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 })
     }
 
-    // Remove data:image prefix if present
     const base64Image = image.replace(/^data:image\/\w+;base64,/, '')
 
-    // Call Clarifai API
-    const response = await fetch(
+    // Call Clarifai API for food detection
+    const clarifaiResponse = await fetch(
       `https://api.clarifai.com/v2/models/${CLARIFAI_MODEL_ID}/outputs`,
       {
         method: 'POST',
@@ -44,21 +44,21 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const data = await response.json()
+    const clarifaiData = await clarifaiResponse.json()
 
-    if (!response.ok || data.status?.code !== 10000) {
-      console.error('Clarifai API error:', data)
+    if (!clarifaiResponse.ok || clarifaiData.status?.code !== 10000) {
+      console.error('Clarifai API error:', clarifaiData)
       return NextResponse.json(
-        { error: 'Failed to analyze image', details: data },
+        { error: 'Failed to analyze image' },
         { status: 500 }
       )
     }
 
-    // Extract food items from Clarifai response
-    const concepts = data.outputs?.[0]?.data?.concepts || []
+    // Extract detected foods from Clarifai
+    const concepts = clarifaiData.outputs?.[0]?.data?.concepts || []
     const detectedFoods = concepts
-      .filter((c: any) => c.value > 0.5) // Lower threshold for more results
-      .slice(0, 10) // Top 10
+      .filter((c: any) => c.value > 0.5)
+      .slice(0, 10)
       .map((c: any) => ({
         name: c.name,
         confidence: Math.round(c.value * 100),
@@ -71,26 +71,42 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get nutrition for each detected food
-    const ingredientsWithNutrition = detectedFoods
-      .map(food => {
-        const nutrition = getNutritionByName(food.name)
-        return {
-          name: food.name,
-          confidence: food.confidence,
-          nutrition: nutrition || { calories: 100, protein: 5, carbs: 12, fat: 3, unit: '100g' },
-        }
-      })
-      .filter(item => item.nutrition)
+    // Get nutrition data from USDA for each detected food
+    console.log('Fetching nutrition data for:', detectedFoods.map(f => f.name))
+    const usDAFoods = await searchMultipleUSDAFoods(
+      detectedFoods.map(f => f.name)
+    )
 
-    // Calculate totals
-    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    // Combine Clarifai detection with USDA nutrition data
+    const ingredientsWithNutrition = detectedFoods.map(food => {
+      // Try to find matching USDA food
+      const usdaFood = usDAFoods.find(u => 
+        u.description.toLowerCase().includes(food.name.toLowerCase()) ||
+        food.name.toLowerCase().includes(u.description.toLowerCase().split(',')[0])
+      )
+
+      // Use USDA data if found, otherwise fallback to local database
+      const nutrition = usdaFood || getNutritionByName(food.name)
+
+      return {
+        name: food.name,
+        confidence: food.confidence,
+        nutrition: nutrition || { calories: 100, protein: 5, carbs: 12, fat: 3, unit: '100g' },
+        source: usdaFood ? 'USDA' : 'Local DB',
+      }
+    })
+
+    // Calculate totals (per 100g of each ingredient)
+    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0, sugars: 0, fiber: 0, sodium: 0 }
     ingredientsWithNutrition.forEach(item => {
-      // Assume 100g per ingredient for calculation
-      totals.calories += Math.round(item.nutrition.calories)
-      totals.protein += Math.round(item.nutrition.protein * 10) / 10
-      totals.carbs += Math.round(item.nutrition.carbs * 10) / 10
-      totals.fat += Math.round(item.nutrition.fat * 10) / 10
+      const mult = 1 // Per 100g
+      totals.calories += Math.round(item.nutrition.calories * mult)
+      totals.protein += Math.round(item.nutrition.protein * mult * 10) / 10
+      totals.carbs += Math.round(item.nutrition.carbs * mult * 10) / 10
+      totals.fat += Math.round(item.nutrition.fat * mult * 10) / 10
+      totals.sugars += item.nutrition.sugars || 0
+      totals.fiber += item.nutrition.fiber || 0
+      totals.sodium += item.nutrition.sodium || 0
     })
 
     return NextResponse.json({
@@ -102,12 +118,15 @@ export async function POST(req: NextRequest) {
         protein: totals.protein,
         carbs: totals.carbs,
         fat: totals.fat,
+        sugars: Math.round(totals.sugars * 10) / 10,
+        fiber: Math.round(totals.fiber * 10) / 10,
+        sodium: Math.round(totals.sodium),
       },
     })
   } catch (error) {
     console.error('Error analyzing food:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
