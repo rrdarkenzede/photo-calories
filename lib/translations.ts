@@ -203,7 +203,6 @@ export const FOOD_TRANSLATIONS: Record<string, string> = {
   'chocolate bar': 'barre de chocolat',
   'granola bar': 'barre de céréales',
   'muffin': 'muffin',
-  'donut': 'donut',
   'waffle': 'gaufre',
   'pancake': 'crêpe',
   'crepe': 'crêpe',
