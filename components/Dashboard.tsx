@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getTodayMeals, getAllMeals, MealEntry, UserProfile, PLAN_FEATURES, changePlan, saveProfile, Plan } from '@/lib/calculations'
-import AddMealModal from './AddMealModal'
+import ScanModal from './ScanModal'
 import AnalyticsView from './AnalyticsView'
 import HistoryView from './HistoryView'
 import CoachTab from './CoachTab'
@@ -14,7 +14,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
   const [meals, setMeals] = useState<MealEntry[]>([])
   const [allMeals, setAllMeals] = useState<MealEntry[]>([])
   const [tab, setTab] = useState<TabType>('home')
-  const [showAddMeal, setShowAddMeal] = useState(false)
+  const [showScan, setShowScan] = useState(false)
   const [showPlanDropdown, setShowPlanDropdown] = useState(false)
   const [scansRemaining, setScansRemaining] = useState(2)
 
@@ -28,7 +28,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
   const addMeal = (meal: MealEntry) => {
     setMeals([...meals, meal])
     setAllMeals([...allMeals, meal])
-    setShowAddMeal(false)
+    setShowScan(false)
     setScansRemaining(Math.max(0, scansRemaining - 1))
   }
 
@@ -117,10 +117,10 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 
             {/* Big Action Buttons */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s' }}>
+              <button onClick={() => setShowScan(true)} disabled={scansRemaining === 0} style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}>
                 📸<br/>Scanner
               </button>
-              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s' }}>
+              <button onClick={() => setShowScan(true)} disabled={scansRemaining === 0} style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}>
                 📤<br/>Upload
               </button>
             </div>
@@ -183,8 +183,8 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
         </div>
       </nav>
 
-      {/* Add Meal Modal */}
-      {showAddMeal && <AddMealModal onClose={() => setShowAddMeal(false)} onAdd={addMeal} scansRemaining={scansRemaining} />}
+      {/* Scan Modal */}
+      {showScan && <ScanModal onClose={() => setShowScan(false)} onAdd={addMeal} plan={profile.plan} />}
       
       {/* Close dropdown when clicking outside */}
       {showPlanDropdown && <div onClick={() => setShowPlanDropdown(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />}
