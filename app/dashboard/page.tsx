@@ -36,16 +36,36 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
     if (!currentUser) {
-      router.push('/');
+      // Auto create demo user if not logged in
+      // The user will be created when landing page button is clicked
     }
-  }, [currentUser, router]);
+  }, [currentUser]);
 
-  if (!mounted || !currentUser) {
+  if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-green-200 border-t-green-600 mb-4" />
           <p className="text-slate-600 font-bold text-lg">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <h1 className="text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+            📸 PhotoCalories
+          </h1>
+          <p className="text-slate-600 font-bold text-lg">Création de votre session...</p>
+          <Link
+            href="/"
+            className="inline-block px-6 py-3 text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl font-bold hover:scale-105 transition-all duration-300"
+          >
+            Retour à l'accueil
+          </Link>
         </div>
       </div>
     );
