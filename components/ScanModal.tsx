@@ -282,9 +282,9 @@ export default function ScanModal({
       time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       name: finalResult.name,
       calories: finalResult.calories,
-      protein: finalResult.protein,
-      carbs: finalResult.carbs,
-      fat: finalResult.fat,
+      protein: plan !== 'free' ? finalResult.protein : undefined,
+      carbs: plan !== 'free' ? finalResult.carbs : undefined,
+      fat: plan !== 'free' ? finalResult.fat : undefined,
       items: [finalResult.name]
     }
     
@@ -496,26 +496,28 @@ export default function ScanModal({
                   <p style={{ fontSize: '0.85rem', color: '#4a5568', fontWeight: 500, margin: 0, marginBottom: '1rem' }}>Par: {displayNutrition.brand}</p>
                 )}
                 
-                {/* Quantity selector */}
-                <div style={{ marginBottom: '1rem', padding: '0.8rem', background: 'white', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
-                  <label style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Quantité (en grammes)</label>
-                  <input 
-                    type="number" 
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    min="1"
-                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
-                  />
-                </div>
+                {/* Quantity selector - only for non-free plans */}
+                {plan !== 'free' && (
+                  <div style={{ marginBottom: '1rem', padding: '0.8rem', background: 'white', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Quantité (en grammes)</label>
+                    <input 
+                      type="number" 
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      min="1"
+                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                )}
                 
-                {/* CALORIES */}
-                <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: '1rem' }}>
+                {/* CALORIES - Always show */}
+                <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: plan === 'free' ? 0 : '1rem' }}>
                   <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.3rem' }}>CALORIES</div>
                   <div style={{ fontSize: '2rem', fontWeight: 900, color: '#667eea' }}>{displayNutrition.calories}</div>
                 </div>
 
-                {/* MACROS */}
-                {displayNutrition.protein !== undefined && (
+                {/* MACROS - Pro and Fitness only */}
+                {plan !== 'free' && displayNutrition.protein !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>PROTÉINES</div>
@@ -532,7 +534,7 @@ export default function ScanModal({
                   </div>
                 )}
 
-                {/* MICROS - fitness only */}
+                {/* MICROS - Fitness only */}
                 {plan === 'fitness' && displayNutrition.sugars !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem' }}>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
