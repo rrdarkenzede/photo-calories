@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
 type ScanMode = 'choose' | 'camera' | 'upload' | 'barcode'
@@ -34,6 +34,7 @@ export default function ScanModal({
     } catch (err) {
       console.error('Camera error:', err)
       alert('Impossible d\'accéder à la caméra')
+      setMode('choose')
     }
   }
 
@@ -52,8 +53,10 @@ export default function ScanModal({
       const ctx = canvas.getContext('2d')
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0)
-        const imageData = canvas.toDataURL('image/jpeg')
+        const imageData = canvas.toDataURL('image/jpeg', 0.9)
+        console.log('Photo captured, size:', imageData.length)
         setImage(imageData)
+        setMode('upload') // Change mode to show the image
         stopCamera()
         analyzeFoodImage(imageData)
       }
@@ -66,7 +69,9 @@ export default function ScanModal({
       const reader = new FileReader()
       reader.onload = (event) => {
         const imageData = event.target?.result as string
+        console.log('File uploaded, size:', imageData.length)
         setImage(imageData)
+        setMode('upload') // Ensure we're in upload mode to show image
         analyzeFoodImage(imageData)
       }
       reader.readAsDataURL(file)
@@ -167,6 +172,12 @@ export default function ScanModal({
     onClose()
   }
 
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [])
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={handleClose}>
       <div style={{ background: 'white', borderRadius: '20px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto', padding: '2rem' }} onClick={(e) => e.stopPropagation()}>
@@ -183,7 +194,7 @@ export default function ScanModal({
             <button onClick={() => { setMode('camera'); startCamera(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               📸 Prendre une photo
             </button>
-            <button onClick={() => { setMode('upload'); fileInputRef.current?.click(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               📤 Upload une image
             </button>
             <button onClick={() => setMode('barcode')} style={{ padding: '1.5rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -196,7 +207,7 @@ export default function ScanModal({
         {/* Camera Mode */}
         {mode === 'camera' && !image && (
           <div>
-            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem' }} />
+            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000' }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <button onClick={() => { stopCamera(); setMode('choose'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
               <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capturer</button>
@@ -229,6 +240,9 @@ export default function ScanModal({
         {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
+            {image && (
+              <img src={image} alt="Analyzing..." style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem' }} />
+            )}
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>Analyse en cours...</div>
           </div>
@@ -238,13 +252,15 @@ export default function ScanModal({
         {result && !loading && (
           <div>
             {image && (
-              <img src={image} alt="Food" style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem' }} />
+              <div style={{ marginBottom: '1rem' }}>
+                <img src={image} alt="Food" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+              </div>
             )}
             
             <div style={{ background: '#f7fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem', border: '2px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', marginBottom: '1rem' }}>{result.name}</h3>
               
-              <div style={{ display: 'grid', gridTemplateColumns: plan === 'free' ? '1fr' : '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: plan === 'free' ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
                 <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600 }}>Calories</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#667eea' }}>{result.calories}</div>
