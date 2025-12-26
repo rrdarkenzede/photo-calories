@@ -1,11 +1,26 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Camera, TrendingUp, Zap, Sparkles } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import Link from 'next/link';
+import { ArrowRight, Camera, TrendingUp, Zap, Sparkles, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function LandingPage() {
   const router = useRouter();
+  const { setUser, setPlan } = useAppStore();
+  const [loading, setLoading] = useState(false);
+
+  const handleStartDemo = async () => {
+    setLoading(true);
+    setUser({
+      id: 'demo_user_' + Date.now(),
+      email: 'demo@photocalories.com',
+      name: 'Demo User',
+    });
+    setPlan('free');
+    router.push('/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
@@ -15,12 +30,23 @@ export default function LandingPage() {
           <div className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
             📸 PhotoCalories
           </div>
-          <Link
-            href="/dashboard"
-            className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+          <button
+            onClick={handleStartDemo}
+            disabled={loading}
+            className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 flex items-center gap-2"
           >
-            Accéder à l'app
-          </Link>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Chargement...
+              </>
+            ) : (
+              <>
+                Accéder à l'app
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
         </div>
       </nav>
 
@@ -42,12 +68,22 @@ export default function LandingPage() {
           </p>
 
           <div className="flex gap-3 justify-center flex-wrap">
-            <Link
-              href="/dashboard"
-              className="btn-primary text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 animate-bounce-soft"
+            <button
+              onClick={handleStartDemo}
+              disabled={loading}
+              className="btn-primary text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 animate-bounce-soft disabled:opacity-50 flex items-center gap-2"
             >
-              Démarrer Gratuitement <ArrowRight className="w-5 h-5" />
-            </Link>
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Chargement...
+                </>
+              ) : (
+                <>
+                  Démarrer Gratuitement <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -163,12 +199,22 @@ export default function LandingPage() {
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
             Rejoins 10k+ utilisateurs qui trackent déjà leurs calories avec PhotoCalories. C'est gratuit pour commencer!
           </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex btn-primary text-lg py-4 px-8 animate-glow-pulse"
+          <button
+            onClick={handleStartDemo}
+            disabled={loading}
+            className="inline-flex btn-primary text-lg py-4 px-8 animate-glow-pulse disabled:opacity-50 items-center gap-2"
           >
-            Commencer Gratuitement <ArrowRight className="w-5 h-5" />
-          </Link>
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Chargement...
+              </>
+            ) : (
+              <>
+                Commencer Gratuitement <ArrowRight className="w-5 h-5" />
+              </>
+            )}
+          </button>
         </div>
       </section>
 
