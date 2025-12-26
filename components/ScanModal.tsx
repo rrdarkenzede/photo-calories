@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose-photo' | 'camera' | 'barcode-choose' | 'barcode-input' | 'search-name' | 'search-results' | 'result'
+type ScanMode = 'choose-photo' | 'camera' | 'barcode-choose' | 'barcode-input' | 'barcode-camera' | 'search-name' | 'search-results' | 'result'
 type Tab = 'barcode' | 'analysis'
 type Plan = 'free' | 'pro' | 'fitness'
 
@@ -27,7 +27,9 @@ export default function ScanModal({
   const [searchResults, setSearchResults] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [barcodeStream, setBarcodeStream] = useState<MediaStream | null>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
 
@@ -55,9 +57,9 @@ export default function ScanModal({
     return totals
   }, [ingredients, result])
 
-  const startCamera = async () => {
+  const startPhotoCamera = async () => {
     try {
-      console.log('Requesting camera permission...')
+      console.log('Requesting camera permission for photo...')
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment',
@@ -79,10 +81,39 @@ export default function ScanModal({
     }
   }
 
-  const stopCamera = () => {
+  const startBarcodeCamera = async () => {
+    try {
+      console.log('Requesting camera permission for barcode...')
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      })
+      console.log('Barcode camera access granted')
+      setBarcodeStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+      setMode('barcode-camera')
+    } catch (err) {
+      console.error('Barcode camera error:', err)
+      alert('Impossible d\'accéder à la caméra. Vérifie tes permissions!')
+    }
+  }
+
+  const stopPhotoCamera = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
       setStream(null)
+    }
+  }
+
+  const stopBarcodeCamera = () => {
+    if (barcodeStream) {
+      barcodeStream.getTracks().forEach(track => track.stop())
+      setBarcodeStream(null)
     }
   }
 
@@ -96,9 +127,56 @@ export default function ScanModal({
         ctx.drawImage(videoRef.current, 0, 0)
         const imageData = canvas.toDataURL('image/jpeg', 0.9)
         setImage(imageData)
-        stopCamera()
+        stopPhotoCamera()
         analyzeFoodImage(imageData)
       }
+    }
+  }
+
+  const captureBarcode = () => {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+      if (!canvasRef.current) return
+      
+      const canvas = canvasRef.current
+      canvas.width = videoRef.current.videoWidth
+      canvas.height = videoRef.current.videoHeight
+      const ctx = canvas.getContext('2d')
+      
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0)
+        const imageData = canvas.toDataURL('image/jpeg', 0.9)
+        
+        // Try to decode barcode from image
+        decodeBarcode(imageData)
+      }
+    }
+  }
+
+  const decodeBarcode = async (imageData: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/decode-barcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.barcode) {
+          stopBarcodeCamera()
+          searchBarcode(data.barcode)
+          return
+        }
+      }
+      
+      // If decode failed, show message
+      alert('Code-barres non détecté. Essaie le mode manuel!')
+    } catch (err) {
+      console.error('Barcode decode error:', err)
+      alert('Erreur lors de la détection du code')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -109,7 +187,7 @@ export default function ScanModal({
       reader.onload = (event) => {
         const imageData = event.target?.result as string
         setImage(imageData)
-        stopCamera()
+        stopPhotoCamera()
         setShowPhotoOptions(false)
         analyzeFoodImage(imageData)
       }
@@ -322,12 +400,14 @@ export default function ScanModal({
   }
 
   const handleClose = () => {
-    stopCamera()
+    stopPhotoCamera()
+    stopBarcodeCamera()
     onClose()
   }
 
   const resetAll = () => {
-    stopCamera()
+    stopPhotoCamera()
+    stopBarcodeCamera()
     setResult(null)
     setImage(null)
     setIngredients([{ name: '', amount: '100g' }])
@@ -343,7 +423,8 @@ export default function ScanModal({
   }
 
   const switchTab = (newTab: Tab) => {
-    stopCamera()
+    stopPhotoCamera()
+    stopBarcodeCamera()
     setTab(newTab)
     setResult(null)
     setImage(null)
@@ -360,7 +441,8 @@ export default function ScanModal({
 
   useEffect(() => {
     return () => {
-      stopCamera()
+      stopPhotoCamera()
+      stopBarcodeCamera()
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current)
       }
@@ -427,12 +509,27 @@ export default function ScanModal({
           {/* BARCODE TAB - CHOOSE MODE */}
           {tab === 'barcode' && mode === 'barcode-choose' && !result && (
             <div style={{ display: 'grid', gap: '1rem' }}>
-              <button onClick={() => setMode('barcode-input')} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+              <button onClick={startBarcodeCamera} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                📱 Scanner avec caméra
+              </button>
+              <button onClick={() => setMode('barcode-input')} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                 ⌨️ Entrer le code manuellement
               </button>
               <button onClick={() => setMode('search-name')} style={{ padding: '1.2rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                 🔍 Chercher par nom
               </button>
+            </div>
+          )}
+
+          {/* BARCODE CAMERA */}
+          {mode === 'barcode-camera' && !result && (
+            <div>
+              <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000', display: 'block', aspectRatio: '4/3' }} />
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button onClick={() => { stopBarcodeCamera(); setMode('barcode-choose'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
+                <button onClick={captureBarcode} disabled={loading} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.6 : 1 }}>📱 {loading ? 'Lecture...' : 'Capturer'}</button>
+              </div>
             </div>
           )}
 
@@ -557,7 +654,7 @@ export default function ScanModal({
               
               {showPhotoOptions && (
                 <div style={{ display: 'grid', gap: '0.8rem' }}>
-                  <button onClick={startCamera} style={{ padding: '1rem', background: 'white', border: '2px solid #667eea', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', color: '#667eea' }}>
+                  <button onClick={startPhotoCamera} style={{ padding: '1rem', background: 'white', border: '2px solid #667eea', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', color: '#667eea' }}>
                     📱 Utiliser la caméra
                   </button>
                   <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1rem', background: 'white', border: '2px solid #667eea', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', color: '#667eea' }}>
@@ -574,7 +671,7 @@ export default function ScanModal({
             <div>
               <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000', display: 'block', aspectRatio: '4/3' }} />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <button onClick={() => { stopCamera(); setMode('choose-photo'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
+                <button onClick={() => { stopPhotoCamera(); setMode('choose-photo'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
                 <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capturer</button>
               </div>
             </div>
