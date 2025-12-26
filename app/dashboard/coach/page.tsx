@@ -40,7 +40,18 @@ const GENDER_LABELS: Record<Gender, string> = {
 export default function CoachPage() {
   const { plan, coachProfile, setCoachProfile, setGoal } = useAppStore();
   const [step, setStep] = useState<'form' | 'result'>(coachProfile ? 'result' : 'form');
-  const [profile, setProfile] = useState<Partial<CoachProfile>>(coachProfile || {});
+  const [profile, setProfile] = useState<Partial<CoachProfile>>(
+    coachProfile 
+      ? {
+          age: coachProfile.age,
+          weight: coachProfile.weight,
+          height: coachProfile.height,
+          gender: coachProfile.gender,
+          activityLevel: coachProfile.activityLevel,
+          goal: coachProfile.goal as Goal,
+        }
+      : {}
+  );
 
   const calculateGoals = (prof: CoachProfile) => {
     let bmr = 0;
@@ -94,7 +105,7 @@ export default function CoachPage() {
     setStep('result');
   };
 
-  const goals = coachProfile ? calculateGoals(coachProfile) : null;
+  const goals = coachProfile ? calculateGoals(coachProfile as CoachProfile) : null;
 
   if (plan !== 'fitness') {
     return (
@@ -312,7 +323,7 @@ export default function CoachPage() {
             {/* Calculated Goals */}
             {goals && (
               <div className="card-gradient">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">🎯 Tes Objectifs Calculés</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">🏆 Tes Objectifs Calculés</h2>
                 <div className="grid sm:grid-cols-5 gap-3">
                   {[
                     { label: 'Calories', value: goals.dailyCalories, unit: '/jour' },
