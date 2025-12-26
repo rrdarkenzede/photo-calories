@@ -1,131 +1,239 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useState, CSSProperties } from 'react'
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, Check, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
-export default function Settings() {
-  const router = useRouter()
-  const [formData, setFormData] = useState({ name: 'Utilisateur', email: 'user@example.com', goal: 2500 })
-  const [saved, setSaved] = useState(false)
+const SettingsPage = () => {
+  const [plan, setPlan] = useState('free');
+  const [dailyGoal, setDailyGoal] = useState(2000);
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [activity, setActivity] = useState('moderate');
+  const [fitnessGoal, setFitnessGoal] = useState('maintain');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: name === 'goal' ? parseInt(value) : value }))
-  }
+  const calculateCalories = () => {
+    if (!age || !weight || !height) return 2000;
+    // Harris-Benedict formula
+    let bmr = 88.362 + (13.397 * parseFloat(weight)) + (4.799 * parseFloat(height)) - (5.677 * parseFloat(age));
+    const factors: any = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
+    const tdee = bmr * (factors[activity] || 1.55);
+    
+    const goals: any = {
+      loss: tdee - 500,
+      maintain: tdee,
+      gain: tdee + 500,
+    };
+    return Math.round(goals[fitnessGoal] || 2000);
+  };
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-  }
-
-  const inputStyle: CSSProperties = {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid var(--border)',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    transition: 'border-color 0.2s ease',
-  }
+  const plans = [
+    {
+      id: 'free',
+      name: 'Gratuit',
+      price: '0€',
+      features: ['Calories', 'Historique 7j', '2 scans/j'],
+    },
+    {
+      id: 'pro',
+      name: 'Premium',
+      price: '4,99€/mois',
+      features: ['Calories + Macros', 'Historique illimité', 'Code-barres'],
+    },
+    {
+      id: 'fitness',
+      name: 'Elite',
+      price: '9,99€/mois',
+      features: ['Tout illimité', 'Coach IA', 'Recipe Builder'],
+    },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)', padding: '1rem 0' }}>
-        <div className="container">
-          <button onClick={() => router.push('/dashboard')} style={{ color: 'var(--primary)', background: 'transparent', border: 'none', textDecoration: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>← Retour</button>
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 border-b border-gray-700/30 backdrop-blur-md bg-slate-900/50"
+      >
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
+          <Link href="/dashboard">
+            <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </Link>
+          <h1 className="text-2xl font-bold text-white">Paramétres</h1>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Main */}
-      <main className="container" style={{ padding: '3rem 0', maxWidth: '600px' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', fontWeight: 700 }}>⚙️ Paramètres</h1>
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Plan Selection */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <h2 className="text-2xl font-bold mb-6 text-white">Votre Plan</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {plans.map(p => (
+              <motion.button
+                key={p.id}
+                onClick={() => setPlan(p.id)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-6 rounded-xl text-left border-2 transition-all duration-300 ${
+                  plan === p.id
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">{p.name}</h3>
+                    <p className="text-sm text-gray-400">{p.price}</p>
+                  </div>
+                  {plan === p.id && (
+                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                </div>
+                <ul className="space-y-2">
+                  {p.features.map((f, i) => (
+                    <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
+                      <span className="w-1 h-1 bg-blue-500 rounded-full" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </motion.button>
+            ))}
+          </div>
+        </motion.section>
 
-        {/* Profile Section */}
-        <div style={{ background: 'var(--bg)', padding: '2rem', borderRadius: '12px', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 600 }}>Profil</h2>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Nom</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-            />
-          </div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-            />
-          </div>
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.95rem' }}>Objectif Calorique (kcal/jour)</label>
-            <input
-              type="number"
-              name="goal"
-              value={formData.goal}
-              onChange={handleChange}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-            />
-          </div>
-          <button
-            onClick={handleSave}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'var(--primary)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 600,
-              fontSize: '1rem',
-              transition: 'background-color 0.2s ease',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary)')}
+        {/* Goals Section */}
+        {plan !== 'free' && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card mb-12"
           >
-            💾 Enregistrer
-          </button>
-          {saved && <p style={{ marginTop: '1rem', color: '#4caf50', fontWeight: 600, textAlign: 'center' }}>✓ Paramètres enregistrés avec succès!</p>}
-        </div>
+            <h2 className="text-2xl font-bold mb-6 text-white">Vos Objectifs</h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  Objectif Calorique Quotidien
+                </label>
+                <input
+                  type="number"
+                  value={dailyGoal}
+                  onChange={(e) => setDailyGoal(parseInt(e.target.value) || 2000)}
+                  className="input-field"
+                />
+                <p className="text-xs text-gray-400 mt-2">💫 Objectif: {dailyGoal} kcal/jour</p>
+              </div>
+            </div>
+          </motion.section>
+        )}
 
-        {/* Danger Zone */}
-        <div style={{ background: 'var(--bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--danger)', boxShadow: '0 2px 8px rgba(211,47,47,0.1)' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 600, color: 'var(--danger)' }}>Zone de Danger</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Une fois déconnecté, vous devrez vous authentifier à nouveau.</p>
-          <button
-            onClick={() => router.push('/')}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'var(--danger)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 600,
-              fontSize: '1rem',
-              transition: 'background-color 0.2s ease',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#b71c1c')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--danger)')}
+        {/* Coach Profile (Fitness Only) */}
+        {plan === 'fitness' && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card mb-12"
           >
-            🚪 Déconnexion
-          </button>
-        </div>
-      </main>
+            <h2 className="text-2xl font-bold mb-6 text-white">Profil Coach IA</h2>
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">  Âge
+                  </label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="25"
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Poids (kg)</label>
+                  <input
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="70"
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Taille (cm)</label>
+                  <input
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    placeholder="180"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Activité</label>
+                <select
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="sedentary">Sédentaire</option>
+                  <option value="light">Légère</option>
+                  <option value="moderate">Modérée</option>
+                  <option value="active">Active</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Objectif</label>
+                <select
+                  value={fitnessGoal}
+                  onChange={(e) => setFitnessGoal(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="loss">Perdre du poids</option>
+                  <option value="maintain">Maintenir</option>
+                  <option value="gain">Gagner du muscle</option>
+                </select>
+              </div>
+
+              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-blue-300 mb-1">Objectif Calculé</p>
+                    <p className="text-2xl font-bold text-blue-300">{calculateCalories()} kcal/jour</p>
+                    <p className="text-xs text-blue-300/70 mt-1">Basé sur vos caractéristiques</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
+
+        {/* Save Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-bold text-white transition-all duration-300 shadow-lg"
+        >
+          Sauvegarder les paramétres
+        </motion.button>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default SettingsPage;
