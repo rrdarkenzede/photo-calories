@@ -75,6 +75,23 @@ export async function searchByName(productName: string): Promise<OpenFoodFactsPr
   }
 }
 
+/**
+ * Search for multiple products by name
+ * @param productNames - Array of product names to search
+ * @returns Array of found products
+ */
+export async function searchMultipleByName(productNames: string[]): Promise<OpenFoodFactsProduct[]> {
+  try {
+    const results = await Promise.all(
+      productNames.map(name => searchByName(name))
+    )
+    return results.filter((result): result is OpenFoodFactsProduct => result !== null)
+  } catch (error) {
+    console.error('Error searching multiple products:', error)
+    return []
+  }
+}
+
 function parseOFFProduct(product: any): OpenFoodFactsProduct | null {
   try {
     const nutrients = product.nutriments || {}
