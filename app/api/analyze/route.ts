@@ -26,7 +26,7 @@ interface AnalyzeResponse {
     carbs: number;
     fat: number;
     fiber?: number;
-    sugar?: number;
+    sugars?: number;
     sodium?: number;
   };
   error?: string;
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
             carbs: offProduct.carbs || 0,
             fat: offProduct.fat || 0,
             fiber: offProduct.fiber,
-            sugar: offProduct.sugars,
+            sugars: offProduct.sugars,
             sodium: offProduct.sodium,
           };
           nutritionSource = 'OpenFoodFacts';
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
         carbs: nutrition.carbs || 0,
         fat: nutrition.fat || 0,
         fiber: nutrition.fiber,
-        sugar: nutrition.sugar,
+        sugars: nutrition.sugars,
         sodium: nutrition.sodium,
       },
     };
