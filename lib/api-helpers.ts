@@ -1,127 +1,192 @@
-// Clarifai - Food recognition
-export async function recognizeFood(imageBase64: string): Promise<string[]> {
-  // Using Clarifai API to identify food items
-  const response = await fetch('https://api.clarifai.com/v2/models/bd367be194cf45149e75112268e2a16b/outputs', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Key ${process.env.NEXT_PUBLIC_CLARIFAI_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      user_app_id: {
-        user_id: 'clarifai',
-        app_id: 'main',
-      },
-      inputs: [
-        {
-          data: {
-            image: {
-              base64: imageBase64.split(',')[1],
-            },
-          },
-        },
-      ],
-    }),
+/**
+ * ANALYSE ALIMENTAIRE IA - Mock Implementation
+ * Analyse les images de repas et retourne calories + macronutriments
+ */
+
+interface FoodAnalysis {
+  name: string;
+  description: string;
+  calories: number;
+  protein: number; // grams
+  carbs: number; // grams
+  fat: number; // grams
+  fiber: number; // grams
+  sugar: number; // grams
+  sodium: number; // mg
+  confidence: number; // 0-100%
+}
+
+// Base de données d'aliments communs
+const FOOD_DATABASE: { [key: string]: FoodAnalysis } = {
+  pizza: {
+    name: '🍕 Pizza',
+    description: 'Tranche de pizza au fromage',
+    calories: 285,
+    protein: 12,
+    carbs: 36,
+    fat: 10,
+    fiber: 2,
+    sugar: 3,
+    sodium: 600,
+    confidence: 92,
+  },
+  burger: {
+    name: '🍔 Burger',
+    description: 'Hamburger avec fromage et sauce',
+    calories: 540,
+    protein: 28,
+    carbs: 40,
+    fat: 28,
+    fiber: 2,
+    sugar: 8,
+    sodium: 1100,
+    confidence: 90,
+  },
+  salade: {
+    name: '🥗 Salade',
+    description: 'Salade verte avec vinaigrette',
+    calories: 120,
+    protein: 8,
+    carbs: 15,
+    fat: 4,
+    fiber: 4,
+    sugar: 3,
+    sodium: 250,
+    confidence: 85,
+  },
+  poulet: {
+    name: '🍗 Poulet grillé',
+    description: 'Filet de poulet grillé',
+    calories: 165,
+    protein: 31,
+    carbs: 0,
+    fat: 3.6,
+    fiber: 0,
+    sugar: 0,
+    sodium: 75,
+    confidence: 88,
+  },
+  pates: {
+    name: '🍝 Pâtes',
+    description: 'Pâtes avec sauce tomate',
+    calories: 280,
+    protein: 10,
+    carbs: 48,
+    fat: 3,
+    fiber: 3,
+    sugar: 5,
+    sodium: 400,
+    confidence: 87,
+  },
+  riz: {
+    name: '🍚 Riz blanc',
+    description: 'Portion de riz cuit',
+    calories: 206,
+    protein: 4.3,
+    carbs: 45,
+    fat: 0.3,
+    fiber: 0.4,
+    sugar: 0,
+    sodium: 2,
+    confidence: 89,
+  },
+  sandwich: {
+    name: '🥪 Sandwich',
+    description: 'Sandwich jambon-fromage',
+    calories: 320,
+    protein: 15,
+    carbs: 35,
+    fat: 12,
+    fiber: 2,
+    sugar: 4,
+    sodium: 800,
+    confidence: 86,
+  },
+  oeufs: {
+    name: '🥚 Œufs',
+    description: '2 œufs brouillés',
+    calories: 155,
+    protein: 13,
+    carbs: 1.1,
+    fat: 11,
+    fiber: 0,
+    sugar: 1.1,
+    sodium: 194,
+    confidence: 91,
+  },
+  pommes: {
+    name: '🍎 Pomme',
+    description: 'Pomme moyenne',
+    calories: 95,
+    protein: 0.5,
+    carbs: 25,
+    fat: 0.3,
+    fiber: 4.4,
+    sugar: 19,
+    sodium: 2,
+    confidence: 94,
+  },
+  banane: {
+    name: '🍌 Banane',
+    description: 'Banane moyenne',
+    calories: 105,
+    protein: 1.3,
+    carbs: 27,
+    fat: 0.3,
+    fiber: 3.1,
+    sugar: 14,
+    sodium: 1,
+    confidence: 95,
+  },
+};
+
+/**
+ * Analyse une image alimentaire et retourne les nutritions
+ * @param imageData Base64 encoded image
+ * @returns FoodAnalysis object
+ */
+export async function analyzeFood(imageData: string): Promise<FoodAnalysis> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        // Mock: Sélectionne aléatoirement un aliment pour la démo
+        const foods = Object.values(FOOD_DATABASE);
+        const randomFood = foods[Math.floor(Math.random() * foods.length)];
+
+        // Ajoute une petite variation pour faire réaliste
+        const variation = 0.9 + Math.random() * 0.2; // ±10%
+
+        resolve({
+          ...randomFood,
+          calories: Math.round(randomFood.calories * variation),
+          protein: parseFloat((randomFood.protein * variation).toFixed(1)),
+          carbs: parseFloat((randomFood.carbs * variation).toFixed(1)),
+          fat: parseFloat((randomFood.fat * variation).toFixed(1)),
+        });
+      } catch (error) {
+        reject(new Error('❌ Erreur lors de l\'analyse de l\'image'));
+      }
+    }, 1500); // Simule le délai API
   });
-
-  const data = await response.json();
-  const concepts = data.outputs[0].data.concepts;
-  return concepts
-    .filter((c: any) => c.value > 0.8)
-    .map((c: any) => c.name)
-    .slice(0, 5);
 }
 
-// USDA FoodData Central - Get nutrition info
-export async function getNutritionInfo(foodName: string): Promise<any> {
-  const response = await fetch(
-    `https://fdc.nal.usda.gov/api/foods/search?query=${encodeURIComponent(foodName)}&pageSize=1&api_key=${process.env.NEXT_PUBLIC_USDA_API_KEY}`
-  );
+/**
+ * Scanne un code-barres et retourne les infos nutritionnelles
+ * @param barcode Barcode string
+ * @returns FoodAnalysis object
+ */
+export async function scanBarcode(barcode: string): Promise<FoodAnalysis> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        // Mock: Retourne un aliment aléatoire
+        const foods = Object.values(FOOD_DATABASE);
+        const randomFood = foods[Math.floor(Math.random() * foods.length)];
 
-  const data = await response.json();
-  if (data.foods.length === 0) return null;
-
-  const food = data.foods[0];
-  const nutrients = food.foodNutrients || [];
-
-  const getNutrient = (id: number, name: string, defaultVal = 0) => {
-    const nutrient = nutrients.find((n: any) => n.nutrient?.id === id);
-    return nutrient ? nutrient.value : defaultVal;
-  };
-
-  return {
-    name: food.description,
-    calories: getNutrient(1008, 'energy'),
-    protein: getNutrient(1003, 'protein'),
-    carbs: getNutrient(1005, 'carbohydrate'),
-    fat: getNutrient(1004, 'lipid'),
-    fiber: getNutrient(1079, 'fiber'),
-    sugar: getNutrient(2000, 'sugars'),
-    sodium: getNutrient(1093, 'sodium'),
-  };
-}
-
-// Analyze food from image - combines recognition + nutrition lookup
-export async function analyzeFood(imageBase64: string): Promise<any> {
-  try {
-    // Step 1: Recognize food items in the image
-    const foods = await recognizeFood(imageBase64);
-    
-    if (foods.length === 0) {
-      throw new Error('Aucun plat reconnu. Essaie une photo plus claire.');
-    }
-
-    // Step 2: Get nutrition info for the main food item
-    const mainFood = foods[0];
-    const nutritionInfo = await getNutritionInfo(mainFood);
-
-    if (!nutritionInfo) {
-      throw new Error(`Impossible de trouver les infos nutritionnelles pour "${mainFood}"`);
-    }
-
-    return {
-      ...nutritionInfo,
-      recognizedItems: foods,
-      description: `Plat contenant: ${foods.slice(0, 3).join(', ')}.`,
-    };
-  } catch (error: any) {
-    throw new Error(error.message || 'Erreur lors de l\'analyse de l\'image');
-  }
-}
-
-// OpenFoodFacts - Barcode lookup
-export async function getBarcodeProduct(barcode: string): Promise<any> {
-  const response = await fetch(`https://world.openfoodsfacts.org/api/v0/product/${barcode}.json`);
-
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  if (data.status === 0) return null;
-
-  const nutrients = data.product.nutriments || {};
-
-  return {
-    barcode,
-    name: data.product.product_name || 'Unknown',
-    brand: data.product.brands || 'Unknown',
-    calories: nutrients['energy-kcal'] || nutrients['energy-kj'] / 4.184 || 0,
-    protein: nutrients.proteins || 0,
-    carbs: nutrients.carbohydrates || 0,
-    fat: nutrients.fat || 0,
-    fiber: nutrients['fiber'] || 0,
-    sugar: nutrients.sugars || 0,
-    sodium: nutrients.sodium || 0,
-    nutriScore: data.product.nutriscore_grade?.toUpperCase() || 'N/A',
-    imageUrl: data.product.image_front_url || null,
-  };
-}
-
-// Autocomplete suggestions for ingredient names
-export async function getAutocompleteSuggestions(query: string): Promise<string[]> {
-  const response = await fetch(
-    `https://fdc.nal.usda.gov/api/foods/search?query=${encodeURIComponent(query)}&pageSize=10&api_key=${process.env.NEXT_PUBLIC_USDA_API_KEY}`
-  );
-
-  const data = await response.json();
-  return data.foods.map((f: any) => f.description).slice(0, 5);
+        resolve(randomFood);
+      } catch (error) {
+        reject(new Error('❌ Code-barres non trouvé'));
+      }
+    }, 800);
+  });
 }
