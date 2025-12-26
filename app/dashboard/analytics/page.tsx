@@ -1,28 +1,34 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AnalyticsPage() {
-  const { meals, dailyGoals, currentPlan } = useAppStore();
-  const planInfo = require('@/lib/plans').PLANS[currentPlan];
+  const { meals, goal, plan } = useAppStore();
 
   // Get last 7 days
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    return date.toLocaleDateString('fr-FR');
+    return date.toISOString().split('T')[0];
   }).reverse();
 
   const dailyStats = last7Days.map((dateStr) => {
-    const dayMeals = meals.filter((m) => new Date(m.date).toLocaleDateString('fr-FR') === dateStr);
+    const dayMeals = meals.filter((m) => m.date === dateStr);
+    const totals = dayMeals.reduce(
+      (acc, m) => ({
+        calories: acc.calories + m.nutrition.calories,
+        protein: acc.protein + m.nutrition.protein,
+        carbs: acc.carbs + m.nutrition.carbs,
+        fat: acc.fat + m.nutrition.fat,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    );
+
     return {
-      date: dateStr,
-      calories: dayMeals.reduce((sum, m) => sum + m.totalCalories, 0),
-      protein: dayMeals.reduce((sum, m) => sum + m.totalProtein, 0),
-      carbs: dayMeals.reduce((sum, m) => sum + m.totalCarbs, 0),
-      fat: dayMeals.reduce((sum, m) => sum + m.totalFat, 0),
+      date: new Date(dateStr).toLocaleDateString('fr-FR'),
+      ...totals,
       meals: dayMeals.length,
     };
   });
@@ -32,7 +38,7 @@ export default function AnalyticsPage() {
   const avgCarbs = (dailyStats.reduce((sum, d) => sum + d.carbs, 0) / dailyStats.length).toFixed(1);
   const avgFat = (dailyStats.reduce((sum, d) => sum + d.fat, 0) / dailyStats.length).toFixed(1);
 
-  const maxCalories = Math.max(...dailyStats.map((d) => d.calories), dailyGoals.calories);
+  const maxCalories = Math.max(...dailyStats.map((d) => d.calories), goal?.dailyCalories || 2000);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -57,17 +63,17 @@ export default function AnalyticsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Protéines avg</p>
             <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{avgProtein}g</p>
-            <p className="text-xs text-slate-500 mt-1">Objectif: {dailyGoals.protein}g</p>
+            <p className="text-xs text-slate-500 mt-1">Objectif: {goal?.protein || '—'}g</p>
           </div>
           <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Glucides avg</p>
             <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{avgCarbs}g</p>
-            <p className="text-xs text-slate-500 mt-1">Objectif: {dailyGoals.carbs}g</p>
+            <p className="text-xs text-slate-500 mt-1">Objectif: {goal?.carbs || '—'}g</p>
           </div>
           <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Lipides avg</p>
             <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{avgFat}g</p>
-            <p className="text-xs text-slate-500 mt-1">Objectif: {dailyGoals.fat}g</p>
+            <p className="text-xs text-slate-500 mt-1">Objectif: {goal?.fat || '—'}g</p>
           </div>
         </div>
 
@@ -91,7 +97,7 @@ export default function AnalyticsPage() {
                       }}
                     />
                   </div>
-                  {/* Goal line */}
+                  {/* Meals count */}
                   <div className="flex items-center justify-center px-3 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full">
                     {day.meals} repas
                   </div>
@@ -107,9 +113,9 @@ export default function AnalyticsPage() {
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Distribution Macros (Moyennes)</h2>
             <div className="space-y-4">
               {[
-                { name: 'Protéines', value: avgProtein, max: dailyGoals.protein, color: '#ef4444' },
-                { name: 'Glucides', value: avgCarbs, max: dailyGoals.carbs, color: '#3b82f6' },
-                { name: 'Lipides', value: avgFat, max: dailyGoals.fat, color: '#f59e0b' },
+                { name: 'Protéines', value: avgProtein, max: goal?.protein || 150, color: '#ef4444' },
+                { name: 'Glucides', value: avgCarbs, max: goal?.carbs || 300, color: '#3b82f6' },
+                { name: 'Lipides', value: avgFat, max: goal?.fat || 70, color: '#f59e0b' },
               ].map((macro) => (
                 <div key={macro.name}>
                   <div className="flex justify-between mb-2">
@@ -150,7 +156,7 @@ export default function AnalyticsPage() {
                 <span className="font-bold text-slate-900 dark:text-white">{Math.min(...dailyStats.filter(d => d.calories > 0).map((d) => d.calories)).toFixed(0)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400">Jours suiviés</span>
+                <span className="text-slate-600 dark:text-slate-400">Jours suivis</span>
                 <span className="font-bold text-slate-900 dark:text-white">{dailyStats.filter((d) => d.meals > 0).length}/7</span>
               </div>
             </div>
