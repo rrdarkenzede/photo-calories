@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
-import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -18,7 +18,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
-      setError('Remplis tous les champs');
+      setError('Remplis tous les champs!');
       return;
     }
 
@@ -26,7 +26,6 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Simulated auth - in real app, call backend
       if (email && password.length >= 6) {
         setUser({
           id: `user_${Date.now()}`,
@@ -35,7 +34,7 @@ export default function LoginPage() {
         });
         setStep('plan');
       } else {
-        throw new Error('Email ou mot de passe invalide');
+        throw new Error('😔 Email ou mot de passe invalide');
       }
     } catch (err: any) {
       setError(err.message);
@@ -50,68 +49,62 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {step === 'login' ? (
-          <div className="card animate-fade-in space-y-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
-              <ArrowLeft className="w-4 h-4" />
+          <div className="card border-2 border-blue-300 dark:border-blue-700 animate-fade-in space-y-6">
+            <Link href="/" className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 font-bold mb-4 transition-all duration-300">
+              <ArrowLeft className="w-5 h-5" />
               Retour
             </Link>
 
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                Bienvenue 👋
+              <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent mb-2">
+                Bienvenue 🙋
               </h1>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
                 Connecte-toi pour commencer
               </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                  Email
+                <label className="block text-sm font-black text-slate-900 dark:text-white mb-3 uppercase tracking-wide">
+                  📬 Email
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 dark:text-slate-500" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="toi@exemple.com"
-                    className="input pl-12"
-                    autoFocus
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="toi@exemple.com"
+                  className="input border-blue-300 dark:border-blue-700"
+                  autoFocus
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
-                  Mot de passe
+                <label className="block text-sm font-black text-slate-900 dark:text-white mb-3 uppercase tracking-wide">
+                  🔐 Mot de passe
                 </label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 dark:text-slate-500" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="input pl-12"
-                  />
-                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="input border-blue-300 dark:border-blue-700"
+                />
               </div>
 
               {error && (
-                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 border-2 border-red-300 dark:border-red-700 animate-fade-in">
+                  <p className="text-sm font-bold text-red-700 dark:text-red-300">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="btn-primary w-full text-lg font-black py-3"
               >
                 {loading ? (
                   <>
@@ -119,25 +112,24 @@ export default function LoginPage() {
                     Connexion...
                   </>
                 ) : (
-                  'Se connecter'
+                  '🔐 Se connecter'
                 )}
               </button>
             </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+                <div className="w-full border-t-2 border-blue-200 dark:border-blue-800" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                  Ou
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-bold text-sm">
+                  OU
                 </span>
               </div>
             </div>
 
             <button
               onClick={() => {
-                // Demo login
                 setUser({
                   id: 'demo_user',
                   email: 'demo@photo-calories.com',
@@ -145,23 +137,23 @@ export default function LoginPage() {
                 });
                 setStep('plan');
               }}
-              className="btn-secondary w-full"
+              className="btn-secondary w-full text-lg font-black py-3"
             >
-              Mode Demo
+              🔮 Essayer la démo
             </button>
 
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-              Pas de compte? <span className="font-semibold text-blue-600 dark:text-blue-400">Crée-en un</span>
+            <p className="text-center text-sm text-slate-600 dark:text-slate-400 font-bold">
+              Pas de compte? <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">Crée-en un</span>
             </p>
           </div>
         ) : (
-          <div className="card animate-fade-in space-y-6">
+          <div className="card border-2 border-emerald-300 dark:border-emerald-700 animate-fade-in space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                Choisis ton plan 🎯
+              <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-600 to-cyan-500 bg-clip-text text-transparent mb-2">
+                🎯 Choisis un plan
               </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                Tu peux changer quand tu veux
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
+                Tu peux changer quand tu veux!
               </p>
             </div>
 
@@ -169,46 +161,50 @@ export default function LoginPage() {
               {[
                 {
                   id: 'free',
-                  name: 'Free',
+                  name: '🔷 Free',
                   price: '0€',
-                  color: 'from-slate-600 to-slate-700',
-                  features: ['Calories uniquement', '2 scans/jour', '7 jours'],
+                  color: 'from-slate-500 to-slate-600',
+                  features: ['📊 Calories', '2 scans/jour', '7 jours'],
                 },
                 {
                   id: 'pro',
-                  name: 'Pro',
+                  name: '💎 Pro',
                   price: '4,99€/mois',
-                  color: 'from-blue-600 to-cyan-600',
+                  color: 'from-blue-600 to-cyan-500',
                   features: ['Calories + Macros', '10 scans/jour', '90 jours'],
                 },
                 {
                   id: 'fitness',
-                  name: 'Fitness 🔥',
+                  name: '🔥 Fitness',
                   price: '9,99€/mois',
-                  color: 'from-emerald-600 to-teal-600',
-                  features: ['Tout illimité', 'Coach IA 24/7', 'Historique infini'],
+                  color: 'from-emerald-600 to-teal-500',
+                  features: ['✨ Tout illimité', '🤖 Coach IA', 'Historique infini'],
+                  highlight: true,
                 },
               ].map((plan) => (
                 <button
                   key={plan.id}
                   onClick={() => selectPlan(plan.id as 'free' | 'pro' | 'fitness')}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-blue-400 dark:hover:border-blue-500 group`}
-                  style={{
-                    borderColor: 'var(--tw-border-opacity)',
-                    backgroundColor: plan.id === 'fitness' ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
-                  }}
+                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-300 hover:scale-105 active:scale-95 ${
+                    plan.highlight
+                      ? 'bg-gradient-to-r from-emerald-100 to-cyan-100 dark:from-emerald-900/30 dark:to-cyan-900/30 border-emerald-400 dark:border-emerald-600 shadow-lg'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600'
+                  }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">
                       {plan.name}
                     </h3>
-                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    <div className={`text-lg font-black bg-gradient-to-r ${plan.color} bg-clip-text text-transparent`}>
                       {plan.price}
-                    </span>
+                    </div>
                   </div>
-                  <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                  <ul className="text-xs font-bold text-slate-600 dark:text-slate-400 space-y-1 uppercase tracking-wide">
                     {plan.features.map((feature, i) => (
-                      <li key={i}>✓ {feature}</li>
+                      <li key={i} className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                        {feature}
+                      </li>
                     ))}
                   </ul>
                 </button>
@@ -217,7 +213,7 @@ export default function LoginPage() {
 
             <button
               onClick={() => setStep('login')}
-              className="btn-secondary w-full"
+              className="btn-secondary w-full text-base font-bold py-2"
             >
               ← Retour
             </button>
