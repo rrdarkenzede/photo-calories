@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { scanBarcode } from '@/lib/api-helpers';
-import { Meal, Ingredient } from '@/lib/types';
 import { ArrowLeft, Barcode, Loader2, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -44,7 +43,7 @@ export default function BarcodePage() {
   const saveMeal = () => {
     if (!analysis) return;
 
-    const ingredients: Ingredient[] = [
+    const ingredients: any[] = [
       {
         id: Date.now().toString(),
         name: analysis.name,
@@ -60,7 +59,7 @@ export default function BarcodePage() {
       },
     ];
 
-    const meal: Meal = {
+    const meal: any = {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       name: mealName || analysis.name,
@@ -70,6 +69,9 @@ export default function BarcodePage() {
         protein: ingredients[0].protein,
         carbs: ingredients[0].carbs,
         fat: ingredients[0].fat,
+        fiber: ingredients[0].fiber,
+        sugar: ingredients[0].sugar,
+        sodium: ingredients[0].sodium,
       },
       mealType,
     };
