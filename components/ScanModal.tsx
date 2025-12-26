@@ -83,21 +83,44 @@ export default function ScanModal({
           facingMode: { ideal: 'environment' },
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        } 
+        },
+        audio: false
       })
       
-      console.log('Camera granted, attaching to video element...')
+      console.log('✅ Camera granted')
+      console.log('Tracks:', mediaStream.getTracks().length)
       streamRef.current = mediaStream
       
+      // Directly attach stream
       if (videoRef.current) {
+        console.log('Attaching stream to video element')
         videoRef.current.srcObject = mediaStream
         
+        // Try to play
+        videoRef.current.play().then(() => {
+          console.log('✅ Video playing')
+        }).catch(err => {
+          console.error('Play error:', err)
+        })
+        
         // Listen for when video is ready
-        const onCanPlay = () => {
-          console.log('Video element ready, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+        const onLoadedMetadata = () => {
+          console.log('✅ Video metadata loaded, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
           cameraReadyRef.current = true
-          videoRef.current?.removeEventListener('canplay', onCanPlay)
+          videoRef.current?.removeEventListener('loadedmetadata', onLoadedMetadata)
           callback()
+        }
+        
+        videoRef.current.addEventListener('loadedmetadata', onLoadedMetadata)
+        
+        // Also listen to canplay
+        const onCanPlay = () => {
+          console.log('✅ Video can play')
+          if (!cameraReadyRef.current) {
+            cameraReadyRef.current = true
+            videoRef.current?.removeEventListener('canplay', onCanPlay)
+            callback()
+          }
         }
         
         videoRef.current.addEventListener('canplay', onCanPlay)
@@ -105,33 +128,36 @@ export default function ScanModal({
         // Failsafe timeout
         const timeout = setTimeout(() => {
           if (!cameraReadyRef.current) {
-            console.log('Camera ready timeout - proceeding anyway')
+            console.log('⚠️  Camera ready timeout - proceeding anyway')
             cameraReadyRef.current = true
+            videoRef.current?.removeEventListener('loadedmetadata', onLoadedMetadata)
             videoRef.current?.removeEventListener('canplay', onCanPlay)
             callback()
           }
-        }, 2000)
+        }, 3000)
         
         // Clean up timeout if video becomes ready
-        videoRef.current.addEventListener('canplay', () => clearTimeout(timeout), { once: true })
+        const cleanupTimeout = () => clearTimeout(timeout)
+        videoRef.current.addEventListener('loadedmetadata', cleanupTimeout, { once: true })
+        videoRef.current.addEventListener('canplay', cleanupTimeout, { once: true })
       }
     } catch (err) {
-      console.error('Camera error:', err)
+      console.error('❌ Camera error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
-      alert(`Impossible d'accéder à la caméra: ${errorMsg}\n\nVérifie tes permissions dans les paramètres de ton téléphone.`)
+      alert(`Impossible d'accéder à la caméra\n\n${errorMsg}\n\nVérifie tes permissions!`)
       stopAllStreams()
     }
   }
 
   const capturePhoto = () => {
     if (!videoRef.current || !cameraReadyRef.current) {
-      console.error('Camera not ready')
+      console.error('❌ Camera not ready')
       alert('La caméra n\'est pas prête. Attends un moment.')
       return
     }
     
     if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
-      console.error('Video dimensions not set')
+      console.error('❌ Video dimensions not set')
       alert('Image vide. Essaie de nouveau.')
       return
     }
@@ -145,13 +171,13 @@ export default function ScanModal({
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0)
         const imageData = canvas.toDataURL('image/jpeg', 0.9)
-        console.log('Photo captured, size:', imageData.length)
+        console.log('✅ Photo captured, size:', imageData.length)
         setImage(imageData)
         stopAllStreams()
         analyzeFoodImage(imageData)
       }
     } catch (err) {
-      console.error('Capture error:', err)
+      console.error('❌ Capture error:', err)
       alert('Erreur lors de la capture')
     }
   }
@@ -499,15 +525,27 @@ export default function ScanModal({
           {/* BARCODE CAMERA */}
           {mode === 'barcode-camera' && !result && (
             <div>
-              <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', borderRadius: '12px', background: '#000', display: 'block', aspectRatio: '4/3', objectFit: 'cover' }} />
+              <div style={{ position: 'relative', marginBottom: '1rem', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  style={{ 
+                    width: '100%', 
+                    height: 'auto',
+                    display: 'block', 
+                    aspectRatio: '4/3', 
+                    objectFit: 'cover',
+                    background: '#000'
+                  }} 
+                />
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <button onClick={() => { stopAllStreams(); setMode('barcode-choose'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
                 <button onClick={() => {
                   setLoading(true)
-                  // Simple barcode simulation - in real app would use ZXing library
                   setTimeout(() => {
                     alert('Scanner de code-barres: utilise le mode manuel ou cherche par nom pour l\'instant')
                     setLoading(false)
@@ -653,8 +691,21 @@ export default function ScanModal({
           {/* CAMERA MODE */}
           {mode === 'camera' && !image && (
             <div>
-              <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', borderRadius: '12px', background: '#000', display: 'block', aspectRatio: '4/3', objectFit: 'cover' }} />
+              <div style={{ position: 'relative', marginBottom: '1rem', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  style={{ 
+                    width: '100%', 
+                    height: 'auto',
+                    display: 'block', 
+                    aspectRatio: '4/3', 
+                    objectFit: 'cover',
+                    background: '#000'
+                  }} 
+                />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <button onClick={() => { stopAllStreams(); setMode('choose-photo'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
