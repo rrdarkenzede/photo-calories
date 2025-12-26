@@ -4,14 +4,12 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { analyzeFood } from '@/lib/api-helpers';
-import { Meal, Ingredient } from '@/lib/types';
 import { ArrowLeft, Camera, Upload, Loader2, Check, AlertCircle, X } from 'lucide-react';
 import Link from 'next/link';
-import { PLANS } from '@/lib/plans';
 
 export default function CameraPage() {
   const router = useRouter();
-  const { addMeal, incrementScans, currentPlan, scansUsedToday } = useAppStore();
+  const { addMeal, plan } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,9 +22,6 @@ export default function CameraPage() {
   const [mealName, setMealName] = useState('');
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
   const [useCamera, setUseCamera] = useState(false);
-
-  const maxScans = PLANS[currentPlan].scansPerDay;
-  const scansRemaining = maxScans - scansUsedToday;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,11 +74,6 @@ export default function CameraPage() {
   const analyzeImage = async () => {
     if (!preview) return;
 
-    if (scansRemaining <= 0) {
-      setError('🚫 Limite de scans atteinte. Upgrade ton plan!');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -101,7 +91,7 @@ export default function CameraPage() {
   const saveMeal = () => {
     if (!analysis) return;
 
-    const ingredients: Ingredient[] = [
+    const ingredients: any[] = [
       {
         id: Date.now().toString(),
         name: analysis.name,
@@ -117,23 +107,24 @@ export default function CameraPage() {
       },
     ];
 
-    const meal: Meal = {
+    const meal: any = {
       id: Date.now().toString(),
-      date: new Date(),
+      date: new Date().toISOString().split('T')[0],
       name: mealName || analysis.name,
       ingredients,
-      totalCalories: ingredients[0].calories,
-      totalProtein: ingredients[0].protein,
-      totalCarbs: ingredients[0].carbs,
-      totalFat: ingredients[0].fat,
-      totalFiber: ingredients[0].fiber,
-      totalSugar: ingredients[0].sugar,
-      totalSodium: ingredients[0].sodium,
+      nutrition: {
+        calories: ingredients[0].calories,
+        protein: ingredients[0].protein,
+        carbs: ingredients[0].carbs,
+        fat: ingredients[0].fat,
+        fiber: ingredients[0].fiber,
+        sugar: ingredients[0].sugar,
+        sodium: ingredients[0].sodium,
+      },
       mealType,
     };
 
     addMeal(meal);
-    incrementScans();
 
     alert('✅ Repas ajouté!');
     setPreview(null);
@@ -160,9 +151,9 @@ export default function CameraPage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs font-black text-slate-600 uppercase">🔼 Scans</p>
+            <p className="text-xs font-black text-slate-600 uppercase">Plan</p>
             <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {scansRemaining} / {maxScans}
+              {plan}
             </p>
           </div>
         </div>
@@ -304,7 +295,7 @@ export default function CameraPage() {
                   { label: 'Cal', value: (analysis.calories * quantity).toFixed(0), unit: 'kcal', emoji: '🔥' },
                   { label: 'Prot', value: (analysis.protein * quantity).toFixed(1), unit: 'g', emoji: '💪' },
                   { label: 'Carbs', value: (analysis.carbs * quantity).toFixed(1), unit: 'g', emoji: '🍜' },
-                  { label: 'Fat', value: (analysis.fat * quantity).toFixed(1), unit: 'g', emoji: '🥻' },
+                  { label: 'Fat', value: (analysis.fat * quantity).toFixed(1), unit: 'g', emoji: '🧈' },
                 ].map((item) => (
                   <div key={item.label} className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200 text-center">
                     <p className="text-2xl mb-1">{item.emoji}</p>
@@ -321,7 +312,7 @@ export default function CameraPage() {
             {/* Quantity and Settings */}
             <div className="card border-2 border-green-200 space-y-4">
               <div>
-                <label className="block text-sm font-black text-slate-900 mb-3 uppercase">🤗 Quantité</label>
+                <label className="block text-sm font-black text-slate-900 mb-3 uppercase">😗 Quantité</label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(0.5, quantity - 0.5))}
@@ -358,11 +349,11 @@ export default function CameraPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-black text-slate-900 mb-3 uppercase">🝰 Type</label>
+                <label className="block text-sm font-black text-slate-900 mb-3 uppercase">🍰 Type</label>
                 <select value={mealType} onChange={(e) => setMealType(e.target.value as any)} className="input font-bold">
                   <option value="breakfast">🌅 Petit-déjeuner</option>
                   <option value="lunch">🍴 Déjeuner</option>
-                  <option value="dinner">🍘 Dîner</option>
+                  <option value="dinner">🌙 Dîner</option>
                   <option value="snack">🍎 Collation</option>
                 </select>
               </div>
