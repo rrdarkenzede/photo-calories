@@ -21,7 +21,6 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
   useEffect(() => {
     setMeals(getTodayMeals())
     setAllMeals(getAllMeals())
-    // Set scans based on plan
     const scans = { free: 2, pro: 10, fitness: 40 }
     setScansRemaining(scans[profile.plan] || 2)
   }, [])
@@ -38,7 +37,6 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
     setProfile(updated)
     saveProfile(updated)
     setShowPlanDropdown(false)
-    // Update scans
     const scans = { free: 2, pro: 10, fitness: 40 }
     setScansRemaining(scans[newPlan] || 2)
   }
@@ -63,17 +61,17 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem' }}>
         {tab === 'home' && (
           <>
-            {/* Header with Plan + Scans */}
+            {/* Header */}
             <header style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2d3748', margin: 0 }}>PhotoCalories</h1>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1a202c', margin: 0 }}>PhotoCalories</h1>
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setShowPlanDropdown(!showPlanDropdown)} style={{ background: 'white', border: '2px solid #e2e8f0', color: '#2d3748', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                  <button onClick={() => setShowPlanDropdown(!showPlanDropdown)} style={{ background: 'white', border: '2px solid #e2e8f0', color: '#1a202c', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                     {PLAN_FEATURES[profile.plan].name} 💎
                   </button>
                   
                   {showPlanDropdown && (
-                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', minWidth: '300px', zIndex: 1000, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', minWidth: '300px', zIndex: 1000, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.15)' }}>
                       {(['free', 'pro', 'fitness'] as Plan[]).map(planId => {
                         const plan = PLAN_FEATURES[planId]
                         const isActive = profile.plan === planId
@@ -82,14 +80,14 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
                           <div key={planId} style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', background: isActive ? 'rgba(102, 126, 234, 0.1)' : 'white', transition: 'background 0.2s' }} onClick={() => handlePlanChange(planId)}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
                               <div>
-                                <h3 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#2d3748' }}>{plan.name}</h3>
-                                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#718096' }}>{plan.price === 0 ? 'Gratuit' : plan.price + '€/mois'}</p>
+                                <h3 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#1a202c' }}>{plan.name}</h3>
+                                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: '#4a5568', fontWeight: 600 }}>{plan.price === 0 ? 'Gratuit' : plan.price + '€/mois'}</p>
                               </div>
-                              {isActive && <span style={{ fontSize: '1.2rem' }}>✓</span>}
+                              {isActive && <span style={{ fontSize: '1.2rem', color: '#667eea' }}>✓</span>}
                             </div>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#718096' }}>
                               {plan.features.slice(0, 2).map((f, i) => (
-                                <li key={i}>• {f}</li>
+                                <li key={i} style={{ marginBottom: '0.25rem' }}>• {f}</li>
                               ))}
                             </ul>
                           </div>
@@ -102,27 +100,27 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
               
               {/* Scans counter */}
               <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '2px solid #e2e8f0', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>Scans restants</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#667eea' }}>{scansRemaining} / {profile.plan === 'free' ? 2 : profile.plan === 'pro' ? 10 : 40}</div>
+                <div style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '0.25rem', fontWeight: 600 }}>Scans restants</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#667eea' }}>{scansRemaining} / {profile.plan === 'free' ? 2 : profile.plan === 'pro' ? 10 : 40}</div>
               </div>
             </header>
 
             {/* Calorie Goal Bar */}
             <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.5rem', border: '2px solid #e2e8f0' }}>
-              <h2 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 0.5rem 0', color: '#2d3748', textAlign: 'center' }}>{totalCal}</h2>
-              <p style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#718096', textAlign: 'center' }}>/ {profile.targetCalories} cal</p>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0 0 0.5rem 0', color: '#1a202c', textAlign: 'center' }}>{totalCal}</h2>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#4a5568', textAlign: 'center', fontWeight: 600 }}>/ {profile.targetCalories} cal</p>
               <div style={{ height: '12px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', width: `${Math.min(calPercent, 100)}%`, transition: 'width 0.3s' }} />
               </div>
-              <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.9rem', color: '#718096', textAlign: 'center' }}>{Math.max(0, profile.targetCalories - totalCal)} cal restantes</p>
+              <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.95rem', color: '#4a5568', textAlign: 'center', fontWeight: 600 }}>{Math.max(0, profile.targetCalories - totalCal)} cal restantes</p>
             </div>
 
             {/* Big Action Buttons */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s' }}>
+              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s' }}>
                 📸<br/>Scanner
               </button>
-              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s' }}>
+              <button onClick={() => setShowAddMeal(true)} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s' }}>
                 📤<br/>Upload
               </button>
             </div>
@@ -139,19 +137,19 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
             {/* Meals List */}
             {meals.length > 0 && (
               <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', border: '2px solid #e2e8f0' }}>
-                <h3 style={{ margin: '0 0 1rem 0', fontWeight: 700, color: '#2d3748' }}>Repas du jour</h3>
+                <h3 style={{ margin: '0 0 1rem 0', fontWeight: 800, color: '#1a202c', fontSize: '1.1rem' }}>Repas du jour</h3>
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
                   {meals.map(meal => (
                     <div key={meal.id} style={{ padding: '1rem', background: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#2d3748' }}>{meal.name}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#718096' }}>{meal.time}</div>
+                          <div style={{ fontWeight: 700, color: '#1a202c' }}>{meal.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600 }}>{meal.time}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#667eea' }}>{meal.calories}cal</div>
+                          <div style={{ fontWeight: 900, fontSize: '1.1rem', color: '#667eea' }}>{meal.calories}cal</div>
                           {(profile.plan === 'pro' || profile.plan === 'fitness') && (
-                            <div style={{ fontSize: '0.75rem', color: '#718096' }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>
+                            <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600 }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>
                           )}
                         </div>
                       </div>
@@ -177,7 +175,7 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
             { id: 'analytics' as const, icon: '📊', label: 'Stats' },
             { id: 'coach' as const, icon: '🤖', label: 'Coach' },
           ].map(nav => (
-            <button key={nav.id} onClick={() => setTab(nav.id)} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === nav.id ? '#667eea' : '#a0aec0', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+            <button key={nav.id} onClick={() => setTab(nav.id)} style={{ flex: 1, padding: '1rem 0.5rem', background: 'transparent', border: 'none', color: tab === nav.id ? '#667eea' : '#718096', fontWeight: 700, fontSize: '0.7rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
               <div style={{ fontSize: '1.5rem' }}>{nav.icon}</div>
               {nav.label}
             </button>
@@ -197,9 +195,9 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
 function StatCard({ label, current, target, percent }: { label: string; current: number; target: number; percent: number }) {
   return (
     <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '2px solid #e2e8f0', textAlign: 'center' }}>
-      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.5rem' }}>{label}</div>
-      <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem', color: '#2d3748' }}>{current}</div>
-      <div style={{ fontSize: '0.75rem', color: '#718096', marginBottom: '0.5rem' }}>/ {target}g</div>
+      <div style={{ fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.5rem', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.25rem', color: '#1a202c' }}>{current}</div>
+      <div style={{ fontSize: '0.75rem', color: '#4a5568', marginBottom: '0.5rem', fontWeight: 600 }}>/ {target}g</div>
       <div style={{ height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
         <div style={{ height: '100%', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', width: `${Math.min(percent, 100)}%` }} />
       </div>
