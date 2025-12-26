@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
 type ScanMode = 'choose' | 'camera' | 'upload' | 'barcode'
@@ -19,10 +19,36 @@ export default function ScanModal({
   const [loading, setLoading] = useState(false)
   const [image, setImage] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
-  const [ingredients, setIngredients] = useState<Array<{ name: string; amount: string }>>([{ name: '', amount: '' }])
+  const [ingredients, setIngredients] = useState<Array<{ name: string; amount: string; nutrition?: any }>>([{ name: '', amount: '100g' }])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+
+  // Recalculate nutrition dynamically when ingredients change
+  const calculatedNutrition = useMemo(() => {
+    if (!result || !ingredients.length) return null
+
+    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0, sugars: 0, fiber: 0, sodium: 0 }
+
+    ingredients.forEach(ing => {
+      if (!ing.name || !ing.nutrition) return
+
+      // Parse amount (e.g., "100g", "200ml")
+      const amountMatch = ing.amount.match(/(\d+)/)
+      const amount = amountMatch ? parseInt(amountMatch[1]) : 100
+      const multiplier = amount / 100
+
+      totals.calories += Math.round(ing.nutrition.calories * multiplier)
+      totals.protein += Math.round(ing.nutrition.protein * multiplier * 10) / 10
+      totals.carbs += Math.round(ing.nutrition.carbs * multiplier * 10) / 10
+      totals.fat += Math.round(ing.nutrition.fat * multiplier * 10) / 10
+      totals.sugars += (ing.nutrition.sugars || 0) * multiplier
+      totals.fiber += (ing.nutrition.fiber || 0) * multiplier
+      totals.sodium += (ing.nutrition.sodium || 0) * multiplier
+    })
+
+    return totals
+  }, [ingredients, result])
 
   const startCamera = async () => {
     try {
@@ -97,6 +123,7 @@ export default function ScanModal({
         .map((ing: any) => ({
           name: ing.name,
           amount: '100g',
+          nutrition: ing.nutrition,
         }))
       
       const mockResult = {
@@ -148,7 +175,7 @@ export default function ScanModal({
   }
 
   const addIngredient = () => {
-    setIngredients([...ingredients, { name: '', amount: '' }])
+    setIngredients([...ingredients, { name: '', amount: '100g' }])
   }
 
   const removeIngredient = (index: number) => {
@@ -164,15 +191,23 @@ export default function ScanModal({
   const saveMeal = () => {
     if (!result) return
     
+    // Use calculated nutrition if available (when ingredients are edited)
+    const finalNutrition = calculatedNutrition || {
+      calories: result.calories,
+      protein: result.protein,
+      carbs: result.carbs,
+      fat: result.fat,
+    }
+    
     const meal: MealEntry = {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       name: result.name,
-      calories: result.calories,
-      protein: result.protein,
-      carbs: result.carbs,
-      fat: result.fat,
+      calories: finalNutrition.calories,
+      protein: finalNutrition.protein,
+      carbs: finalNutrition.carbs,
+      fat: finalNutrition.fat,
       items: plan === 'fitness' ? ingredients.map(i => `${i.name} (${i.amount})`).filter(i => i.trim()) : [result.name]
     }
     
@@ -189,6 +224,17 @@ export default function ScanModal({
       stopCamera()
     }
   }, [])
+
+  // Display nutrition (calculated if available, otherwise from result)
+  const displayNutrition = calculatedNutrition || {
+    calories: result?.calories || 0,
+    protein: result?.protein || 0,
+    carbs: result?.carbs || 0,
+    fat: result?.fat || 0,
+    sugars: result?.sugars || 0,
+    fiber: result?.fiber || 0,
+    sodium: result?.sodium || 0,
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={handleClose}>
@@ -271,46 +317,46 @@ export default function ScanModal({
               {/* Calories Main Display */}
               <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: '1rem' }}>
                 <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.3rem' }}>CALORIES</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: '#667eea' }}>{result.calories}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: '#667eea' }}>{Math.round(displayNutrition.calories)}</div>
               </div>
 
               {/* Macros Grid - Responsive */}
-              {plan !== 'free' && result.protein !== undefined && (
+              {plan !== 'free' && displayNutrition.protein !== undefined && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>PROTÉINES</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{result.protein}g</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.protein * 10) / 10}g</div>
                   </div>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>GLUCIDES</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{result.carbs}g</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.carbs * 10) / 10}g</div>
                   </div>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>LIPIDES</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{result.fat}g</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.fat * 10) / 10}g</div>
                   </div>
                 </div>
               )}
 
               {/* Micros for Fitness Plan */}
-              {plan === 'fitness' && result.sugars !== undefined && (
+              {plan === 'fitness' && displayNutrition.sugars !== undefined && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>SUCRES</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.sugars}g</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.sugars * 10) / 10}g</div>
                   </div>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>FIBRES</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.fiber}g</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.fiber * 10) / 10}g</div>
                   </div>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>SODIUM</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{result.sodium}mg</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.sodium)}mg</div>
                   </div>
                 </div>
               )}
 
-              {/* Ingredients for Fitness Plan */}
+              {/* Ingredients for Fitness Plan - Now editable with live recalc */}
               {plan === 'fitness' && ingredients.length > 0 && (
                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
                   <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.6rem', margin: 0 }}>Ingrédients détectés</h4>
@@ -326,10 +372,10 @@ export default function ScanModal({
                         />
                         <input 
                           type="text" 
-                          placeholder="Quantité" 
+                          placeholder="100g" 
                           value={ing.amount}
                           onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
-                          style={{ padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box' }}
+                          style={{ padding: '0.5rem', border: '1px solid #667eea', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box', background: '#f0f4ff' }}
                         />
                         <button onClick={() => removeIngredient(i)} style={{ padding: '0.4rem 0.6rem', background: '#fee', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#c53030', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>×</button>
                       </div>
