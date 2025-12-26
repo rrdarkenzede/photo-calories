@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Camera, Zap, TrendingUp, Award, ArrowRight, Check, ChevronRight, BarChart3, Lock, Smartphone } from 'lucide-react';
+import { Camera, Zap, TrendingUp, Award, ArrowRight, Check, ChevronRight, BarChart3, Lock, Smartphone, Shield, Ruler, Pizza, Activity } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -127,37 +126,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            {/* Floating cards */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="absolute -left-8 top-1/4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Check className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">450 kcal</p>
-                  <p className="text-sm text-gray-600">Détecté en 2s</p>
-                </div>
-              </div>
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-              className="absolute -right-8 bottom-1/4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">Objectif atteint</p>
-                  <p className="text-sm text-gray-600">-2kg ce mois</p>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -186,8 +154,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-32 px-6">
+      {/* Features Section - VISUAL CARDS */}
+      <section id="features" className="py-32 px-6 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -198,50 +166,109 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16">
-            {[
-              {
-                icon: Camera,
-                title: 'Détection instantanée',
-                description: 'Photographiez votre repas. Notre IA identifie automatiquement tous les aliments avec une précision de 95%.',
-                color: 'blue',
-              },
-              {
-                icon: BarChart3,
-                title: 'Analyse complète',
-                description: 'Calories, protéines, glucides, lipides, Nutri-Score. Toutes les informations nutritionnelles en un clin dœil.',
-                color: 'cyan',
-              },
-              {
-                icon: TrendingUp,
-                title: 'Suivi personnalisé',
-                description: 'Définissez vos objectifs. Suivez votre progression. Recevez des conseils adaptés à votre profil.',
-                color: 'green',
-              },
-              {
-                icon: Lock,
-                title: 'Sécurisé et privé',
-                description: 'Vos données sont chiffrées et protégées. Vous gardez le contrôle total sur vos informations.',
-                color: 'purple',
-              },
-            ].map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex gap-6"
-              >
-                <div className={`w-14 h-14 bg-${feature.color}-100 rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                  <feature.icon className={`w-7 h-7 text-${feature.color}-600`} />
+          {/* GRID OF VISUAL CARDS */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Card 1 - Détection */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+              className="relative bg-white rounded-3xl p-10 border border-gray-200 overflow-hidden group"
+            >
+              {/* Icon circle background */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+              
+              <div className="relative z-10">
+                {/* Icon */}
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
+                  <Camera className="w-8 h-8 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                
+                {/* Content */}
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Détection instantanée
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  Photographiez votre repas. Notre IA identifie automatiquement tous les aliments avec une précision de 95%.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 2 - Analyse */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+              className="relative bg-white rounded-3xl p-10 border border-gray-200 overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-green-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/30">
+                  <BarChart3 className="w-8 h-8 text-white" />
                 </div>
-              </motion.div>
-            ))}
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Analyse complète
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  Calories, protéines, glucides, lipides, Nutri-Score. Toutes les informations nutritionnelles en un clin d'œil.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 3 - Suivi */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+              className="relative bg-white rounded-3xl p-10 border border-gray-200 overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/30">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Suivi personnalisé
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  Définissez vos objectifs. Suivez votre progression. Recevez des conseils adaptés à votre profil.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 4 - Sécurité */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+              className="relative bg-white rounded-3xl p-10 border border-gray-200 overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30">
+                  <Shield className="w-8 h-8 text-white" />
+                </div>
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Sécurisé et privé
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  Vos données sont chiffrées et protégées. Vous gardez le contrôle total sur vos informations.
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
