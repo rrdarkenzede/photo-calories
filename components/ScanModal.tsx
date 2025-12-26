@@ -79,7 +79,6 @@ export default function ScanModal({
   const analyzeFoodImage = async (imageData: string) => {
     setLoading(true)
     try {
-      // Call our API route that uses Clarifai
       const response = await fetch('/api/analyze-food', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,7 +92,15 @@ export default function ScanModal({
 
       const data = await response.json()
       
-      // Build result based on plan
+      // Create ingredients list from detected foods
+      const detectedIngredients = data.ingredients
+        .filter((ing: any) => ing.confidence > 40)
+        .map((ing: any) => ({
+          name: ing.name,
+          amount: '100g',
+          nutrition: ing.nutrition,
+        }))
+      
       const mockResult = {
         name: data.primary.name.charAt(0).toUpperCase() + data.primary.name.slice(1),
         confidence: data.primary.confidence,
@@ -102,14 +109,12 @@ export default function ScanModal({
         carbs: plan !== 'free' ? data.nutrition.carbs : undefined,
         fat: plan !== 'free' ? data.nutrition.fat : undefined,
         allFoods: data.foods,
-        ingredients: plan === 'fitness' ? [
-          { name: data.primary.name, amount: '1 portion' },
-        ] : undefined
+        ingredients: detectedIngredients,
       }
       
       setResult(mockResult)
-      if (plan === 'fitness' && mockResult.ingredients) {
-        setIngredients(mockResult.ingredients)
+      if (plan === 'fitness' && detectedIngredients.length > 0) {
+        setIngredients(detectedIngredients.map(ing => ({ name: ing.name, amount: ing.amount })))
       }
     } catch (err) {
       console.error('Analysis error:', err)
@@ -122,7 +127,6 @@ export default function ScanModal({
   const analyzeBarcodeManual = async (barcode: string) => {
     setLoading(true)
     try {
-      // TODO: Integrate OpenFoodFacts API
       await new Promise(resolve => setTimeout(resolve, 1500))
       
       const mockResult = {
@@ -253,7 +257,7 @@ export default function ScanModal({
             
             <div style={{ background: '#f7fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem', border: '2px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', marginBottom: '0.5rem' }}>{result.name}</h3>
-              {result.confidence && <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '1rem', fontWeight: 600 }}>Confiance: {result.confidence}%</p>}
+              {result.confidence && <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '1rem', fontWeight: 600 }}>Confiance: {result.confidence}% | Contient: {result.allFoods?.map((f: any) => f.name).join(', ')}</p>}
               
               <div style={{ display: 'grid', gridTemplateColumns: plan === 'free' ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
                 <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
@@ -276,17 +280,11 @@ export default function ScanModal({
                     </div>
                   </>
                 )}
-                {plan === 'fitness' && result.nutriScore && (
-                  <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600 }}>Nutri-Score</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1a202c' }}>{result.nutriScore}</div>
-                  </div>
-                )}
               </div>
 
               {plan === 'fitness' && ingredients.length > 0 && (
                 <div style={{ marginTop: '1rem' }}>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.75rem' }}>Ingrédients</h4>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.75rem' }}>Ingrédients détectés</h4>
                   {ingredients.map((ing, i) => (
                     <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.5rem' }}>
                       <input 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getNutritionByName } from '@/lib/nutrition-database'
 
 const CLARIFAI_API_KEY = process.env.NEXT_PUBLIC_CLARIFAI_API_KEY || '95cc52863ab2402baca61c72e1170fa9'
 const CLARIFAI_USER_ID = 'clarifai'
@@ -56,8 +57,8 @@ export async function POST(req: NextRequest) {
     // Extract food items from Clarifai response
     const concepts = data.outputs?.[0]?.data?.concepts || []
     const detectedFoods = concepts
-      .filter((c: any) => c.value > 0.7) // Only high confidence
-      .slice(0, 5) // Top 5
+      .filter((c: any) => c.value > 0.5) // Lower threshold for more results
+      .slice(0, 10) // Top 10
       .map((c: any) => ({
         name: c.name,
         confidence: Math.round(c.value * 100),
@@ -70,13 +71,38 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get nutrition data for detected foods
-    const nutritionData = await getNutritionData(detectedFoods[0].name)
+    // Get nutrition for each detected food
+    const ingredientsWithNutrition = detectedFoods
+      .map(food => {
+        const nutrition = getNutritionByName(food.name)
+        return {
+          name: food.name,
+          confidence: food.confidence,
+          nutrition: nutrition || { calories: 100, protein: 5, carbs: 12, fat: 3, unit: '100g' },
+        }
+      })
+      .filter(item => item.nutrition)
+
+    // Calculate totals
+    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    ingredientsWithNutrition.forEach(item => {
+      // Assume 100g per ingredient for calculation
+      totals.calories += Math.round(item.nutrition.calories)
+      totals.protein += Math.round(item.nutrition.protein * 10) / 10
+      totals.carbs += Math.round(item.nutrition.carbs * 10) / 10
+      totals.fat += Math.round(item.nutrition.fat * 10) / 10
+    })
 
     return NextResponse.json({
       foods: detectedFoods,
+      ingredients: ingredientsWithNutrition,
       primary: detectedFoods[0],
-      nutrition: nutritionData,
+      nutrition: {
+        calories: totals.calories,
+        protein: totals.protein,
+        carbs: totals.carbs,
+        fat: totals.fat,
+      },
     })
   } catch (error) {
     console.error('Error analyzing food:', error)
@@ -85,33 +111,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-// Mock nutrition data - will be replaced with real USDA API
-async function getNutritionData(foodName: string) {
-  // This is a simplified mock - you should integrate USDA FoodData Central API
-  const nutritionDatabase: Record<string, any> = {
-    pizza: { calories: 720, protein: 32, carbs: 85, fat: 28 },
-    burger: { calories: 540, protein: 28, carbs: 45, fat: 26 },
-    salad: { calories: 150, protein: 8, carbs: 15, fat: 8 },
-    pasta: { calories: 450, protein: 15, carbs: 70, fat: 12 },
-    rice: { calories: 206, protein: 4, carbs: 45, fat: 0.4 },
-    chicken: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-    fish: { calories: 206, protein: 22, carbs: 0, fat: 12 },
-    bread: { calories: 265, protein: 9, carbs: 49, fat: 3.2 },
-    egg: { calories: 155, protein: 13, carbs: 1.1, fat: 11 },
-    apple: { calories: 95, protein: 0.5, carbs: 25, fat: 0.3 },
-    banana: { calories: 105, protein: 1.3, carbs: 27, fat: 0.4 },
-  }
-
-  // Find closest match
-  const normalizedName = foodName.toLowerCase()
-  for (const [key, value] of Object.entries(nutritionDatabase)) {
-    if (normalizedName.includes(key)) {
-      return value
-    }
-  }
-
-  // Default fallback
-  return { calories: 300, protein: 12, carbs: 40, fat: 10 }
 }
