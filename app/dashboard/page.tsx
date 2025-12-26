@@ -1,389 +1,426 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppStore } from '@/lib/store';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, Upload, Plus, X, Edit2, Trash2, TrendingUp, Zap, ChefHat, History, Settings } from 'lucide-react';
 import Link from 'next/link';
-import {
-  Barcode,
-  Camera,
-  Settings,
-  TrendingUp,
-  Zap,
-  Flame,
-  Droplets,
-  Wheat,
-  LogOut,
-  Menu,
-  X,
-  ChevronDown,
-} from 'lucide-react';
-import { PLANS } from '@/lib/plans';
 
-export default function Dashboard() {
-  const router = useRouter();
-  const {
-    currentUser,
-    currentPlan,
-    dailyGoals,
-    meals,
-    logout,
-    setPlan,
-    scansUsedToday,
-  } = useAppStore();
-  const [mounted, setMounted] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [planMenuOpen, setPlanMenuOpen] = useState(false);
+const Dashboard = () => {
+  const [plan, setPlan] = useState('free'); // free, pro, fitness
+  const [activeTab, setActiveTab] = useState('scan'); // scan, table, history, settings
+  const [mealName, setMealName] = useState('');
+  const [ingredients, setIngredients] = useState<any[]>([]);
+  const [newIngredient, setNewIngredient] = useState({ name: '', quantity: 100, unit: 'g' });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const cameraRef = useRef<any>(null);
+  const fileInputRef = useRef<any>(null);
 
-  useEffect(() => {
-    setMounted(true);
-    if (!currentUser) {
-      router.push('/');
+  // Nutrition data mock
+  const nutritionDb: any = {
+    'lait': { calories: 64, protein: 3.2, carbs: 4.8, fat: 3.6, fiber: 0, sugar: 4.8, sodium: 49 },
+    'laitue': { calories: 15, protein: 1.2, carbs: 2.9, fat: 0.2, fiber: 1.3, sugar: 0.6, sodium: 36 },
+    'pain': { calories: 265, protein: 9, carbs: 49, fat: 3.3, fiber: 2.7, sugar: 3, sodium: 500 },
+    'poulet': { calories: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, sugar: 0, sodium: 74 },
+    'riz': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4, sugar: 0.1, sodium: 2 },
+    'pâtes': { calories: 131, protein: 5, carbs: 25, fat: 1.1, fiber: 1.8, sugar: 0.6, sodium: 6 },
+    'tomate': { calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2, sugar: 2.6, sodium: 5 },
+    'olive': { calories: 115, protein: 0.8, carbs: 6.3, fat: 10.7, fiber: 1.6, sugar: 0.5, sodium: 346 },
+    'pizza': { calories: 285, protein: 12, carbs: 36, fat: 10, fiber: 2, sugar: 3, sodium: 500 },
+    'glace': { calories: 207, protein: 3.5, carbs: 24, fat: 11, fiber: 0, sugar: 21, sodium: 52 },
+  };
+
+  const calculateTotalNutrition = () => {
+    return ingredients.reduce((acc, ing) => {
+      const db = nutritionDb[ing.name.toLowerCase()] || { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 };
+      const multiplier = ing.quantity / 100;
+      return {
+        calories: acc.calories + (db.calories * multiplier),
+        protein: acc.protein + (db.protein * multiplier),
+        carbs: acc.carbs + (db.carbs * multiplier),
+        fat: acc.fat + (db.fat * multiplier),
+        fiber: acc.fiber + (db.fiber * multiplier),
+        sugar: acc.sugar + (db.sugar * multiplier),
+        sodium: acc.sodium + (db.sodium * multiplier),
+      };
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 });
+  };
+
+  const addIngredient = () => {
+    if (newIngredient.name) {
+      if (editingId !== null) {
+        setIngredients(ingredients.map((ing, i) => i === editingId ? newIngredient : ing));
+        setEditingId(null);
+      } else {
+        setIngredients([...ingredients, newIngredient]);
+      }
+      setNewIngredient({ name: '', quantity: 100, unit: 'g' });
     }
-  }, [currentUser, router]);
-
-  if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-green-200 border-t-green-600 mb-4" />
-          <p className="text-slate-600 font-bold text-lg">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const today = new Date().toLocaleDateString('fr-FR');
-  const todaysMeals = meals.filter(
-    (m) => new Date(m.date).toLocaleDateString('fr-FR') === today
-  );
-
-  const totalCalories = todaysMeals.reduce((acc, m) => acc + m.totalCalories, 0);
-  const totalProtein = todaysMeals.reduce((acc, m) => acc + m.totalProtein, 0);
-  const totalCarbs = todaysMeals.reduce((acc, m) => acc + m.totalCarbs, 0);
-  const totalFat = todaysMeals.reduce((acc, m) => acc + m.totalFat, 0);
-
-  const calorieProgress = dailyGoals ? (totalCalories / dailyGoals.calories) * 100 : 0;
-  const proteinProgress = dailyGoals ? (totalProtein / dailyGoals.protein) * 100 : 0;
-  const carbsProgress = dailyGoals ? (totalCarbs / dailyGoals.carbs) * 100 : 0;
-  const fatProgress = dailyGoals ? (totalFat / dailyGoals.fat) * 100 : 0;
-
-  const maxScans = PLANS[currentPlan].scansPerDay;
-  const scansRemaining = maxScans - scansUsedToday;
-
-  const handleLogout = () => {
-    logout();
-    router.push('/');
   };
 
-  const handlePlanChange = (plan: 'free' | 'pro' | 'fitness') => {
-    setPlan(plan);
-    setPlanMenuOpen(false);
+  const removeIngredient = (index: number) => {
+    setIngredients(ingredients.filter((_, i) => i !== index));
   };
+
+  const handleImageUpload = (e: any) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+        setLoading(true);
+        // Simulate API call
+        setTimeout(() => {
+          setLoading(false);
+          // Mock data
+          setMealName('Plat identifié');
+          setIngredients([
+            { name: 'Pain', quantity: 100, unit: 'g' },
+            { name: 'Fromage', quantity: 50, unit: 'g' },
+          ]);
+        }, 2000);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const saveMeal = () => {
+    if (mealName && ingredients.length > 0) {
+      const nutrition = calculateTotalNutrition();
+      setHistory([{
+        id: Date.now(),
+        name: mealName,
+        image: imagePreview,
+        ingredients,
+        nutrition,
+        date: new Date(),
+      }, ...history]);
+      // Reset
+      setMealName('');
+      setIngredients([]);
+      setImagePreview(null);
+      setActiveTab('history');
+    }
+  };
+
+  const calories = calculateTotalNutrition().calories;
+  const dailyGoal = plan === 'free' ? null : 2000;
+  const caloriesRemaining = dailyGoal ? dailyGoal - calories : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-20 md:pb-0">
       {/* Header */}
-      <div className="border-b-2 border-green-200 sticky top-0 z-50 bg-white/80 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-            📸 PhotoCalories
-          </h1>
-
-          {/* Plan Dropdown */}
-          <div className="relative hidden sm:block">
-            <button
-              onClick={() => setPlanMenuOpen(!planMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 font-bold text-green-700 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-95"
-            >
-              <span className="text-sm">
-                {currentPlan === 'free' && '🔧 Free'}
-                {currentPlan === 'pro' && '💎 Pro'}
-                {currentPlan === 'fitness' && '🔥 Fitness'}
-              </span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${planMenuOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {/* Dropdown Menu */}
-            {planMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white border-2 border-green-300 shadow-lg overflow-hidden animate-slide-down z-50">
-                {[
-                  { id: 'free', name: '🔧 Free - 0€', desc: 'Gratuit' },
-                  { id: 'pro', name: '💎 Pro - 4,99€', desc: '/mois' },
-                  { id: 'fitness', name: '🔥 Fitness - 9,99€', desc: '/mois' },
-                ].map((plan) => (
-                  <button
-                    key={plan.id}
-                    onClick={() => handlePlanChange(plan.id as 'free' | 'pro' | 'fitness')}
-                    className={`w-full text-left px-4 py-3 font-bold transition-all duration-300 flex items-center justify-between ${
-                      currentPlan === plan.id
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                        : 'text-slate-900 hover:bg-green-50'
-                    }`}
-                  >
-                    <div>
-                      <p className="text-sm font-black">{plan.name}</p>
-                      <p className="text-xs opacity-75">{plan.desc}</p>
-                    </div>
-                    {currentPlan === plan.id && <span className="text-lg">✓</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2.5 rounded-xl bg-green-100 border-2 border-green-300 lg:hidden hover:bg-green-200 transition-all duration-300"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6 text-green-700" /> : <Menu className="w-6 h-6 text-green-700" />}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row flex-1">
-        {/* Sidebar */}
-        <div
-          className={`fixed lg:static w-64 h-screen bg-white border-r-2 border-green-200 p-4 overflow-y-auto transition-all duration-300 lg:translate-x-0 z-40 ${
-            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <nav className="space-y-2">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold transition-all duration-300 hover:shadow-lg"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <TrendingUp className="w-5 h-5" />
-              Dashboard
-            </Link>
-
-            <div className="pt-4 border-t-2 border-green-200">
-              <p className="text-xs font-black text-slate-600 uppercase mb-3 pl-4">💱 Ajouter</p>
-              <div className="space-y-2">
-                <Link
-                  href="/dashboard/camera"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-100 text-slate-900 font-bold transition-all duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Camera className="w-5 h-5 text-green-600" />
-                  Caméra
-                </Link>
-                <Link
-                  href="/dashboard/barcode"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-100 text-slate-900 font-bold transition-all duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Barcode className="w-5 h-5 text-emerald-600" />
-                  Code-barres
-                </Link>
-              </div>
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 border-b border-gray-700/30 backdrop-blur-md bg-slate-900/50"
+      >
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold bg-gradient-to-r from-blue-400 to-yellow-400 bg-clip-text text-transparent">
+            PhotoCalories
+          </Link>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-gray-400">Plan</p>
+              <p className="text-sm font-bold capitalize text-white">{plan}</p>
             </div>
-
-            <div className="pt-4 border-t-2 border-green-200">
-              <p className="text-xs font-black text-slate-600 uppercase pl-4">Scans</p>
-              <div className="mt-2 px-4 py-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300">
-                <p className="text-2xl font-black text-green-700">{scansRemaining}/{maxScans}</p>
-                <p className="text-xs font-bold text-slate-600 mt-1">Restants aujourd'hui</p>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t-2 border-green-200 space-y-2">
-              {currentPlan === 'fitness' && (
-                <Link
-                  href="/dashboard/coach"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-100 text-slate-900 font-bold transition-all duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Zap className="w-5 h-5 text-yellow-500" />
-                  Coach IA
-                </Link>
-              )}
-              <Link
-                href="/dashboard/settings"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-100 text-slate-900 font-bold transition-all duration-300"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Settings className="w-5 h-5 text-slate-600" />
-                Paramètres
-              </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-100 text-red-600 transition-all duration-300 font-bold"
-              >
-                <LogOut className="w-5 h-5" />
-                Déconnexion
+            <Link href="/">
+              <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition">
+                <Settings className="w-5 h-5" />
               </button>
-            </div>
-          </nav>
+            </Link>
+          </div>
         </div>
 
-        {/* Main */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
-          {/* Bienvenue */}
-          <div className="mb-6 animate-fade-in">
-            <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Bienvenue 👋</p>
-            <div className="flex items-baseline justify-between mt-1">
-              <h2 className="text-3xl font-black text-slate-900">{currentUser?.email}</h2>
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-slate-600 uppercase">Scans</p>
-                <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-                  {scansRemaining}/{maxScans}
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Calories Card */}
+        <div className="max-w-6xl mx-auto px-4 py-4 border-t border-gray-700/30">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <motion.div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
+              <p className="text-xs text-gray-400 mb-1">Calories</p>
+              <p className="text-2xl font-bold text-white">{Math.round(calories)}</p>
+              {caloriesRemaining !== null && (
+                <p className="text-xs text-gray-300 mt-1">Restant: {Math.round(caloriesRemaining)}</p>
+              )}
+            </motion.div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-            {[
-              {
-                label: 'Calories',
-                value: totalCalories,
-                unit: `/ ${dailyGoals?.calories || 2000}`,
-                color: 'from-orange-500 to-red-500',
-                icon: Flame,
-                progress: calorieProgress,
-              },
-              {
-                label: 'Protéines',
-                value: totalProtein.toFixed(0),
-                unit: `/ ${dailyGoals?.protein || 150}g`,
-                color: 'from-green-600 to-emerald-500',
-                icon: Droplets,
-                progress: proteinProgress,
-              },
-              {
-                label: 'Glucides',
-                value: totalCarbs.toFixed(0),
-                unit: `/ ${dailyGoals?.carbs || 200}g`,
-                color: 'from-amber-500 to-yellow-500',
-                icon: Wheat,
-                progress: carbsProgress,
-              },
-              {
-                label: 'Lipides',
-                value: totalFat.toFixed(0),
-                unit: `/ ${dailyGoals?.fat || 65}g`,
-                color: 'from-emerald-600 to-teal-500',
-                icon: TrendingUp,
-                progress: fatProgress,
-              },
-            ].map((stat, idx) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={idx}
-                  className="card border-2 border-green-200 hover:border-green-400 p-3 sm:p-4 animate-fade-in"
-                  style={{ animationDelay: `${idx * 50}ms` }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-black text-slate-600 uppercase">
-                      {stat.label}
-                    </span>
-                    <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.color} text-white shadow-md`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5 font-bold">{stat.unit}</p>
-                  <div className="progress-bar mt-2">
-                    <div className="progress-fill" style={{ width: `${Math.min(stat.progress, 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            {(plan === 'pro' || plan === 'fitness') && (
+              <>
+                <motion.div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
+                  <p className="text-xs text-gray-400 mb-1">Protéines</p>
+                  <p className="text-2xl font-bold text-purple-300">{Math.round(calculateTotalNutrition().protein)}g</p>
+                </motion.div>
 
-          {/* Quick Actions */}
-          <div className="grid sm:grid-cols-2 gap-3 mb-6">
-            <Link
-              href="/dashboard/camera"
-              className="card border-2 border-green-300 hover:border-green-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group p-4"
-            >
-              <div className="flex items-center gap-4">
-                <Camera className="w-12 h-12 text-green-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
-                <div>
-                  <p className="text-xs sm:text-sm font-bold text-slate-600 uppercase">Photo</p>
-                  <p className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-green-600 transition-all duration-300">
-                    📷 Caméra
-                  </p>
-                </div>
-              </div>
-            </Link>
+                <motion.div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 rounded-lg p-4">
+                  <p className="text-xs text-gray-400 mb-1">Glucides</p>
+                  <p className="text-2xl font-bold text-yellow-300">{Math.round(calculateTotalNutrition().carbs)}g</p>
+                </motion.div>
 
-            <Link
-              href="/dashboard/barcode"
-              className="card border-2 border-emerald-300 hover:border-emerald-500 hover:shadow-lg transition-all duration-300 hover:scale-105 group p-4"
-            >
-              <div className="flex items-center gap-4">
-                <Barcode className="w-12 h-12 text-emerald-600 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" />
-                <div>
-                  <p className="text-xs sm:text-sm font-bold text-slate-600 uppercase">Scan</p>
-                  <p className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-all duration-300">
-                    💱 Code
-                  </p>
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Meals */}
-          <div className="card border-2 border-green-200">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900">Repas d'aujourd'hui</h2>
-              <span className="badge badge-primary text-xs sm:text-sm">{todaysMeals.length} repas</span>
-            </div>
-
-            {todaysMeals.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-2xl mb-4">😲</p>
-                <p className="text-slate-600 font-bold mb-2">Aucun repas ajouté</p>
-                <p className="text-sm text-slate-500 mb-6">Commence en prenant une photo!</p>
-                <div className="flex gap-2 justify-center flex-wrap">
-                  <Link href="/dashboard/camera" className="btn-primary text-sm font-bold py-2 px-4">
-                    <Camera className="w-4 h-4" />
-                    Camera
-                  </Link>
-                  <Link href="/dashboard/barcode" className="btn-secondary text-sm font-bold py-2 px-4">
-                    <Barcode className="w-4 h-4" />
-                    Code
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {todaysMeals.map((meal) => (
-                  <div
-                    key={meal.id}
-                    className="p-3 sm:p-4 rounded-lg border-2 border-green-200 hover:border-green-400 transition-all duration-300 group hover:shadow-md"
-                  >
-                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-slate-900 group-hover:text-green-600 transition-all duration-300 truncate">
-                          {meal.name}
-                        </p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-0.5 truncate">
-                          {meal.ingredients.map((i) => i.name).join(', ')}
-                        </p>
-                      </div>
-                      <span className="badge badge-primary text-xs sm:text-sm font-black whitespace-nowrap">
-                        {Math.round(meal.totalCalories)} kcal
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                <motion.div className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border border-orange-500/30 rounded-lg p-4">
+                  <p className="text-xs text-gray-400 mb-1">Lipides</p>
+                  <p className="text-2xl font-bold text-orange-300">{Math.round(calculateTotalNutrition().fat)}g</p>
+                </motion.div>
+              </>
             )}
           </div>
-        </main>
+        </div>
+      </motion.header>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Tabs */}
+        <motion.div className="flex gap-2 mb-8 flex-wrap md:flex-nowrap">
+          {[
+            { id: 'scan', icon: Camera, label: 'Scanner' },
+            plan === 'fitness' && { id: 'table', icon: ChefHat, label: 'Ingrédients' },
+            { id: 'history', icon: History, label: 'Historique' },
+          ].filter(Boolean).map((tab: any) => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </motion.button>
+          ))}
+        </motion.div>
+
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'scan' && (
+            <motion.div
+              key="scan"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="card"
+            >
+              <h2 className="text-2xl font-bold mb-6">Upload ou Scan</h2>
+
+              {imagePreview && (
+                <div className="mb-6 relative">
+                  <img src={imagePreview} alt="Preview" className="w-full rounded-lg max-h-96 object-cover" />
+                  <button
+                    onClick={() => setImagePreview(null)}
+                    className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 rounded-lg transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-4 mb-6">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-bold transition-all"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload Image
+                </button>
+                {/* Camera would go here */}
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+
+              {loading && (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin">
+                    <div className="w-8 h-8 border-4 border-gray-700 border-t-blue-500 rounded-full" />
+                  </div>
+                  <p className="mt-4 text-gray-300">Analyse en cours...</p>
+                </div>
+              )}
+
+              {mealName && !loading && (
+                <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <p className="text-sm text-gray-400 mb-2">Nom du plat</p>
+                  <input
+                    type="text"
+                    value={mealName}
+                    onChange={(e) => setMealName(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white mb-4"
+                  />
+
+                  {plan === 'fitness' && (
+                    <button
+                      onClick={() => setActiveTab('table')}
+                      className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-bold transition"
+                    >
+                      Modifier les ingrédients
+                    </button>
+                  )}
+
+                  <button
+                    onClick={saveMeal}
+                    className="w-full mt-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 font-bold transition"
+                  >
+                    Enregistrer
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'table' && plan === 'fitness' && (
+            <motion.div
+              key="table"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="card"
+            >
+              <h2 className="text-2xl font-bold mb-6">Ingrédients</h2>
+
+              {/* Input */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                <input
+                  type="text"
+                  placeholder="Nom de l'ingrédient"
+                  value={newIngredient.name}
+                  onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                  className="input-field"
+                  list="ingredients"
+                />
+                <datalist id="ingredients">
+                  {Object.keys(nutritionDb).map(ing => <option key={ing} value={ing} />)}
+                </datalist>
+                <input
+                  type="number"
+                  placeholder="Quantité"
+                  value={newIngredient.quantity}
+                  onChange={(e) => setNewIngredient({ ...newIngredient, quantity: parseFloat(e.target.value) || 0 })}
+                  className="input-field"
+                />
+                <button
+                  onClick={addIngredient}
+                  className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-bold flex items-center justify-center gap-2 transition"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto mb-6">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left py-3 px-4 text-gray-400">Ingrédient</th>
+                      <th className="text-center py-3 px-4 text-gray-400">Qté</th>
+                      <th className="text-right py-3 px-4 text-gray-400">Cal</th>
+                      <th className="text-right py-3 px-4 text-gray-400">Prot</th>
+                      <th className="text-right py-3 px-4 text-gray-400">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ingredients.map((ing, i) => {
+                      const db = nutritionDb[ing.name.toLowerCase()] || { calories: 0, protein: 0 };
+                      return (
+                        <tr key={i} className="border-b border-gray-700 hover:bg-gray-800/30">
+                          <td className="py-3 px-4 text-white">{ing.name}</td>
+                          <td className="text-center py-3 px-4 text-gray-300">{ing.quantity}g</td>
+                          <td className="text-right py-3 px-4 text-yellow-400 font-bold">{Math.round(db.calories * ing.quantity / 100)}</td>
+                          <td className="text-right py-3 px-4 text-purple-400 font-bold">{Math.round(db.protein * ing.quantity / 100 * 10) / 10}g</td>
+                          <td className="text-right py-3 px-4">
+                            <button onClick={() => removeIngredient(i)} className="p-2 hover:bg-red-600/20 rounded transition">
+                              <Trash2 className="w-4 h-4 text-red-400" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <button
+                onClick={saveMeal}
+                className="w-full py-3 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 font-bold transition"
+              >
+                Enregistrer la recette
+              </button>
+            </motion.div>
+          )}
+
+          {activeTab === 'history' && (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-4"
+            >
+              <h2 className="text-2xl font-bold mb-6">Historique</h2>
+              {history.length === 0 ? (
+                <div className="card text-center py-12">
+                  <p className="text-gray-400">Aucun plat enregistré pour le moment</p>
+                </div>
+              ) : (
+                history.map(meal => (
+                  <motion.div key={meal.id} className="card" whileHover={{ scale: 1.02 }}>
+                    <div className="flex gap-4">
+                      {meal.image && (
+                        <img src={meal.image} alt={meal.name} className="w-24 h-24 rounded-lg object-cover" />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white mb-2">{meal.name}</h3>
+                        <p className="text-sm text-gray-400 mb-3">{meal.date.toLocaleString('fr-FR')}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div className="text-sm">
+                            <p className="text-gray-400 text-xs">Calories</p>
+                            <p className="font-bold text-yellow-400">{Math.round(meal.nutrition.calories)}</p>
+                          </div>
+                          {(plan === 'pro' || plan === 'fitness') && (
+                            <>
+                              <div className="text-sm">
+                                <p className="text-gray-400 text-xs">Protéines</p>
+                                <p className="font-bold text-purple-400">{Math.round(meal.nutrition.protein)}g</p>
+                              </div>
+                              <div className="text-sm">
+                                <p className="text-gray-400 text-xs">Glucides</p>
+                                <p className="font-bold text-blue-400">{Math.round(meal.nutrition.carbs)}g</p>
+                              </div>
+                              <div className="text-sm">
+                                <p className="text-gray-400 text-xs">Lipides</p>
+                                <p className="font-bold text-orange-400">{Math.round(meal.nutrition.fat)}g</p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Mobile Navigation */}
+      <motion.nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-gray-700 z-40">
+        <div className="flex justify-around">
+          {[{ id: 'scan', icon: Camera }, { id: 'history', icon: History }].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-4 flex items-center justify-center ${
+                activeTab === tab.id ? 'text-blue-400 border-t-2 border-blue-400' : 'text-gray-400'
+              }`}
+            >
+              <tab.icon className="w-6 h-6" />
+            </button>
+          ))}
+        </div>
+      </motion.nav>
     </div>
   );
-}
+};
+
+export default Dashboard;
