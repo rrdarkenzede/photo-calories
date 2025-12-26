@@ -61,6 +61,34 @@ export async function getNutritionInfo(foodName: string): Promise<any> {
   };
 }
 
+// Analyze food from image - combines recognition + nutrition lookup
+export async function analyzeFood(imageBase64: string): Promise<any> {
+  try {
+    // Step 1: Recognize food items in the image
+    const foods = await recognizeFood(imageBase64);
+    
+    if (foods.length === 0) {
+      throw new Error('Aucun plat reconnu. Essaie une photo plus claire.');
+    }
+
+    // Step 2: Get nutrition info for the main food item
+    const mainFood = foods[0];
+    const nutritionInfo = await getNutritionInfo(mainFood);
+
+    if (!nutritionInfo) {
+      throw new Error(`Impossible de trouver les infos nutritionnelles pour "${mainFood}"`);
+    }
+
+    return {
+      ...nutritionInfo,
+      recognizedItems: foods,
+      description: `Plat contenant: ${foods.slice(0, 3).join(', ')}.`,
+    };
+  } catch (error: any) {
+    throw new Error(error.message || 'Erreur lors de l\'analyse de l\'image');
+  }
+}
+
 // OpenFoodFacts - Barcode lookup
 export async function getBarcodeProduct(barcode: string): Promise<any> {
   const response = await fetch(`https://world.openfoodsfacts.org/api/v0/product/${barcode}.json`);
