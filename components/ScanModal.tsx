@@ -29,25 +29,30 @@ export default function ScanModal({
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
-  const cameraReadyRef = useRef(false)
 
   const stopAllStreams = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current.getTracks().forEach(track => {
+        track.stop()
+      })
       streamRef.current = null
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null
     }
-    cameraReadyRef.current = false
   }
 
-  const startBarcodeCamera = async (callback: () => void) => {
+  const startBarcodeCamera = async () => {
     stopAllStreams()
+    setMode('camera')
     
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: { ideal: 'environment' } },
+        video: { 
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         audio: false
       })
       
@@ -55,55 +60,44 @@ export default function ScanModal({
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
-        videoRef.current.play().catch(err => console.error('Play error:', err))
-        
-        const onLoadedMetadata = () => {
-          cameraReadyRef.current = true
-          videoRef.current?.removeEventListener('loadedmetadata', onLoadedMetadata)
-          callback()
+        try {
+          await videoRef.current.play()
+        } catch (err) {
+          console.error('Play error:', err)
         }
-        
-        videoRef.current.addEventListener('loadedmetadata', onLoadedMetadata)
-        
-        setTimeout(() => {
-          if (!cameraReadyRef.current) {
-            cameraReadyRef.current = true
-            callback()
-          }
-        }, 3000)
       }
     } catch (err) {
       alert('Erreur caméra: ' + (err instanceof Error ? err.message : 'Erreur'))
       stopAllStreams()
+      setMode('choose')
     }
   }
 
   const captureBarcodePhoto = () => {
-    if (!videoRef.current || !cameraReadyRef.current) {
-      alert('La caméra n\'est pas prête')
-      return
-    }
-    
-    if (videoRef.current.videoWidth === 0) {
-      alert('Image vide')
+    if (!videoRef.current) {
+      alert('Vidéo non disponible')
       return
     }
     
     try {
       const canvas = document.createElement('canvas')
-      canvas.width = videoRef.current.videoWidth
-      canvas.height = videoRef.current.videoHeight
-      const ctx = canvas.getContext('2d')
+      canvas.width = videoRef.current.videoWidth || 1280
+      canvas.height = videoRef.current.videoHeight || 720
       
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0)
-        const imageData = canvas.toDataURL('image/jpeg', 0.9)
-        setImage(imageData)
-        stopAllStreams()
-        analyzeBarcodeImage(imageData)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        alert('Erreur capture')
+        return
       }
+      
+      ctx.drawImage(videoRef.current, 0, 0)
+      const imageData = canvas.toDataURL('image/jpeg', 0.9)
+      setImage(imageData)
+      stopAllStreams()
+      analyzeBarcodeImage(imageData)
     } catch (err) {
       console.error('Capture error:', err)
+      alert('Erreur capture: ' + (err instanceof Error ? err.message : 'Erreur'))
     }
   }
 
@@ -123,7 +117,6 @@ export default function ScanModal({
   const analyzeBarcodeImage = async (imageData: string) => {
     setLoading(true)
     try {
-      // Try to decode barcode from image
       const response = await fetch('/api/analyze-barcode-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,11 +132,13 @@ export default function ScanModal({
       } else {
         alert('Code-barres non détecté. Essaye de nouveau ou saisis-le manuellement')
         setImage(null)
+        setMode('choose')
         setLoading(false)
       }
     } catch (err) {
       alert('Erreur: ' + (err instanceof Error ? err.message : 'Erreur'))
       setImage(null)
+      setMode('choose')
       setLoading(false)
     }
   }
@@ -366,8 +361,8 @@ export default function ScanModal({
           <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096', padding: 0 }}>×</button>
         </div>
 
-        {/* Tabs */}
-        {!result && (
+        {/* Tabs - Hidden during camera or result */}
+        {!result && mode !== 'camera' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderBottom: '2px solid #e2e8f0', flexShrink: 0 }}>
             <button onClick={() => switchTab('search')} style={{ padding: '1rem', background: tab === 'search' ? '#667eea' : 'white', color: tab === 'search' ? 'white' : '#1a202c', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
               🔍 Chercher
@@ -379,56 +374,115 @@ export default function ScanModal({
         )}
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '1.5rem' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
           
+          {/* CAMERA MODE - FULLSCREEN */}
+          {mode === 'camera' && !image && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+              {/* Video - Takes most space */}
+              <div style={{ position: 'relative', background: '#000', borderRadius: '12px', overflow: 'hidden', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted
+                  style={{ 
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }} 
+                />
+                {/* Barcode overlay frame */}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '40%', border: '3px solid rgba(102, 126, 234, 0.8)', borderRadius: '12px', pointerEvents: 'none' }}></div>
+              </div>
+              
+              {/* Instructions */}
+              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0', fontWeight: 600 }}>Aligne le code-barres dans le carré</p>
+              
+              {/* Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button 
+                  onClick={() => { 
+                    stopAllStreams(); 
+                    setMode('choose');
+                  }} 
+                  style={{ 
+                    padding: '1rem', 
+                    background: 'white', 
+                    border: '2px solid #e2e8f0', 
+                    borderRadius: '12px', 
+                    fontWeight: 700, 
+                    cursor: 'pointer', 
+                    color: '#1a202c',
+                    fontSize: '1rem'
+                  }}
+                >
+                  ❌ Annuler
+                </button>
+                <button 
+                  onClick={captureBarcodePhoto} 
+                  style={{ 
+                    padding: '1rem', 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontWeight: 700, 
+                    cursor: 'pointer',
+                    fontSize: '1rem'
+                  }}
+                >
+                  📸 PRENDRE PHOTO
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* SEARCH TAB */}
           {tab === 'search' && mode === 'choose' && !result && (
-            <div>
-              <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
-                {/* Chercher par nom */}
-                <div>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Chercher par nom</h3>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Coca, Banane, Yaourt..." 
-                    value={searchInput}
-                    onChange={(e) => handleSearchInput(e.target.value)}
-                    style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
-                    autoFocus
-                  />
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Chercher par nom</h3>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Coca, Banane, Yaourt..." 
+                  value={searchInput}
+                  onChange={(e) => handleSearchInput(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
+                  autoFocus
+                />
+              </div>
 
-                {/* Code-barres - CAMERA + Manual */}
-                <div>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Code-barres</h3>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <div>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Code-barres</h3>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <button 
+                    onClick={startBarcodeCamera}
+                    style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}
+                  >
+                    📱 Scanner avec caméra
+                  </button>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Ou saisis le code..." 
+                      value={barcodeInput}
+                      onChange={(e) => setBarcodeInput(e.target.value)}
+                      style={{ padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && barcodeInput.trim()) {
+                          searchBarcode(barcodeInput)
+                        }
+                      }}
+                    />
                     <button 
-                      onClick={() => startBarcodeCamera(() => setMode('camera'))}
-                      style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}
+                      onClick={() => { if (barcodeInput.trim()) searchBarcode(barcodeInput) }}
+                      disabled={loading}
+                      style={{ padding: '0.75rem 1rem', background: '#667eea', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.6 : 1 }}
                     >
-                      📱 Scanner avec caméra
+                      🔎
                     </button>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Ou saisis le code..." 
-                        value={barcodeInput}
-                        onChange={(e) => setBarcodeInput(e.target.value)}
-                        style={{ padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && barcodeInput.trim()) {
-                            searchBarcode(barcodeInput)
-                          }
-                        }}
-                      />
-                      <button 
-                        onClick={() => { if (barcodeInput.trim()) searchBarcode(barcodeInput) }}
-                        disabled={loading}
-                        style={{ padding: '0.75rem 1rem', background: '#667eea', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.6 : 1 }}
-                      >
-                        🔎
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -477,33 +531,12 @@ export default function ScanModal({
             </div>
           )}
 
-          {/* CAMERA - CODE BARRES */}
-          {mode === 'camera' && !image && (
-            <div>
-              <div style={{ position: 'relative', marginBottom: '1rem', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted 
-                  style={{ width: '100%', height: 'auto', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} 
-                />
-                <div style={{ position: 'absolute', inset: 0, border: '3px solid rgba(102, 126, 234, 0.5)', borderRadius: '0px', pointerEvents: 'none' }}></div>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0.5rem 0 1rem 0' }}>Aligne le code-barres dans le carré</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <button onClick={() => { stopAllStreams(); resetAll(); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
-                <button onClick={captureBarcodePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capturer</button>
-              </div>
-            </div>
-          )}
-
-          {/* UPLOAD TAB - Photo seulement */}
+          {/* UPLOAD TAB - Photo upload only */}
           {tab === 'upload' && mode === 'choose' && !result && (
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
               <button 
                 onClick={() => fileInputRef.current?.click()} 
-                style={{ padding: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}
+                style={{ padding: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', width: '100%' }}
               >
                 📁 Choisir une photo
               </button>
@@ -514,7 +547,7 @@ export default function ScanModal({
 
           {/* LOADING */}
           {loading && (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⏳</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c' }}>Analyse en cours...</div>
             </div>
