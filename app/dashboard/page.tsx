@@ -321,7 +321,6 @@ const DashboardPage = () => {
                   />
                   <label htmlFor="image-input">
                     <button
-                      as="button"
                       className="btn-primary cursor-pointer"
                       onClick={() => document.getElementById('image-input')?.click()}
                     >
