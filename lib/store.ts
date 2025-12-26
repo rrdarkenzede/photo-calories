@@ -46,6 +46,13 @@ interface Goal {
   fat?: number;
 }
 
+interface DailyGoals {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 interface CoachProfile {
   age: number;
   weight: number;
@@ -62,7 +69,12 @@ interface AppState {
 
   // Plan
   plan: 'free' | 'pro' | 'fitness';
+  currentPlan: 'free' | 'pro' | 'fitness';
   setPlan: (plan: 'free' | 'pro' | 'fitness') => void;
+
+  // Daily Goals
+  dailyGoals: DailyGoals;
+  setDailyGoals: (goals: Partial<DailyGoals>) => void;
 
   // Meals
   meals: Meal[];
@@ -95,7 +107,19 @@ export const useAppStore = create<AppState>()(
       setUser: (user) => set({ user }),
 
       plan: 'free',
-      setPlan: (plan) => set({ plan }),
+      currentPlan: 'free',
+      setPlan: (plan) => set({ plan, currentPlan: plan }),
+
+      dailyGoals: {
+        calories: 2000,
+        protein: 50,
+        carbs: 250,
+        fat: 65,
+      },
+      setDailyGoals: (goals) =>
+        set((state) => ({
+          dailyGoals: { ...state.dailyGoals, ...goals },
+        })),
 
       meals: [],
       addMeal: (meal) =>
