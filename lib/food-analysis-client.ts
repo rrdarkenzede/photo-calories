@@ -22,7 +22,7 @@ export interface AnalyzeResponse {
     carbs: number;
     fat: number;
     fiber?: number;
-    sugar?: number;
+    sugars?: number;
     sodium?: number;
   };
   error?: string;
@@ -201,7 +201,7 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
         carbs: response.nutrition.carbs,
         fat: response.nutrition.fat,
         fiber: response.nutrition.fiber || 0,
-        sugar: response.nutrition.sugar || 0,
+        sugar: response.nutrition.sugars || 0,
         sodium: response.nutrition.sodium || 0,
       },
     ],
@@ -210,7 +210,7 @@ export function analyzeResponseToMeal(response: AnalyzeResponse) {
     totalCarbs: response.nutrition.carbs,
     totalFat: response.nutrition.fat,
     totalFiber: response.nutrition.fiber,
-    totalSugar: response.nutrition.sugar,
+    totalSugar: response.nutrition.sugars,
     totalSodium: response.nutrition.sodium,
     mealType: 'snack' as const,
   };
