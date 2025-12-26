@@ -54,9 +54,8 @@ export default function ScanModal({
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0)
         const imageData = canvas.toDataURL('image/jpeg', 0.9)
-        console.log('Photo captured, size:', imageData.length)
         setImage(imageData)
-        setMode('upload') // Change mode to show the image
+        setMode('upload')
         stopCamera()
         analyzeFoodImage(imageData)
       }
@@ -69,9 +68,8 @@ export default function ScanModal({
       const reader = new FileReader()
       reader.onload = (event) => {
         const imageData = event.target?.result as string
-        console.log('File uploaded, size:', imageData.length)
         setImage(imageData)
-        setMode('upload') // Ensure we're in upload mode to show image
+        setMode('upload')
         analyzeFoodImage(imageData)
       }
       reader.readAsDataURL(file)
@@ -81,21 +79,31 @@ export default function ScanModal({
   const analyzeFoodImage = async (imageData: string) => {
     setLoading(true)
     try {
-      // Simulate API call (replace with real Clarifai API)
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Call our API route that uses Clarifai
+      const response = await fetch('/api/analyze-food', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to analyze image')
+      }
+
+      const data = await response.json()
       
-      // Mock result based on plan
+      // Build result based on plan
       const mockResult = {
-        name: 'Pizza Margherita',
-        calories: 720,
-        protein: plan !== 'free' ? 32 : undefined,
-        carbs: plan !== 'free' ? 85 : undefined,
-        fat: plan !== 'free' ? 28 : undefined,
+        name: data.primary.name.charAt(0).toUpperCase() + data.primary.name.slice(1),
+        confidence: data.primary.confidence,
+        calories: data.nutrition.calories,
+        protein: plan !== 'free' ? data.nutrition.protein : undefined,
+        carbs: plan !== 'free' ? data.nutrition.carbs : undefined,
+        fat: plan !== 'free' ? data.nutrition.fat : undefined,
+        allFoods: data.foods,
         ingredients: plan === 'fitness' ? [
-          { name: 'Pâte à pizza', amount: '200g' },
-          { name: 'Sauce tomate', amount: '100g' },
-          { name: 'Mozzarella', amount: '150g' },
-          { name: 'Basilic', amount: '10g' },
+          { name: data.primary.name, amount: '1 portion' },
         ] : undefined
       }
       
@@ -105,7 +113,7 @@ export default function ScanModal({
       }
     } catch (err) {
       console.error('Analysis error:', err)
-      alert('Erreur lors de l\'analyse')
+      alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setLoading(false)
     }
@@ -114,7 +122,7 @@ export default function ScanModal({
   const analyzeBarcodeManual = async (barcode: string) => {
     setLoading(true)
     try {
-      // Simulate barcode lookup
+      // TODO: Integrate OpenFoodFacts API
       await new Promise(resolve => setTimeout(resolve, 1500))
       
       const mockResult = {
@@ -182,29 +190,26 @@ export default function ScanModal({
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={handleClose}>
       <div style={{ background: 'white', borderRadius: '20px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto', padding: '2rem' }} onClick={(e) => e.stopPropagation()}>
         
-        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1a202c', margin: 0 }}>Scanner un repas</h2>
           <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096' }}>×</button>
         </div>
 
-        {/* Choose Mode */}
         {mode === 'choose' && (
           <div style={{ display: 'grid', gap: '1rem' }}>
-            <button onClick={() => { setMode('camera'); startCamera(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button onClick={() => { setMode('camera'); startCamera(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
               📸 Prendre une photo
             </button>
-            <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
               📤 Upload une image
             </button>
-            <button onClick={() => setMode('barcode')} style={{ padding: '1.5rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button onClick={() => setMode('barcode')} style={{ padding: '1.5rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
               🔍 Scanner un code-barres
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
           </div>
         )}
 
-        {/* Camera Mode */}
         {mode === 'camera' && !image && (
           <div>
             <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000' }} />
@@ -215,7 +220,6 @@ export default function ScanModal({
           </div>
         )}
 
-        {/* Barcode Mode */}
         {mode === 'barcode' && (
           <div>
             <div style={{ marginBottom: '1rem' }}>
@@ -231,34 +235,25 @@ export default function ScanModal({
                 }}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <button onClick={() => setMode('choose')} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Retour</button>
-            </div>
+            <button onClick={() => setMode('choose')} style={{ width: '100%', padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Retour</button>
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            {image && (
-              <img src={image} alt="Analyzing..." style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem' }} />
-            )}
+            {image && <img src={image} alt="Analyzing..." style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem' }} />}
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>Analyse en cours...</div>
           </div>
         )}
 
-        {/* Results */}
         {result && !loading && (
           <div>
-            {image && (
-              <div style={{ marginBottom: '1rem' }}>
-                <img src={image} alt="Food" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-              </div>
-            )}
+            {image && <img src={image} alt="Food" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />}
             
             <div style={{ background: '#f7fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem', border: '2px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', marginBottom: '1rem' }}>{result.name}</h3>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', marginBottom: '0.5rem' }}>{result.name}</h3>
+              {result.confidence && <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '1rem', fontWeight: 600 }}>Confiance: {result.confidence}%</p>}
               
               <div style={{ display: 'grid', gridTemplateColumns: plan === 'free' ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
                 <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
@@ -289,7 +284,6 @@ export default function ScanModal({
                 )}
               </div>
 
-              {/* Ingredients Table (Fitness only) */}
               {plan === 'fitness' && ingredients.length > 0 && (
                 <div style={{ marginTop: '1rem' }}>
                   <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.75rem' }}>Ingrédients</h4>
