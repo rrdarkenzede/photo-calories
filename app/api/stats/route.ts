@@ -1,89 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-interface DailyStat {
-  date: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  scans: number;
-}
+import { NextRequest, NextResponse } from 'next/server'
 
 interface StatsResponse {
-  period: string | null;
-  data: DailyStat[];
-  summary: {
-    averageCalories: number;
-    averageProtein: number;
-    averageCarbs: number;
-    averageFat: number;
-    totalScans: number;
-  };
-  goals: {
-    dailyCalories: number;
-    dailyProtein: number;
-    dailyCarbs: number;
-    dailyFat: number;
-  };
-  progress: {
-    caloriesPercentage: number;
-    proteinPercentage: number;
-    carbsPercentage: number;
-    fatPercentage: number;
-  };
+  success: boolean
+  stats?: {
+    todayCalories: number
+    todayCaloriesGoal: number
+    thisWeekCalories: number
+    thisMonthCalories: number
+    averageDailyCalories: number
+    mealsLogged: number
+    scansRemaining: number
+  }
+  error?: string
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse<StatsResponse>> {
   try {
-    // TODO: Authenticate user
-    const searchParams = req.nextUrl.searchParams;
-    const period = searchParams.get('period') || 'day'; // 'day', 'week', 'month'
+    const searchParams = request.nextUrl.searchParams
+    const period = searchParams.get('period') || 'day'
 
-    // TODO: Fetch daily_summaries from database for given period
-    // TODO: Calculate averages and trends
-
-    const stats: StatsResponse = {
-      period,
-      data: [
-        // Example:
-        // {
-        //   date: '2025-12-25',
-        //   calories: 2150,
-        //   protein: 125,
-        //   carbs: 240,
-        //   fat: 65,
-        //   scans: 5
-        // }
-      ],
-      summary: {
-        averageCalories: 0,
-        averageProtein: 0,
-        averageCarbs: 0,
-        averageFat: 0,
-        totalScans: 0,
-      },
-      goals: {
-        dailyCalories: 2000,
-        dailyProtein: 150,
-        dailyCarbs: 250,
-        dailyFat: 65,
-      },
-      progress: {
-        caloriesPercentage: 0,
-        proteinPercentage: 0,
-        carbsPercentage: 0,
-        fatPercentage: 0,
-      },
-    };
+    // Données démo
+    const stats = {
+      todayCalories: 1850,
+      todayCaloriesGoal: 2500,
+      thisWeekCalories: 12500,
+      thisMonthCalories: 52000,
+      averageDailyCalories: 1857,
+      mealsLogged: 7,
+      scansRemaining: 5,
+    }
 
     return NextResponse.json({
       success: true,
       stats,
-    });
+    })
   } catch (error) {
+    console.error('Erreur stats:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch stats' },
+      { success: false, error: 'Erreur récupération stats' },
       { status: 500 }
-    );
+    )
   }
 }

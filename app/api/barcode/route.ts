@@ -1,47 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-interface BarcodeRequest {
-  barcode: string;
-}
-
-interface ProductData {
-  name: string;
-  brand: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  servingSize: string;
-  imageUrl?: string;
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const { barcode } = (await req.json()) as BarcodeRequest;
-
-    if (!barcode) {
-      return NextResponse.json(
-        { error: 'No barcode provided' },
-        { status: 400 }
-      );
-    }
-
-    // TODO: Integrate with OpenFoodFacts or similar
-    const mockProduct: ProductData = {
-      name: 'Organic Yogurt',
-      brand: 'YogurtCo',
-      calories: 120,
-      protein: 8,
-      carbs: 15,
-      fat: 2,
-      servingSize: '100g',
-    };
-
-    return NextResponse.json(mockProduct);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to lookup product' },
-      { status: 500 }
-    );
-  }
+// Redirect to new scan/barcode endpoint
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  
+  // Forward to new endpoint
+  const response = await fetch(`${request.nextUrl.origin}/api/scan/barcode`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  
+  const data = await response.json()
+  return NextResponse.json(data, { status: response.status })
 }

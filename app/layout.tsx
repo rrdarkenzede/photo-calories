@@ -1,28 +1,19 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PhotoCalories - Scan. Analyze. Optimize.',
-  description: 'Advanced food tracking with AI-powered image recognition',
-  icons: {
-    icon: '📸',
-  },
-};
+  title: 'PhotoCalories - Scannez vos calories',
+  description: 'App gratuite pour compter vos calories avec l\'IA',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="fr">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body className="antialiased bg-black text-white">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }

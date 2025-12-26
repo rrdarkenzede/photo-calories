@@ -1,128 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-interface RecipeRequest {
-  name: string;
-  description?: string;
+interface Recipe {
+  id: string
+  name: string
+  description: string
   ingredients: Array<{
-    name: string;
-    quantity: number;
-    unit: string;
-  }>;
-  servings?: number;
-  isPublic?: boolean;
-}
-
-// GET - Retrieve user's recipes
-export async function GET(req: NextRequest) {
-  try {
-    // TODO: Authenticate user
-    // TODO: Fetch recipes from database where user_id = authenticated user
-    // TODO: Return list with macros pre-calculated
-
-    return NextResponse.json({
-      success: true,
-      recipes: [],
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch recipes' },
-      { status: 500 }
-    );
+    name: string
+    quantity: number
+    unit: string
+  }>
+  nutrition: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
   }
 }
 
-// POST - Create new recipe
-export async function POST(req: NextRequest) {
+interface RecipesResponse {
+  success: boolean
+  recipes?: Recipe[]
+  error?: string
+}
+
+export async function GET(): Promise<NextResponse<RecipesResponse>> {
   try {
-    const body = (await req.json()) as RecipeRequest;
-
-    // TODO: Validate input
-    const { name, description, ingredients, servings = 1, isPublic = false } = body;
-
-    // TODO: Authenticate user
-    // TODO: For each ingredient, lookup nutrition from database
-    // TODO: Calculate total macros
-    // TODO: Save recipe to database
-
-    const totalMacros = {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0,
-    };
-
-    // TODO: ingredients.forEach(ing => {
-    //   fetch nutrition data for ingredient
-    //   multiply by quantity
-    //   add to totals
-    // })
-
-    return NextResponse.json(
+    const recipes: Recipe[] = [
       {
-        success: true,
-        recipe: {
-          id: 0,
-          name,
-          description,
-          ingredients,
-          servings,
-          totalCalories: totalMacros.calories,
-          totalProtein: totalMacros.protein,
-          totalCarbs: totalMacros.carbs,
-          totalFat: totalMacros.fat,
-          perServing: {
-            calories: totalMacros.calories / servings,
-            protein: totalMacros.protein / servings,
-            carbs: totalMacros.carbs / servings,
-            fat: totalMacros.fat / servings,
-          },
+        id: '1',
+        name: 'Salade Méditerranéenne',
+        description: 'Salade fraîche avec légumes et féta',
+        ingredients: [
+          { name: 'Laitue', quantity: 200, unit: 'g' },
+          { name: 'Tomates', quantity: 150, unit: 'g' },
+          { name: 'Féta', quantity: 100, unit: 'g' },
+          { name: 'Olives', quantity: 50, unit: 'g' },
+        ],
+        nutrition: {
+          calories: 350,
+          protein: 12,
+          carbs: 15,
+          fat: 26,
         },
       },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to create recipe' },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT - Update recipe
-export async function PUT(req: NextRequest) {
-  try {
-    // TODO: Get recipe ID from query params
-    // TODO: Validate ownership (user can only update own recipes)
-    // TODO: Update recipe in database
-    // TODO: Recalculate macros
-
-    return NextResponse.json({
-      success: true,
-      message: 'Recipe updated',
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to update recipe' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE - Delete recipe
-export async function DELETE(req: NextRequest) {
-  try {
-    // TODO: Get recipe ID from query params
-    // TODO: Validate ownership
-    // TODO: Delete from database
+      {
+        id: '2',
+        name: 'Poulet Grillé aux Légumes',
+        description: 'Filet de poulet avec légumes rôtis',
+        ingredients: [
+          { name: 'Poulet', quantity: 200, unit: 'g' },
+          { name: 'Brocoli', quantity: 150, unit: 'g' },
+          { name: 'Carottes', quantity: 100, unit: 'g' },
+          { name: 'Huile d\'olive', quantity: 15, unit: 'ml' },
+        ],
+        nutrition: {
+          calories: 450,
+          protein: 45,
+          carbs: 20,
+          fat: 18,
+        },
+      },
+    ]
 
     return NextResponse.json({
       success: true,
-      message: 'Recipe deleted',
-    });
+      recipes,
+    })
   } catch (error) {
+    console.error('Erreur recettes:', error)
     return NextResponse.json(
-      { error: 'Failed to delete recipe' },
+      { success: false, error: 'Erreur récupération recettes' },
       { status: 500 }
-    );
+    )
   }
 }
