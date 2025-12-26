@@ -1,210 +1,161 @@
-'use client';
-
 import { create } from 'zustand';
-import { PlanType, DailyStats, Meal, Recipe, CoachProfile } from './types';
-import { PLANS, DEFAULT_DAILY_GOALS } from './plans';
+import { persist } from 'zustand/middleware';
 
 interface User {
   id: string;
   email: string;
-  name?: string;
+  name: string;
+}
+
+interface Meal {
+  id: string;
+  date: string;
+  name: string;
+  image?: string;
+  ingredients: Ingredient[];
+  nutrition: Nutrition;
+}
+
+interface Ingredient {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
+interface Nutrition {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  nutriscore?: string;
+}
+
+interface Goal {
+  dailyCalories: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+}
+
+interface CoachProfile {
+  age?: number;
+  weight?: number;
+  height?: number;
+  activity?: string;
+  goal?: string;
 }
 
 interface AppState {
-  // User management
-  currentUser: User | null;
-  setUser: (user: User) => void;
-  logout: () => void;
+  // User
+  user: User | null;
+  setUser: (user: User | null) => void;
 
-  // Plan management
-  currentPlan: PlanType;
-  setPlan: (plan: PlanType) => void;
+  // Plan
+  plan: 'free' | 'pro' | 'fitness';
+  setPlan: (plan: 'free' | 'pro' | 'fitness') => void;
 
-  // Daily data
-  todayStats: DailyStats | null;
-  setTodayStats: (stats: DailyStats) => void;
-  addMeal: (meal: Meal) => void;
-  removeMeal: (mealId: string) => void;
-  updateMeal: (mealId: string, meal: Partial<Meal>) => void;
-
-  // Historical data
+  // Meals
   meals: Meal[];
-  addHistoricalMeal: (meal: Meal) => void;
-  getMealsInRange: (days: number) => Meal[];
+  addMeal: (meal: Meal) => void;
+  removeMeal: (id: string) => void;
+  getMealsForDate: (date: string) => Meal[];
 
-  // Recipes (Fitness only)
-  recipes: Recipe[];
-  addRecipe: (recipe: Recipe) => void;
-  removeRecipe: (recipeId: string) => void;
+  // Goals
+  goal: Goal | null;
+  setGoal: (goal: Goal) => void;
 
-  // Coach AI (Fitness only)
+  // Coach Profile (Fitness)
   coachProfile: CoachProfile | null;
   setCoachProfile: (profile: CoachProfile) => void;
 
-  // Daily goals
-  dailyGoals: typeof DEFAULT_DAILY_GOALS;
-  setDailyGoals: (goals: Partial<typeof DEFAULT_DAILY_GOALS>) => void;
+  // Recipes (Fitness)
+  recipes: any[];
+  addRecipe: (recipe: any) => void;
+  removeRecipe: (id: string) => void;
 
-  // Scans counter
-  scansUsedToday: number;
-  incrementScans: () => void;
-  resetScans: () => void;
-  totalScans: number;
+  // Daily totals
+  getDailyTotals: (date: string) => Nutrition;
+  getRemainingCalories: (date: string) => number | null;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
-  // User management
-  currentUser: null,
-  setUser: (user: User) => set({ currentUser: user }),
-  logout: () => set({ 
-    currentUser: null, 
-    todayStats: null,
-    meals: [],
-    recipes: [],
-    coachProfile: null,
-    dailyGoals: DEFAULT_DAILY_GOALS,
-    scansUsedToday: 0,
-  }),
+export const useAppStore = create<AppState>()(  
+  persist(
+    (set, get) => ({
+      user: null,
+      setUser: (user) => set({ user }),
 
-  currentPlan: 'free',
-  setPlan: (plan: PlanType) => set({ currentPlan: plan }),
+      plan: 'free',
+      setPlan: (plan) => set({ plan }),
 
-  todayStats: null,
-  setTodayStats: (stats: DailyStats) => set({ todayStats: stats }),
+      meals: [],
+      addMeal: (meal) =>
+        set((state) => ({
+          meals: [meal, ...state.meals],
+        })),
+      removeMeal: (id) =>
+        set((state) => ({
+          meals: state.meals.filter((m) => m.id !== id),
+        })),
+      getMealsForDate: (date: string) => {
+        return get().meals.filter((m) => m.date === date);
+      },
 
-  addMeal: (meal: Meal) => {
-    set((state) => {
-      const updatedStats = state.todayStats || {
-        date: new Date(),
-        consumed: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        burned: 0,
-        net: 0,
-        meals: [],
-      };
+      goal: null,
+      setGoal: (goal) => set({ goal }),
 
-      updatedStats.meals.push(meal);
-      updatedStats.consumed.calories += meal.totalCalories;
-      updatedStats.consumed.protein += meal.totalProtein;
-      updatedStats.consumed.carbs += meal.totalCarbs;
-      updatedStats.consumed.fat += meal.totalFat;
+      coachProfile: null,
+      setCoachProfile: (coachProfile) => set({ coachProfile }),
 
-      if (state.currentPlan !== 'free') {
-        updatedStats.consumed.fiber = (updatedStats.consumed.fiber || 0) + (meal.totalFiber || 0);
-        updatedStats.consumed.sugar = (updatedStats.consumed.sugar || 0) + (meal.totalSugar || 0);
-        updatedStats.consumed.sodium = (updatedStats.consumed.sodium || 0) + (meal.totalSodium || 0);
-      }
+      recipes: [],
+      addRecipe: (recipe) =>
+        set((state) => ({
+          recipes: [recipe, ...state.recipes],
+        })),
+      removeRecipe: (id) =>
+        set((state) => ({
+          recipes: state.recipes.filter((r) => r.id !== id),
+        })),
 
-      updatedStats.net = updatedStats.consumed.calories - updatedStats.burned;
+      getDailyTotals: (date: string) => {
+        const meals = get().getMealsForDate(date);
+        const totals: Nutrition = {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          fiber: 0,
+          sugar: 0,
+          sodium: 0,
+        };
 
-      return { todayStats: updatedStats };
-    });
-  },
+        meals.forEach((meal) => {
+          totals.calories += meal.nutrition.calories;
+          totals.protein += meal.nutrition.protein;
+          totals.carbs += meal.nutrition.carbs;
+          totals.fat += meal.nutrition.fat;
+          totals.fiber = (totals.fiber || 0) + (meal.nutrition.fiber || 0);
+          totals.sugar = (totals.sugar || 0) + (meal.nutrition.sugar || 0);
+          totals.sodium = (totals.sodium || 0) + (meal.nutrition.sodium || 0);
+        });
 
-  removeMeal: (mealId: string) =>
-    set((state) => {
-      if (!state.todayStats) return {};
-      const meal = state.todayStats.meals.find((m) => m.id === mealId);
-      if (!meal) return {};
+        return totals;
+      },
 
-      const updatedStats = { ...state.todayStats };
-      updatedStats.meals = updatedStats.meals.filter((m) => m.id !== mealId);
-      updatedStats.consumed.calories -= meal.totalCalories;
-      updatedStats.consumed.protein -= meal.totalProtein;
-      updatedStats.consumed.carbs -= meal.totalCarbs;
-      updatedStats.consumed.fat -= meal.totalFat;
+      getRemainingCalories: (date: string) => {
+        const state = get();
+        if (state.plan === 'free' || !state.goal) return null;
 
-      if (state.currentPlan !== 'free') {
-        updatedStats.consumed.fiber = (updatedStats.consumed.fiber || 0) - (meal.totalFiber || 0);
-        updatedStats.consumed.sugar = (updatedStats.consumed.sugar || 0) - (meal.totalSugar || 0);
-        updatedStats.consumed.sodium = (updatedStats.consumed.sodium || 0) - (meal.totalSodium || 0);
-      }
-
-      updatedStats.net = updatedStats.consumed.calories - updatedStats.burned;
-
-      return { todayStats: updatedStats };
+        const totals = state.getDailyTotals(date);
+        return state.goal.dailyCalories - totals.calories;
+      },
     }),
-
-  updateMeal: (mealId: string, mealUpdate: Partial<Meal>) =>
-    set((state) => {
-      if (!state.todayStats) return {};
-      const mealIndex = state.todayStats.meals.findIndex((m) => m.id === mealId);
-      if (mealIndex === -1) return {};
-
-      const updatedMeals = [...state.todayStats.meals];
-      const oldMeal = updatedMeals[mealIndex];
-      const newMeal = { ...oldMeal, ...mealUpdate };
-
-      updatedMeals[mealIndex] = newMeal;
-
-      const updatedStats = { ...state.todayStats, meals: updatedMeals };
-      updatedStats.consumed.calories = updatedStats.consumed.calories - oldMeal.totalCalories + newMeal.totalCalories;
-      updatedStats.consumed.protein = updatedStats.consumed.protein - oldMeal.totalProtein + newMeal.totalProtein;
-      updatedStats.consumed.carbs = updatedStats.consumed.carbs - oldMeal.totalCarbs + newMeal.totalCarbs;
-      updatedStats.consumed.fat = updatedStats.consumed.fat - oldMeal.totalFat + newMeal.totalFat;
-
-      if (state.currentPlan !== 'free') {
-        updatedStats.consumed.fiber =
-          (updatedStats.consumed.fiber || 0) - (oldMeal.totalFiber || 0) + (newMeal.totalFiber || 0);
-        updatedStats.consumed.sugar =
-          (updatedStats.consumed.sugar || 0) - (oldMeal.totalSugar || 0) + (newMeal.totalSugar || 0);
-        updatedStats.consumed.sodium =
-          (updatedStats.consumed.sodium || 0) - (oldMeal.totalSodium || 0) + (newMeal.totalSodium || 0);
-      }
-
-      updatedStats.net = updatedStats.consumed.calories - updatedStats.burned;
-
-      return { todayStats: updatedStats };
-    }),
-
-  meals: [],
-  addHistoricalMeal: (meal: Meal) => {
-    set((state) => {
-      const maxDays = PLANS[state.currentPlan].historicDays;
-      const updatedMeals = [...state.meals, meal];
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - maxDays);
-
-      // Auto-delete meals older than allowed days (except Fitness)
-      return {
-        meals: updatedMeals.filter((m) => new Date(m.date) > thirtyDaysAgo || state.currentPlan === 'fitness'),
-      };
-    });
-  },
-
-  getMealsInRange: (days: number) => {
-    const state = get();
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    return state.meals.filter((m) => new Date(m.date) > cutoffDate);
-  },
-
-  recipes: [],
-  addRecipe: (recipe: Recipe) =>
-    set((state) => {
-      if (state.currentPlan !== 'fitness') return {};
-      return { recipes: [...state.recipes, recipe] };
-    }),
-
-  removeRecipe: (recipeId: string) =>
-    set((state) => ({
-      recipes: state.recipes.filter((r) => r.id !== recipeId),
-    })),
-
-  coachProfile: null,
-  setCoachProfile: (profile: CoachProfile) =>
-    set((state) => {
-      if (state.currentPlan !== 'fitness') return {};
-      return { coachProfile: profile };
-    }),
-
-  dailyGoals: DEFAULT_DAILY_GOALS,
-  setDailyGoals: (goals) =>
-    set((state) => ({
-      dailyGoals: { ...state.dailyGoals, ...goals },
-    })),
-
-  scansUsedToday: 0,
-  incrementScans: () => set((state) => ({ scansUsedToday: state.scansUsedToday + 1 })),
-  resetScans: () => set({ scansUsedToday: 0 }),
-  totalScans: 0,
-}));
+    {
+      name: 'photocalories-store',
+      version: 1,
+    }
+  )
+);
