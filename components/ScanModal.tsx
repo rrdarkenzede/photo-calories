@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose' | 'camera' | 'search' | 'result'
-type Tab = 'search' | 'upload'
+type ScanMode = 'choose' | 'camera' | 'choose-method' | 'result'
 type Plan = 'free' | 'pro' | 'fitness'
 
 export default function ScanModal({ 
@@ -16,7 +15,6 @@ export default function ScanModal({
   onAdd: (meal: MealEntry) => void
   plan: Plan
 }) {
-  const [tab, setTab] = useState<Tab>('search')
   const [mode, setMode] = useState<ScanMode>('choose')
   const [loading, setLoading] = useState(false)
   const [image, setImage] = useState<string | null>(null)
@@ -330,18 +328,6 @@ export default function ScanModal({
     setMode('choose')
   }
 
-  const switchTab = (newTab: Tab) => {
-    stopAllStreams()
-    setTab(newTab)
-    setResult(null)
-    setImage(null)
-    setQuantity('100')
-    setBarcodeInput('')
-    setSearchInput('')
-    setSearchResults([])
-    setMode('choose')
-  }
-
   useEffect(() => {
     return () => {
       stopAllStreams()
@@ -361,89 +347,42 @@ export default function ScanModal({
           <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096', padding: 0 }}>×</button>
         </div>
 
-        {/* Tabs - Hidden during camera or result */}
-        {!result && mode !== 'camera' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderBottom: '2px solid #e2e8f0', flexShrink: 0 }}>
-            <button onClick={() => switchTab('search')} style={{ padding: '1rem', background: tab === 'search' ? '#667eea' : 'white', color: tab === 'search' ? 'white' : '#1a202c', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
-              🔍 Chercher
-            </button>
-            <button onClick={() => switchTab('upload')} style={{ padding: '1rem', background: tab === 'upload' ? '#667eea' : 'white', color: tab === 'upload' ? 'white' : '#1a202c', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
-              📸 Photo
-            </button>
-          </div>
-        )}
-
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
           
-          {/* CAMERA MODE - FULLSCREEN */}
-          {mode === 'camera' && !image && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
-              {/* Video - Takes most space */}
-              <div style={{ position: 'relative', background: '#000', borderRadius: '12px', overflow: 'hidden', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted
-                  style={{ 
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block'
-                  }} 
-                />
-                {/* Barcode overlay frame */}
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '40%', border: '3px solid rgba(102, 126, 234, 0.8)', borderRadius: '12px', pointerEvents: 'none' }}></div>
-              </div>
-              
-              {/* Instructions */}
-              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0', fontWeight: 600 }}>Aligne le code-barres dans le carré</p>
-              
-              {/* Buttons */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <button 
-                  onClick={() => { 
-                    stopAllStreams(); 
-                    setMode('choose');
-                  }} 
-                  style={{ 
-                    padding: '1rem', 
-                    background: 'white', 
-                    border: '2px solid #e2e8f0', 
-                    borderRadius: '12px', 
-                    fontWeight: 700, 
-                    cursor: 'pointer', 
-                    color: '#1a202c',
-                    fontSize: '1rem'
-                  }}
-                >
-                  ❌ Annuler
-                </button>
-                <button 
-                  onClick={captureBarcodePhoto} 
-                  style={{ 
-                    padding: '1rem', 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '12px', 
-                    fontWeight: 700, 
-                    cursor: 'pointer',
-                    fontSize: '1rem'
-                  }}
-                >
-                  📸 PRENDRE PHOTO
-                </button>
-              </div>
-            </div>
-          )}
+          {/* MAIN CHOOSE SCREEN - Single Scanner Button */}
+          {mode === 'choose' && !result && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+              {/* Scanner Button */}
+              <button 
+                onClick={() => setMode('choose-method')}
+                style={{ 
+                  padding: '2.5rem 1.5rem', 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '16px', 
+                  fontWeight: 700, 
+                  fontSize: '1.2rem', 
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 200ms'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 15px 40px rgba(102, 126, 234, 0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.3)'
+                }}
+              >
+                📷 Scanner
+              </button>
 
-          {/* SEARCH TAB */}
-          {tab === 'search' && mode === 'choose' && !result && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Search by name */}
               <div>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Chercher par nom</h3>
+                <h3 style={{ margin: '1rem 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Ou chercher par nom</h3>
                 <input 
                   type="text" 
                   placeholder="Ex: Coca, Banane, Yaourt..." 
@@ -454,19 +393,14 @@ export default function ScanModal({
                 />
               </div>
 
-              <div>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Code-barres</h3>
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <button 
-                    onClick={startBarcodeCamera}
-                    style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}
-                  >
-                    📱 Scanner avec caméra
-                  </button>
+              {/* Search or barcode input */}
+              {searchInput.trim().length < 2 && (
+                <div>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#1a202c' }}>Code-barres</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
                     <input 
                       type="text" 
-                      placeholder="Ou saisis le code..." 
+                      placeholder="Ex: 3017620422003" 
                       value={barcodeInput}
                       onChange={(e) => setBarcodeInput(e.target.value)}
                       style={{ padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
@@ -481,11 +415,11 @@ export default function ScanModal({
                       disabled={loading}
                       style={{ padding: '0.75rem 1rem', background: '#667eea', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.6 : 1 }}
                     >
-                      🔎
+                      🔍
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
 
               {loading && (
                 <div style={{ textAlign: 'center', color: '#718096', padding: '1rem' }}>⏳ Recherche...</div>
@@ -531,17 +465,87 @@ export default function ScanModal({
             </div>
           )}
 
-          {/* UPLOAD TAB - Photo upload only */}
-          {tab === 'upload' && mode === 'choose' && !result && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+          {/* CHOOSE METHOD - Camera or Upload */}
+          {mode === 'choose-method' && !result && (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <button 
+                onClick={startBarcodeCamera}
+                style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
+              >
+                📱 Caméra
+              </button>
               <button 
                 onClick={() => fileInputRef.current?.click()} 
-                style={{ padding: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', width: '100%' }}
+                style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
               >
-                📁 Choisir une photo
+                📸 Importer une photo
+              </button>
+              <button 
+                onClick={() => setMode('choose')}
+                style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}
+              >
+                ← Retour
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center' }}>Prends une photo de ton assiette, salade, sandwich, etc.</p>
+            </div>
+          )}
+
+          {/* CAMERA MODE */}
+          {mode === 'camera' && !image && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+              <div style={{ position: 'relative', background: '#000', borderRadius: '12px', overflow: 'hidden', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted
+                  style={{ 
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }} 
+                />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '40%', border: '3px solid rgba(102, 126, 234, 0.8)', borderRadius: '12px', pointerEvents: 'none' }}></div>
+              </div>
+              
+              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0', fontWeight: 600 }}>Aligne le code-barres dans le carré</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button 
+                  onClick={() => { 
+                    stopAllStreams(); 
+                    setMode('choose');
+                  }} 
+                  style={{ 
+                    padding: '1rem', 
+                    background: 'white', 
+                    border: '2px solid #e2e8f0', 
+                    borderRadius: '12px', 
+                    fontWeight: 700, 
+                    cursor: 'pointer', 
+                    color: '#1a202c',
+                    fontSize: '1rem'
+                  }}
+                >
+                  ✕ Annuler
+                </button>
+                <button 
+                  onClick={captureBarcodePhoto} 
+                  style={{ 
+                    padding: '1rem', 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontWeight: 700, 
+                    cursor: 'pointer',
+                    fontSize: '1rem'
+                  }}
+                >
+                  📸 PRENDRE PHOTO
+                </button>
+              </div>
             </div>
           )}
 
@@ -564,7 +568,6 @@ export default function ScanModal({
                   <p style={{ fontSize: '0.85rem', color: '#4a5568', fontWeight: 500, margin: 0, marginBottom: '1rem' }}>Par: {displayNutrition.brand}</p>
                 )}
                 
-                {/* Quantity selector - only for non-free plans */}
                 {plan !== 'free' && (
                   <div style={{ marginBottom: '1rem', padding: '0.8rem', background: 'white', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
                     <label style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Quantité (en grammes)</label>
@@ -578,13 +581,11 @@ export default function ScanModal({
                   </div>
                 )}
                 
-                {/* CALORIES - Always show */}
                 <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: plan === 'free' ? 0 : '1rem' }}>
                   <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.3rem' }}>CALORIES</div>
                   <div style={{ fontSize: '2rem', fontWeight: 900, color: '#667eea' }}>{displayNutrition.calories}</div>
                 </div>
 
-                {/* MACROS - Pro and Fitness only */}
                 {plan !== 'free' && displayNutrition.protein !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
@@ -602,7 +603,6 @@ export default function ScanModal({
                   </div>
                 )}
 
-                {/* MICROS - Fitness only */}
                 {plan === 'fitness' && displayNutrition.sugars !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem' }}>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
