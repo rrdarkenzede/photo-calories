@@ -6,6 +6,29 @@ import { CoachProfile } from '@/lib/types';
 import { ArrowLeft, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 
+type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'veryActive';
+type Goal = 'weightLoss' | 'maintenance' | 'muscleGain';
+type Gender = 'male' | 'female';
+
+const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
+  sedentary: 'Sédentaire',
+  light: 'Léger',
+  moderate: 'Modéré',
+  active: 'Actif',
+  veryActive: 'Très actif',
+};
+
+const GOAL_LABELS: Record<Goal, string> = {
+  weightLoss: 'Perte de poids',
+  maintenance: 'Maintien',
+  muscleGain: 'Prise de muscle',
+};
+
+const GENDER_LABELS: Record<Gender, string> = {
+  male: 'Homme',
+  female: 'Femme',
+};
+
 export default function CoachPage() {
   const { currentPlan, coachProfile, setCoachProfile, setDailyGoals } = useAppStore();
   const [step, setStep] = useState<'form' | 'result'>(coachProfile ? 'result' : 'form');
@@ -21,14 +44,14 @@ export default function CoachPage() {
     }
 
     // Multiplication par activité
-    const activityMultipliers = {
+    const activityMultipliers: Record<ActivityLevel, number> = {
       sedentary: 1.2,
       light: 1.375,
       moderate: 1.55,
       active: 1.725,
       veryActive: 1.9,
     };
-    const tdee = bmr * activityMultipliers[prof.activityLevel];
+    const tdee = bmr * activityMultipliers[prof.activityLevel as ActivityLevel];
 
     // Ajustement selon objectif
     let dailyCalories = tdee;
@@ -154,7 +177,7 @@ export default function CoachPage() {
                 </label>
                 <select
                   value={profile.gender || ''}
-                  onChange={(e) => setProfile({ ...profile, gender: e.target.value as any })}
+                  onChange={(e) => setProfile({ ...profile, gender: e.target.value as Gender })}
                   required
                   className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-700 dark:text-white"
                 >
@@ -182,7 +205,7 @@ export default function CoachPage() {
                       type="radio"
                       value={option.value}
                       checked={profile.activityLevel === option.value}
-                      onChange={(e) => setProfile({ ...profile, activityLevel: e.target.value as any })}
+                      onChange={(e) => setProfile({ ...profile, activityLevel: e.target.value as ActivityLevel })}
                       required
                       className="w-4 h-4"
                     />
@@ -207,7 +230,7 @@ export default function CoachPage() {
                       type="radio"
                       value={option.value}
                       checked={profile.goal === option.value}
-                      onChange={(e) => setProfile({ ...profile, goal: e.target.value as any })}
+                      onChange={(e) => setProfile({ ...profile, goal: e.target.value as Goal })}
                       required
                       className="w-4 h-4"
                     />
@@ -245,28 +268,20 @@ export default function CoachPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Sexe</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{coachProfile?.gender === 'male' ? 'Homme' : 'Femme'}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {coachProfile?.gender ? GENDER_LABELS[coachProfile.gender as Gender] : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between sm:col-span-2">
                   <span className="text-slate-600 dark:text-slate-400">Activité</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
-                    {{
-                      sedentary: 'Sédentaire',
-                      light: 'Léger',
-                      moderate: 'Modéré',
-                      active: 'Actif',
-                      veryActive: 'Très actif',
-                    }[coachProfile?.activityLevel || '']}
+                    {coachProfile?.activityLevel ? ACTIVITY_LABELS[coachProfile.activityLevel as ActivityLevel] : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between sm:col-span-2">
                   <span className="text-slate-600 dark:text-slate-400">Objectif</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
-                    {{
-                      weightLoss: 'Perte de poids',
-                      maintenance: 'Maintien',
-                      muscleGain: 'Prise de muscle',
-                    }[coachProfile?.goal || '']}
+                    {coachProfile?.goal ? GOAL_LABELS[coachProfile.goal as Goal] : 'N/A'}
                   </span>
                 </div>
               </div>
