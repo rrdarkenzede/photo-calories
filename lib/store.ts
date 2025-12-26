@@ -12,6 +12,7 @@ interface Meal {
   date: string;
   name: string;
   image?: string;
+  mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   ingredients: Ingredient[];
   nutrition: Nutrition;
 }
@@ -21,6 +22,10 @@ interface Ingredient {
   name: string;
   quantity: number;
   unit: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
 }
 
 interface Nutrition {
@@ -83,7 +88,7 @@ interface AppState {
   getRemainingCalories: (date: string) => number | null;
 }
 
-export const useAppStore = create<AppState>()(  
+export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       user: null,
