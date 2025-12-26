@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose-photo' | 'camera' | 'upload' | 'choose-barcode' | 'barcode-input' | 'result'
+type ScanMode = 'choose-photo' | 'camera' | 'upload' | 'choose-barcode' | 'barcode-camera' | 'barcode-input' | 'result'
 type Tab = 'barcode' | 'analysis'
 type Plan = 'free' | 'pro' | 'fitness'
 
@@ -17,7 +17,7 @@ export default function ScanModal({
   plan: Plan
 }) {
   const [tab, setTab] = useState<Tab>('barcode')
-  const [mode, setMode] = useState<ScanMode>('choose-photo')
+  const [mode, setMode] = useState<ScanMode>('choose-barcode')
   const [loading, setLoading] = useState(false)
   const [image, setImage] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
@@ -25,7 +25,9 @@ export default function ScanModal({
   const [barcodeInput, setBarcodeInput] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [barcodeStream, setBarcodeStream] = useState<MediaStream | null>(null)
 
   const calculatedNutrition = useMemo(() => {
     if (!result || !ingredients.length) return null
@@ -51,23 +53,90 @@ export default function ScanModal({
     return totals
   }, [ingredients, result])
 
-  const startCamera = async () => {
+  const startPhotoCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       setStream(mediaStream)
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
       }
+      setMode('camera')
     } catch (err) {
       console.error('Camera error:', err)
       alert('Impossible d\'accéder à la caméra')
     }
   }
 
-  const stopCamera = () => {
+  const startBarcodeCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      setBarcodeStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+      setMode('barcode-camera')
+      // Start barcode detection
+      scanBarcodeFrame(mediaStream)
+    } catch (err) {
+      console.error('Camera error:', err)
+      alert('Impossible d\'accéder à la caméra')
+    }
+  }
+
+  const scanBarcodeFrame = (mediaStream: MediaStream) => {
+    if (!videoRef.current || !canvasRef.current) return
+
+    const ctx = canvasRef.current.getContext('2d')
+    if (!ctx) return
+
+    const video = videoRef.current
+    canvasRef.current.width = video.videoWidth
+    canvasRef.current.height = video.videoHeight
+
+    const scan = async () => {
+      if (mode !== 'barcode-camera') return
+
+      ctx.drawImage(video, 0, 0)
+      const imageData = canvasRef.current!.toDataURL('image/jpeg')
+
+      try {
+        // Try to decode using jsBarcode or similar
+        // For now, use the uploaded image
+        const response = await fetch('/api/decode-barcode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageData }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.barcode) {
+            stopBarcodeCamera()
+            searchBarcode(data.barcode)
+            return
+          }
+        }
+      } catch (err) {
+        console.error('Barcode detection error:', err)
+      }
+
+      requestAnimationFrame(scan)
+    }
+
+    scan()
+  }
+
+  const stopPhotoCamera = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
       setStream(null)
+    }
+  }
+
+  const stopBarcodeCamera = () => {
+    if (barcodeStream) {
+      barcodeStream.getTracks().forEach(track => track.stop())
+      setBarcodeStream(null)
     }
   }
 
@@ -81,7 +150,7 @@ export default function ScanModal({
         ctx.drawImage(videoRef.current, 0, 0)
         const imageData = canvas.toDataURL('image/jpeg', 0.9)
         setImage(imageData)
-        stopCamera()
+        stopPhotoCamera()
         analyzeFoodImage(imageData)
       }
     }
@@ -147,7 +216,6 @@ export default function ScanModal({
     } catch (err) {
       console.error('Analysis error:', err)
       alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Unknown error'))
-    } finally {
       setLoading(false)
     }
   }
@@ -234,11 +302,14 @@ export default function ScanModal({
   }
 
   const handleClose = () => {
-    stopCamera()
+    stopPhotoCamera()
+    stopBarcodeCamera()
     onClose()
   }
 
   const resetAll = () => {
+    stopPhotoCamera()
+    stopBarcodeCamera()
     setResult(null)
     setImage(null)
     setIngredients([{ name: '', amount: '100g' }])
@@ -250,9 +321,24 @@ export default function ScanModal({
     }
   }
 
+  const switchTab = (newTab: Tab) => {
+    stopPhotoCamera()
+    stopBarcodeCamera()
+    setTab(newTab)
+    setResult(null)
+    setImage(null)
+    setBarcodeInput('')
+    if (newTab === 'barcode') {
+      setMode('choose-barcode')
+    } else {
+      setMode('choose-photo')
+    }
+  }
+
   useEffect(() => {
     return () => {
-      stopCamera()
+      stopPhotoCamera()
+      stopBarcodeCamera()
     }
   }, [])
 
@@ -280,10 +366,7 @@ export default function ScanModal({
         {!result && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderBottom: '2px solid #e2e8f0' }}>
             <button
-              onClick={() => {
-                setTab('barcode')
-                setMode('choose-barcode')
-              }}
+              onClick={() => switchTab('barcode')}
               style={{
                 padding: '1rem',
                 background: tab === 'barcode' ? '#667eea' : 'white',
@@ -297,10 +380,7 @@ export default function ScanModal({
               🏷️ Code-barres
             </button>
             <button
-              onClick={() => {
-                setTab('analysis')
-                setMode('choose-photo')
-              }}
+              onClick={() => switchTab('analysis')}
               style={{
                 padding: '1rem',
                 background: tab === 'analysis' ? '#667eea' : 'white',
@@ -311,7 +391,7 @@ export default function ScanModal({
                 fontSize: '0.95rem',
               }}
             >
-              📷 Analyse photo
+              📸 Analyse photo
             </button>
           </div>
         )}
@@ -319,8 +399,20 @@ export default function ScanModal({
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '1.5rem' }}>
           
-          {/* BARCODE TAB */}
+          {/* BARCODE TAB - CHOOSE MODE */}
           {tab === 'barcode' && mode === 'choose-barcode' && !result && (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <button onClick={startBarcodeCamera} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                📱 Scanner avec caméra
+              </button>
+              <button onClick={() => setMode('barcode-input')} style={{ padding: '1.2rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                ⌨️ Entrer manuellement
+              </button>
+            </div>
+          )}
+
+          {/* BARCODE TAB - MANUAL INPUT */}
+          {tab === 'barcode' && mode === 'barcode-input' && !result && (
             <div>
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c', marginBottom: '1rem', marginTop: 0 }}>Entré le code EAN du produit</h3>
               <input 
@@ -334,40 +426,61 @@ export default function ScanModal({
                     searchBarcode(barcodeInput)
                   }
                 }}
+                autoFocus
               />
-              <button 
-                onClick={() => {
-                  if (barcodeInput.trim()) {
-                    searchBarcode(barcodeInput)
-                  }
-                }}
-                style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                🔍 Chercher le produit
-              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button 
+                  onClick={() => setMode('choose-barcode')}
+                  style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}
+                >
+                  Retour
+                </button>
+                <button 
+                  onClick={() => {
+                    if (barcodeInput.trim()) {
+                      searchBarcode(barcodeInput)
+                    }
+                  }}
+                  style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  🔍 Chercher
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* BARCODE CAMERA */}
+          {mode === 'barcode-camera' && !result && (
+            <div>
+              <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000', display: 'block' }} />
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button onClick={() => { stopBarcodeCamera(); setMode('choose-barcode'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
+                <div style={{ padding: '1rem', background: '#667eea20', borderRadius: '12px', fontWeight: 700, color: '#667eea', textAlign: 'center', fontSize: '0.9rem' }}>En attente du code...</div>
+              </div>
             </div>
           )}
 
           {/* ANALYSIS TAB */}
           {tab === 'analysis' && mode === 'choose-photo' && !result && (
             <div style={{ display: 'grid', gap: '1rem' }}>
-              <button onClick={() => { setMode('camera'); startCamera(); }} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+              <button onClick={startPhotoCamera} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                 📷 Prendre une photo
               </button>
               <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                📁 Upload une image
+                📂 Upload une image
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
             </div>
           )}
 
-          {/* CAMERA MODE */}
+          {/* PHOTO CAMERA */}
           {mode === 'camera' && !image && (
             <div>
               <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '12px', marginBottom: '1rem', background: '#000', display: 'block' }} />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <button onClick={() => { stopCamera(); setMode('choose-photo'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
-                <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📷 Capturer</button>
+                <button onClick={() => { stopPhotoCamera(); setMode('choose-photo'); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
+                <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capturer</button>
               </div>
             </div>
           )}
@@ -387,15 +500,15 @@ export default function ScanModal({
               {result.image && !image && <img src={result.image} alt={result.name} style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />}
               
               <div style={{ background: '#f7fafc', padding: '1.2rem', borderRadius: '12px', border: '2px solid #e2e8f0', boxSizing: 'border-box' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1a202c', marginBottom: '0.5rem', margin: 0 }}>{result.name}</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1a202c', margin: 0, marginBottom: '0.5rem' }}>{result.name}</h3>
                 {result.brand && (
-                  <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '0.5rem', fontWeight: 500, margin: 0 }}>Par: {result.brand}</p>
+                  <p style={{ fontSize: '0.85rem', color: '#4a5568', fontWeight: 500, margin: 0, marginBottom: '0.5rem' }}>Par: {result.brand}</p>
                 )}
                 {result.confidence && (
-                  <p style={{ fontSize: '0.8rem', color: '#4a5568', marginBottom: '1rem', fontWeight: 600, margin: 0 }}>Confiance: {result.confidence}%</p>
+                  <p style={{ fontSize: '0.8rem', color: '#4a5568', fontWeight: 600, margin: 0, marginBottom: '1rem' }}>Confiance: {result.confidence}%</p>
                 )}
                 {result.servingSize && (
-                  <p style={{ fontSize: '0.8rem', color: '#718096', marginBottom: '1rem', fontWeight: 500, margin: 0 }}>Portion: {result.servingSize}</p>
+                  <p style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 500, margin: 0, marginBottom: '1rem' }}>Portion: {result.servingSize}</p>
                 )}
                 
                 {/* CALORIES */}
@@ -407,15 +520,15 @@ export default function ScanModal({
                 {/* MACROS */}
                 {plan !== 'free' && displayNutrition.protein !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>PROTÉINES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.protein * 10) / 10}g</div>
                     </div>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>GLUCIDES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.carbs * 10) / 10}g</div>
                     </div>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>LIPIDES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c' }}>{Math.round(displayNutrition.fat * 10) / 10}g</div>
                     </div>
@@ -425,15 +538,15 @@ export default function ScanModal({
                 {/* MICROS */}
                 {plan === 'fitness' && displayNutrition.sugars !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>SUCRES</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.sugars * 10) / 10}g</div>
                     </div>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>FIBRES</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.fiber * 10) / 10}g</div>
                     </div>
-                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
+                    <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>SODIUM</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.sodium)}mg</div>
                     </div>
@@ -443,25 +556,25 @@ export default function ScanModal({
                 {/* INGREDIENTS TABLE - ANALYSIS ONLY */}
                 {plan === 'fitness' && result.type === 'photo' && ingredients.length > 0 && (
                   <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.6rem', margin: 0 }}>Ingrédients détectés</h4>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a202c', margin: 0, marginBottom: '0.6rem' }}>Ingrédients détectés</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto' }}>
                       {ingredients.map((ing, i) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr auto', gap: '0.4rem', alignItems: 'center', minWidth: 0, background: 'white', padding: '0.5rem', borderRadius: '6px' }}>
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr auto', gap: '0.4rem', alignItems: 'center', background: 'white', padding: '0.5rem', borderRadius: '6px' }}>
                           <input 
                             type="text" 
                             placeholder="Nom" 
                             value={ing.name}
                             onChange={(e) => updateIngredient(i, 'name', e.target.value)}
-                            style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box' }}
+                            style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                           />
                           <input 
                             type="text" 
                             placeholder="100g" 
                             value={ing.amount}
                             onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
-                            style={{ padding: '0.4rem', border: '1px solid #667eea', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box', background: '#f0f4ff' }}
+                            style={{ padding: '0.4rem', border: '1px solid #667eea', borderRadius: '6px', fontSize: '0.85rem', boxSizing: 'border-box', background: '#f0f4ff' }}
                           />
-                          <button onClick={() => removeIngredient(i)} style={{ padding: '0.3rem 0.5rem', background: '#fee', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#c53030', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>×</button>
+                          <button onClick={() => removeIngredient(i)} style={{ padding: '0.3rem 0.5rem', background: '#fee', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#c53030', fontWeight: 700, fontSize: '0.85rem' }}>×</button>
                         </div>
                       ))}
                     </div>
@@ -478,8 +591,8 @@ export default function ScanModal({
         {/* Footer */}
         {result && mode === 'result' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', padding: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
-            <button onClick={resetAll} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c', fontSize: '0.95rem' }}>Recommencer</button>
-            <button onClick={saveMeal} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>✓ Enregistrer</button>
+            <button onClick={resetAll} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Recommencer</button>
+            <button onClick={saveMeal} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>✓ Enregistrer</button>
           </div>
         )}
       </div>
