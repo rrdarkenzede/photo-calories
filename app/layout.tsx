@@ -1,17 +1,12 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
 import './globals.css';
 
-const geist = Geist({
-  subsets: ['latin'],
-});
-
 export const metadata: Metadata = {
-  title: '📸 PhotoCalories - Comptez vos calories avec l\'IA',
-  description: 'Photographiez votre plat, l\'IA reconnaît les ingrédients et calcule automatiquement les calories et macronutriments.',
-  icons: {
-    icon: '/favicon.ico',
-  },
+  title: 'PhotoCalories - Analyse IA de vos repas',
+  description: 'Scannez votre plat, l\'IA reconnaît les calories et macronutriments en 2 secondes. Suivi complet avec plans Free, Pro et Fitness.',
+  keywords: ['calories', 'nutrition', 'fitness', 'tracking', 'ai', 'photo'],
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
+  themeColor: '#0f172a',
 };
 
 export default function RootLayout({
@@ -20,17 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr">
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              document.documentElement.classList.remove('dark')
-            `,
-          }}
-        />
+        <meta charSet="utf-8" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={`${geist.className} bg-gradient-to-br from-green-50 to-emerald-50 text-slate-900 transition-colors duration-300`}>
+      <body className="bg-slate-950 text-white">
         {children}
       </body>
     </html>
