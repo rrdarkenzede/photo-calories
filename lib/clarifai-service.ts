@@ -21,6 +21,104 @@ export interface ClarifaiFoodAnalysis {
   rawResponse?: any;
 }
 
+// French translations for common food items
+const FOOD_TRANSLATIONS: Record<string, string> = {
+  // Breads
+  'bread': 'pain',
+  'white bread': 'pain blanc',
+  'brown bread': 'pain complet',
+  'sliced bread': 'pain tranché',
+  'whole wheat bread': 'pain complet',
+  
+  // Meats
+  'chicken': 'poulet',
+  'chicken breast': 'poitrine de poulet',
+  'grilled chicken': 'poulet grillé',
+  'roasted chicken': 'poulet rôti',
+  'fried chicken': 'poulet frit',
+  'beef': 'boeuf',
+  'ground beef': 'boeuf haché',
+  'steak': 'steak',
+  'pork': 'porc',
+  'ham': 'jambon',
+  'turkey': 'dinde',
+  'fish': 'poisson',
+  'salmon': 'saumon',
+  'tuna': 'thon',
+  'shrimp': 'crevette',
+  
+  // Vegetables
+  'salad': 'salade',
+  'green salad': 'salade verte',
+  'tomato': 'tomate',
+  'carrot': 'carotte',
+  'lettuce': 'laitue',
+  'spinach': 'épinards',
+  'broccoli': 'brocoli',
+  'potato': 'pomme de terre',
+  'french fries': 'frites',
+  'onion': 'oignon',
+  'garlic': 'ail',
+  'bell pepper': 'poivron',
+  'cucumber': 'concombre',
+  
+  // Fruits
+  'apple': 'pomme',
+  'banana': 'banane',
+  'orange': 'orange',
+  'strawberry': 'fraise',
+  'blueberry': 'myrtille',
+  'grape': 'raisin',
+  'watermelon': 'pastèque',
+  'kiwi': 'kiwi',
+  'mango': 'mangue',
+  'pineapple': 'ananas',
+  'lemon': 'citron',
+  
+  // Grains & Pasta
+  'rice': 'riz',
+  'cooked rice': 'riz cuit',
+  'white rice': 'riz blanc',
+  'brown rice': 'riz complet',
+  'pasta': 'pâtes',
+  'cooked pasta': 'pâtes cuites',
+  'noodles': 'nouilles',
+  
+  // Prepared dishes
+  'pizza': 'pizza',
+  'pizza pie': 'pizza',
+  'hamburger': 'hamburger',
+  'burger': 'burger',
+  'hot dog': 'hot dog',
+  'sandwich': 'sandwich',
+  'salad': 'salade',
+  'soup': 'soupe',
+  'pasta dish': 'plat de pâtes',
+  
+  // Dairy
+  'cheese': 'fromage',
+  'milk': 'lait',
+  'yogurt': 'yaourt',
+  'butter': 'beurre',
+  'cream': 'crème',
+  
+  // Beverages
+  'coffee': 'café',
+  'tea': 'thé',
+  'water': 'eau',
+  'juice': 'jus',
+  'soda': 'soda',
+  'beer': 'bière',
+  'wine': 'vin',
+  
+  // Desserts
+  'cake': 'gâteau',
+  'chocolate': 'chocolat',
+  'ice cream': 'glace',
+  'cookie': 'biscuit',
+  'donut': 'donut',
+};
+
 /**
  * Analyse une image alimentaire avec Clarifai
  * @param imageBase64 - Image en base64 (sans data:image/... prefix)
@@ -75,15 +173,19 @@ export async function analyzeFoodImage(imageBase64: string): Promise<ClarifaiFoo
 
     const concepts = outputs.data?.concepts || [];
 
-    // Transformer en format interne
+    // Transformer en format interne avec traductions FR
     const foods: ClarifaiPrediction[] = concepts
       .filter((concept: any) => concept.value >= 0.1) // Confiance >= 10%
       .slice(0, 10) // Top 10
-      .map((concept: any) => ({
-        name: concept.name.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(),
-        confidence: Math.round(concept.value * 100),
-      }))
-      .filter(f => f.name.length > 0); // Enlever vides
+      .map((concept: any) => {
+        const englishName = concept.name.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+        const frenchName = FOOD_TRANSLATIONS[englishName] || englishName;
+        return {
+          name: frenchName,
+          confidence: Math.round(concept.value * 100),
+        };
+      })
+      .filter((f: ClarifaiPrediction) => f.name.length > 0); // Enlever vides
 
     if (foods.length === 0) {
       throw new Error('No foods detected with sufficient confidence');
@@ -111,7 +213,7 @@ export async function analyzeFoodImageBatch(
     imageBase64Array.map(img => 
       analyzeFoodImage(img).catch(err => ({
         foods: [],
-        mainFood: 'error',
+        mainFood: 'erreur',
         confidence: 0,
         error: err.message,
       }))
@@ -138,7 +240,7 @@ export async function analyzeFoodImageWithFallback(
     // Fallback par défaut - retourner vide
     return {
       foods: [],
-      mainFood: 'unknown',
+      mainFood: 'inconnu',
       confidence: 0,
     };
   }
@@ -150,8 +252,24 @@ export async function analyzeFoodImageWithFallback(
  */
 export function normalizeClairifaiName(name: string): string {
   const normalizations: Record<string, string> = {
+    'pain tranché': 'pain',
+    'pain blanc': 'pain',
+    'pain complet': 'pain',
+    'poulet grillé': 'poulet',
+    'poulet rôti': 'poulet',
+    'poulet frit': 'poulet',
+    'poitrine de poulet': 'poulet',
+    'boeuf haché': 'boeuf',
+    'riz cuit': 'riz',
+    'riz blanc': 'riz',
+    'riz complet': 'riz',
+    'pâtes cuites': 'pâtes',
+    'salade verte': 'salade',
+    'pizza pie': 'pizza',
+    'hamburger': 'burger',
+    'hot dog': 'hotdog',
+    // English fallback
     'sliced bread': 'bread',
-    'whole bread': 'bread',
     'white bread': 'bread',
     'brown bread': 'bread',
     'grilled chicken': 'chicken',
@@ -165,9 +283,14 @@ export function normalizeClairifaiName(name: string): string {
     'cooked pasta': 'pasta',
     'green salad': 'salad',
     'pizza pie': 'pizza',
-    'hamburger': 'burger',
-    'hot dog': 'hotdog',
   };
 
   return normalizations[name] || name;
+}
+
+/**
+ * Translate English food names to French
+ */
+export function translateFoodName(englishName: string): string {
+  return FOOD_TRANSLATIONS[englishName.toLowerCase()] || englishName;
 }
