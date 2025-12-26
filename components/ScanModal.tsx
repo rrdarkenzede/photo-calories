@@ -32,12 +32,11 @@ export default function ScanModal({
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
   const cameraReadyRef = useRef(false)
-  const [testMessage, setTestMessage] = useState('Modal loaded! ✅')
 
   useEffect(() => {
-    console.log('\ud83c\udf89 ScanModal mounted! Tab:', tab, 'Mode:', mode)
+    console.log('🎉 ScanModal mounted! Tab:', tab, 'Mode:', mode)
     return () => {
-      console.log('\ud83e\uddf9 ScanModal unmounting')
+      console.log('🧹 ScanModal unmounting')
     }
   }, [])
 
@@ -66,10 +65,10 @@ export default function ScanModal({
   }, [ingredients, result])
 
   const stopAllStreams = () => {
-    console.log('\ud83d\uded1 Stopping all streams...')
+    console.log('🛑 Stopping all streams...')
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
-        console.log('  \u2514\u2500 Stopping track:', track.kind)
+        console.log('  └─ Stopping track:', track.kind)
         track.stop()
       })
       streamRef.current = null
@@ -84,7 +83,7 @@ export default function ScanModal({
     stopAllStreams()
     
     try {
-      console.log('\ud83d\udcf1 Requesting camera permission...')
+      console.log('📱 Requesting camera permission...')
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: { ideal: 'environment' },
@@ -94,18 +93,18 @@ export default function ScanModal({
         audio: false
       })
       
-      console.log('\u2705 Camera granted')
+      console.log('✅ Camera granted')
       streamRef.current = mediaStream
       
       if (videoRef.current) {
-        console.log('  \u2514\u2500 Attaching stream to video element')
+        console.log('  └─ Attaching stream to video element')
         videoRef.current.srcObject = mediaStream
         videoRef.current.play().then(() => {
-          console.log('  \u2514\u2500 Video playing')
-        }).catch(err => console.error('  \u2514\u2500 Play error:', err))
+          console.log('  └─ Video playing')
+        }).catch(err => console.error('  └─ Play error:', err))
         
         const onLoadedMetadata = () => {
-          console.log('\u2705 Video metadata loaded:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          console.log('✅ Video metadata loaded:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
           cameraReadyRef.current = true
           videoRef.current?.removeEventListener('loadedmetadata', onLoadedMetadata)
           callback()
@@ -115,7 +114,7 @@ export default function ScanModal({
         
         const timeout = setTimeout(() => {
           if (!cameraReadyRef.current) {
-            console.log('\u26a0\ufe0f  Camera ready timeout - proceeding anyway')
+            console.log('⚠️  Camera ready timeout - proceeding anyway')
             cameraReadyRef.current = true
             callback()
           }
@@ -124,7 +123,7 @@ export default function ScanModal({
         videoRef.current.addEventListener('loadedmetadata', () => clearTimeout(timeout), { once: true })
       }
     } catch (err) {
-      console.error('\u274c Camera error:', err)
+      console.error('❌ Camera error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
       alert(`Camera error:\n${errorMsg}`)
       stopAllStreams()
@@ -236,9 +235,6 @@ export default function ScanModal({
       console.log(`✅ Got ${data.products?.length || 0} results`)
       
       setSearchResults(data.products || [])
-      if (data.products && data.products.length > 0) {
-        setMode('search-results')
-      }
     } catch (err) {
       console.error('Search error:', err)
       setSearchResults([])
@@ -380,12 +376,7 @@ export default function ScanModal({
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '2px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', margin: 0 }}>Scanner un repas</h2>
-          <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096', padding: 0 }}>✕</button>
-        </div>
-
-        {/* Test Message */}
-        <div style={{ padding: '1rem', background: '#e0f2fe', color: '#0369a1', borderBottom: '1px solid #cffafe', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>
-          {testMessage}
+          <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096', padding: 0 }}>×</button>
         </div>
 
         {/* Tabs */}
@@ -401,63 +392,109 @@ export default function ScanModal({
         )}
 
         {/* Content */}
-        <div style={{ padding: '1.5rem', minHeight: '300px' }}>
+        <div style={{ padding: '1.5rem', minHeight: '300px', maxHeight: 'calc(95vh - 200px)', overflow: 'auto' }}>
           
-          {/* SEARCH BY NAME */}
-          {tab === 'barcode' && mode === 'barcode-choose' && (
+          {/* BARCODE - SEARCH BY NAME */}
+          {tab === 'barcode' && mode === 'barcode-choose' && !result && (
             <div>
-              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 700 }}>Search by name</h3>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 700 }}>Cherche par nom</h3>
               <input 
                 type="text" 
-                placeholder="Type: Coca, Banana, Apple..." 
+                placeholder="Ex: Coca, Banane, Yaourt..." 
                 value={searchInput}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
                 autoFocus
               />
               
-              {loading && <div style={{ textAlign: 'center', color: '#718096' }}>Loading...</div>}
+              {loading && (
+                <div style={{ textAlign: 'center', color: '#718096', padding: '1rem' }}>⏳ Recherche en cours...</div>
+              )}
               
-              {searchResults.length > 0 && (
-                <div style={{ display: 'grid', gap: '0.8rem' }}>
+              {!loading && searchResults.length > 0 && (
+                <div style={{ display: 'grid', gap: '0.8rem', maxHeight: '400px', overflowY: 'auto' }}>
                   {searchResults.map((product, i) => (
                     <button
                       key={i}
                       onClick={() => selectProduct(product)}
                       style={{ padding: '1rem', background: '#f7fafc', border: '2px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 150ms' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#667eea'
+                        e.currentTarget.style.background = '#f0f4ff'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#e2e8f0'
+                        e.currentTarget.style.background = '#f7fafc'
+                      }}
                     >
+                      {product.image && (
+                        <img src={product.image} alt={product.name} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px', float: 'left', marginRight: '0.8rem', marginBottom: '0.5rem' }} />
+                      )}
                       <div style={{ fontWeight: 700, color: '#1a202c', marginBottom: '0.25rem' }}>{product.name}</div>
+                      {product.brand && (
+                        <div style={{ fontSize: '0.75rem', color: '#718096', marginBottom: '0.3rem' }}>Par: {product.brand}</div>
+                      )}
                       <div style={{ fontSize: '0.85rem', color: '#667eea', fontWeight: 600 }}>{Math.round(product.calories)} cal</div>
                     </button>
                   ))}
                 </div>
               )}
               
-              {searchInput.trim().length > 1 && searchResults.length === 0 && !loading && (
+              {!loading && searchInput.trim().length > 1 && searchResults.length === 0 && (
                 <div style={{ padding: '1rem', background: '#f7fafc', borderRadius: '12px', textAlign: 'center', color: '#718096' }}>
-                  No results found
+                  Aucun résultat pour "{searchInput}"
+                </div>
+              )}
+              
+              {searchInput.trim().length === 0 && searchResults.length === 0 && (
+                <div style={{ padding: '1rem', background: '#f7fafc', borderRadius: '12px', textAlign: 'center', color: '#718096', fontSize: '0.9rem' }}>
+                  Commence à écrire pour chercher...
                 </div>
               )}
             </div>
           )}
 
-          {/* PHOTO MODE */}
-          {tab === 'analysis' && mode === 'choose-photo' && (
+          {/* BARCODE - MANUAL INPUT */}
+          {tab === 'barcode' && mode === 'barcode-input' && !result && (
+            <div>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 700 }}>Entrez le code EAN</h3>
+              <input 
+                type="text" 
+                placeholder="Ex: 3017620422003" 
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && barcodeInput.trim()) {
+                    searchBarcode(barcodeInput)
+                  }
+                }}
+                autoFocus
+              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button onClick={() => setMode('barcode-choose')} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Retour</button>
+                <button onClick={() => { if (barcodeInput.trim()) searchBarcode(barcodeInput) }} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>🔍 Chercher</button>
+              </div>
+            </div>
+          )}
+
+          {/* ANALYSIS - PHOTO CHOOSE */}
+          {tab === 'analysis' && mode === 'choose-photo' && !result && (
             <div>
               <button 
                 onClick={() => setShowPhotoOptions(!showPhotoOptions)} 
                 style={{ width: '100%', padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer', marginBottom: '1rem' }}
               >
-                📸 {showPhotoOptions ? 'Close' : 'Take Photo'}
+                📸 {showPhotoOptions ? 'Fermer' : 'Prendre une photo'}
               </button>
               
               {showPhotoOptions && (
                 <div style={{ display: 'grid', gap: '0.8rem' }}>
                   <button onClick={() => startCamera(() => setMode('camera'))} style={{ padding: '1rem', background: 'white', border: '2px solid #667eea', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#667eea' }}>
-                    📱 Use Camera
+                    📱 Utiliser la caméra
                   </button>
                   <button onClick={() => fileInputRef.current?.click()} style={{ padding: '1rem', background: 'white', border: '2px solid #667eea', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#667eea' }}>
-                    📁 Upload Image
+                    📁 Upload une image
                   </button>
                   <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
                 </div>
@@ -466,7 +503,7 @@ export default function ScanModal({
           )}
 
           {/* CAMERA MODE */}
-          {mode === 'camera' && (
+          {mode === 'camera' && !image && (
             <div>
               <div style={{ position: 'relative', marginBottom: '1rem', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
                 <video 
@@ -478,8 +515,8 @@ export default function ScanModal({
                 />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <button onClick={() => { stopAllStreams(); resetAll(); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Cancel</button>
-                <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capture</button>
+                <button onClick={() => { stopAllStreams(); resetAll(); }} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Annuler</button>
+                <button onClick={capturePhoto} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>📸 Capturer</button>
               </div>
             </div>
           )}
@@ -487,8 +524,14 @@ export default function ScanModal({
           {/* RESULT */}
           {result && mode === 'result' && (
             <div>
+              {image && <img src={image} alt="Food" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem' }} />}
+              
               <div style={{ background: '#f7fafc', padding: '1.2rem', borderRadius: '12px', border: '2px solid #e2e8f0', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1a202c', margin: 0, marginBottom: '1rem' }}>{result.name}</h3>
+                
+                {result.brand && (
+                  <p style={{ fontSize: '0.85rem', color: '#4a5568', fontWeight: 500, margin: 0, marginBottom: '0.5rem' }}>Par: {result.brand}</p>
+                )}
                 
                 <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: '1rem' }}>
                   <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.3rem' }}>CALORIES</div>
@@ -498,15 +541,15 @@ export default function ScanModal({
                 {plan !== 'free' && displayNutrition.protein !== undefined && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem' }}>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>PROTEIN</div>
+                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>PROTÉINES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900 }}>{Math.round(displayNutrition.protein * 10) / 10}g</div>
                     </div>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>CARBS</div>
+                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>GLUCIDES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900 }}>{Math.round(displayNutrition.carbs * 10) / 10}g</div>
                     </div>
                     <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>FAT</div>
+                      <div style={{ fontSize: '0.7rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>LIPIDES</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900 }}>{Math.round(displayNutrition.fat * 10) / 10}g</div>
                     </div>
                   </div>
@@ -519,8 +562,8 @@ export default function ScanModal({
         {/* Footer */}
         {result && mode === 'result' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', padding: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
-            <button onClick={resetAll} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Back</button>
-            <button onClick={saveMeal} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>✓ Save</button>
+            <button onClick={resetAll} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Recommencer</button>
+            <button onClick={saveMeal} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>✓ Enregistrer</button>
           </div>
         )}
       </div>
