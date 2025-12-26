@@ -9,7 +9,7 @@ import { detectFoodInImage } from '@/lib/vision';
 import { searchFoodByName, getProductByBarcode } from '@/lib/openfoodfacts';
 import { loadMeals, addMeal, loadPlan, savePlan, loadProfile, loadRecipes } from '@/lib/storage';
 
-// Modals/Components (à créer)
+// Modals/Components
 import ScanModal from '@/components/dashboard/ScanModal';
 import UploadModal from '@/components/dashboard/UploadModal';
 import BarcodeModal from '@/components/dashboard/BarcodeModal';
@@ -230,7 +230,7 @@ function DashboardContent() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Objectif du jour</h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 font-semibold">
                 {Math.round(totals.calories)} / {dailyCalories} kcal
               </p>
             </div>
@@ -258,20 +258,20 @@ function DashboardContent() {
           {plan !== 'free' && (
             <div className="grid grid-cols-3 gap-3 md:gap-4 mt-6">
               <div className="text-center p-3 md:p-4 bg-purple-50 rounded-2xl">
-                <p className="text-xs md:text-sm text-gray-600 mb-1">Protéines</p>
-                <p className="text-xl md:text-2xl font-bold text-purple-600">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold mb-1">Protéines</p>
+                <p className="text-xl md:text-2xl font-black text-purple-700">
                   {totals.protein.toFixed(0)}g
                 </p>
               </div>
               <div className="text-center p-3 md:p-4 bg-pink-50 rounded-2xl">
-                <p className="text-xs md:text-sm text-gray-600 mb-1">Glucides</p>
-                <p className="text-xl md:text-2xl font-bold text-pink-600">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold mb-1">Glucides</p>
+                <p className="text-xl md:text-2xl font-black text-pink-700">
                   {totals.carbs.toFixed(0)}g
                 </p>
               </div>
               <div className="text-center p-3 md:p-4 bg-yellow-50 rounded-2xl">
-                <p className="text-xs md:text-sm text-gray-600 mb-1">Lipides</p>
-                <p className="text-xl md:text-2xl font-bold text-yellow-600">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold mb-1">Lipides</p>
+                <p className="text-xl md:text-2xl font-black text-yellow-700">
                   {totals.fat.toFixed(0)}g
                 </p>
               </div>
@@ -286,11 +286,11 @@ function DashboardContent() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowScan(true)}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white shadow-2xl shadow-blue-500/30"
+            className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl shadow-blue-600/40 hover:shadow-blue-600/60 transition"
           >
             <Camera className="w-16 md:w-20 h-16 md:h-20 mx-auto mb-4" />
-            <h3 className="text-2xl md:text-3xl font-black mb-2">Scanner ton plat</h3>
-            <p className="text-blue-100 text-sm md:text-base">Prends une photo en direct</p>
+            <h3 className="text-2xl md:text-3xl font-black mb-2 text-white drop-shadow-lg">Scanner ton plat</h3>
+            <p className="text-blue-50 text-sm md:text-base font-semibold">Prends une photo en direct</p>
           </motion.button>
 
           {/* UPLOAD BUTTON */}
@@ -298,11 +298,11 @@ function DashboardContent() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowUpload(true)}
-            className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-3xl p-8 md:p-12 text-white shadow-2xl shadow-cyan-500/30"
+            className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl shadow-cyan-600/40 hover:shadow-cyan-600/60 transition"
           >
             <Upload className="w-16 md:w-20 h-16 md:h-20 mx-auto mb-4" />
-            <h3 className="text-2xl md:text-3xl font-black mb-2">Upload une image</h3>
-            <p className="text-cyan-100 text-sm md:text-base">Choisis depuis ta galerie</p>
+            <h3 className="text-2xl md:text-3xl font-black mb-2 text-white drop-shadow-lg">Upload une image</h3>
+            <p className="text-cyan-50 text-sm md:text-base font-semibold">Choisis depuis ta galerie</p>
           </motion.button>
         </div>
 
@@ -314,7 +314,7 @@ function DashboardContent() {
             className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-500 hover:shadow-lg transition"
           >
             <Barcode className="w-6 h-6 text-blue-600" />
-            <span className="font-semibold text-gray-900">Code-barres</span>
+            <span className="font-bold text-gray-900">Code-barres</span>
           </button>
 
           {/* Recipe Builder (FITNESS only) */}
@@ -324,7 +324,7 @@ function DashboardContent() {
               className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-200 hover:border-green-500 hover:shadow-lg transition"
             >
               <Book className="w-6 h-6 text-green-600" />
-              <span className="font-semibold text-gray-900">Mes recettes</span>
+              <span className="font-bold text-gray-900">Mes recettes</span>
             </button>
           )}
 
@@ -335,7 +335,7 @@ function DashboardContent() {
               className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-200 hover:border-purple-500 hover:shadow-lg transition"
             >
               <TrendingUp className="w-6 h-6 text-purple-600" />
-              <span className="font-semibold text-gray-900">Coach / Goal</span>
+              <span className="font-bold text-gray-900">Coach / Goal</span>
             </button>
           )}
         </div>
@@ -389,7 +389,7 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-3xl p-8">
             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-center mt-4 font-semibold">Analyse en cours...</p>
+            <p className="text-center mt-4 font-bold text-gray-900">Analyse en cours...</p>
           </div>
         </div>
       )}
