@@ -34,7 +34,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geist.className} bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-200`}>
+      <body className={`${geist.className} bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300`}>
         {children}
       </body>
     </html>
