@@ -58,10 +58,10 @@ export default function ScanModal({
   }, [ingredients, result])
 
   const stopAllStreams = () => {
-    console.log('Stopping all streams...')
+    console.log('🛑 Stopping all streams...')
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
-        console.log('Stopping track:', track.kind)
+        console.log('  └─ Stopping track:', track.kind)
         track.stop()
       })
       streamRef.current = null
@@ -77,7 +77,7 @@ export default function ScanModal({
     stopAllStreams()
     
     try {
-      console.log('Requesting camera permission...')
+      console.log('📱 Requesting camera permission...')
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: { ideal: 'environment' },
@@ -88,24 +88,24 @@ export default function ScanModal({
       })
       
       console.log('✅ Camera granted')
-      console.log('Tracks:', mediaStream.getTracks().length)
+      console.log('  └─ Tracks:', mediaStream.getTracks().length)
       streamRef.current = mediaStream
       
       // Directly attach stream
       if (videoRef.current) {
-        console.log('Attaching stream to video element')
+        console.log('  └─ Attaching stream to video element')
         videoRef.current.srcObject = mediaStream
         
         // Try to play
         videoRef.current.play().then(() => {
-          console.log('✅ Video playing')
+          console.log('  └─ Video playing')
         }).catch(err => {
-          console.error('Play error:', err)
+          console.error('  └─ Play error:', err)
         })
         
         // Listen for when video is ready
         const onLoadedMetadata = () => {
-          console.log('✅ Video metadata loaded, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          console.log('✅ Video metadata loaded:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
           cameraReadyRef.current = true
           videoRef.current?.removeEventListener('loadedmetadata', onLoadedMetadata)
           callback()
@@ -185,11 +185,11 @@ export default function ScanModal({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      console.log('File selected:', file.name, file.size)
+      console.log('📁 File selected:', file.name, file.size)
       const reader = new FileReader()
       reader.onload = (event) => {
         const imageData = event.target?.result as string
-        console.log('File loaded, size:', imageData.length)
+        console.log('✅ File loaded, size:', imageData.length)
         setImage(imageData)
         stopAllStreams()
         setShowPhotoOptions(false)
@@ -244,7 +244,7 @@ export default function ScanModal({
       }
       setMode('result')
     } catch (err) {
-      console.error('Analysis error:', err)
+      console.error('❌ Analysis error:', err)
       alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Unknown error'))
       setLoading(false)
     }
@@ -272,7 +272,7 @@ export default function ScanModal({
       setSearchResults(data.products || [])
       setMode('search-results')
     } catch (err) {
-      console.error('Search error:', err)
+      console.error('❌ Search error:', err)
       setSearchResults([])
     }
   }
@@ -315,7 +315,7 @@ export default function ScanModal({
       setResult(mockResult)
       setMode('result')
     } catch (err) {
-      console.error('Error:', err)
+      console.error('❌ Error:', err)
       alert('Erreur lors du chargement du produit')
     } finally {
       setLoading(false)
@@ -357,7 +357,7 @@ export default function ScanModal({
       setMode('result')
       setBarcodeInput('')
     } catch (err) {
-      console.error('Barcode error:', err)
+      console.error('❌ Barcode error:', err)
       alert('Produit non trouvé dans Open Food Facts')
     } finally {
       setLoading(false)
@@ -442,7 +442,7 @@ export default function ScanModal({
 
   useEffect(() => {
     return () => {
-      console.log('Cleanup: stopping all streams')
+      console.log('🧹 Cleanup: stopping all streams')
       stopAllStreams()
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current)
@@ -461,18 +461,18 @@ export default function ScanModal({
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={handleClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(4px)' }} onClick={handleClose}>
       <div style={{ background: 'white', borderRadius: '20px', maxWidth: '500px', width: '100%', maxHeight: '95vh', overflow: 'auto', padding: '0', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '2px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '2px solid #e2e8f0', flexShrink: 0 }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1a202c', margin: 0 }}>Scanner un repas</h2>
           <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#718096', padding: 0 }}>×</button>
         </div>
 
         {/* Tabs */}
         {!result && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderBottom: '2px solid #e2e8f0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderBottom: '2px solid #e2e8f0', flexShrink: 0 }}>
             <button
               onClick={() => switchTab('barcode')}
               style={{
@@ -558,7 +558,7 @@ export default function ScanModal({
           {/* BARCODE TAB - MANUAL INPUT */}
           {tab === 'barcode' && mode === 'barcode-input' && !result && (
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c', marginBottom: '1rem', marginTop: 0 }}>Entré le code EAN du produit</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c', marginBottom: '1rem', marginTop: 0 }}>Entrée le code EAN du produit</h3>
               <input 
                 type="text" 
                 placeholder="Ex: 3017620422003" 
@@ -819,7 +819,7 @@ export default function ScanModal({
 
         {/* Footer */}
         {result && mode === 'result' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', padding: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', padding: '1.5rem', borderTop: '2px solid #e2e8f0', flexShrink: 0 }}>
             <button onClick={resetAll} style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Recommencer</button>
             <button onClick={saveMeal} style={{ padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>✓ Enregistrer</button>
           </div>
