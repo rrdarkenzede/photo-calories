@@ -2,13 +2,21 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { CoachProfile } from '@/lib/types';
 import { ArrowLeft, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 
 type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'veryActive';
 type Goal = 'weightLoss' | 'maintenance' | 'muscleGain';
 type Gender = 'male' | 'female';
+
+interface CoachProfile {
+  age: number;
+  weight: number;
+  height: number;
+  gender: Gender;
+  activityLevel: ActivityLevel;
+  goal: Goal;
+}
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   sedentary: 'Sédentaire',
@@ -30,7 +38,7 @@ const GENDER_LABELS: Record<Gender, string> = {
 };
 
 export default function CoachPage() {
-  const { currentPlan, coachProfile, setCoachProfile, setDailyGoals } = useAppStore();
+  const { plan, coachProfile, setCoachProfile, setGoal } = useAppStore();
   const [step, setStep] = useState<'form' | 'result'>(coachProfile ? 'result' : 'form');
   const [profile, setProfile] = useState<Partial<CoachProfile>>(coachProfile || {});
 
@@ -65,13 +73,10 @@ export default function CoachPage() {
     const carbs = carbCalories / 4;
 
     return {
-      calories: Math.round(dailyCalories),
+      dailyCalories: Math.round(dailyCalories),
       protein: Math.round(protein),
       carbs: Math.round(carbs),
       fat: Math.round(fat),
-      fiber: 25,
-      sugar: 50,
-      sodium: 2300,
     };
   };
 
@@ -80,13 +85,18 @@ export default function CoachPage() {
     const fullProfile = profile as CoachProfile;
     setCoachProfile(fullProfile);
     const goals = calculateGoals(fullProfile);
-    setDailyGoals(goals);
+    setGoal({
+      dailyCalories: goals.dailyCalories,
+      protein: goals.protein,
+      carbs: goals.carbs,
+      fat: goals.fat,
+    });
     setStep('result');
   };
 
   const goals = coachProfile ? calculateGoals(coachProfile) : null;
 
-  if (currentPlan !== 'fitness') {
+  if (plan !== 'fitness') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
         <div className="card max-w-md text-center">
@@ -305,11 +315,11 @@ export default function CoachPage() {
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">🎯 Tes Objectifs Calculés</h2>
                 <div className="grid sm:grid-cols-5 gap-3">
                   {[
-                    { label: 'Calories', value: goals.calories, unit: '/jour' },
+                    { label: 'Calories', value: goals.dailyCalories, unit: '/jour' },
                     { label: 'Protéines', value: goals.protein, unit: 'g' },
                     { label: 'Glucides', value: goals.carbs, unit: 'g' },
                     { label: 'Lipides', value: goals.fat, unit: 'g' },
-                    { label: 'Fibres', value: goals.fiber, unit: 'g' },
+                    { label: 'Fibres', value: 25, unit: 'g' },
                   ].map((item) => (
                     <div key={item.label} className="text-center p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur">
                       <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-2">{item.label}</p>
