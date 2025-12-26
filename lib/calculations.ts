@@ -73,6 +73,31 @@ export type MealEntry = {
   items: string[]
 }
 
+export type DailyStats = {
+  totalCalories: number
+  totalProtein: number
+  totalCarbs: number
+  totalFat: number
+  dailyGoal: number
+  mealCount: number
+}
+
+export const calculateDailyStats = (meals: MealEntry[]): DailyStats => {
+  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0)
+  const totalProtein = meals.reduce((sum, meal) => sum + (meal.protein || 0), 0)
+  const totalCarbs = meals.reduce((sum, meal) => sum + (meal.carbs || 0), 0)
+  const totalFat = meals.reduce((sum, meal) => sum + (meal.fat || 0), 0)
+  
+  return {
+    totalCalories,
+    totalProtein: Math.round(totalProtein * 10) / 10,
+    totalCarbs: Math.round(totalCarbs * 10) / 10,
+    totalFat: Math.round(totalFat * 10) / 10,
+    dailyGoal: 2634, // Default goal
+    mealCount: meals.length,
+  }
+}
+
 export const PLAN_FEATURES = {
   free: {
     name: 'Gratuit',
