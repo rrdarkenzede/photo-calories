@@ -6,8 +6,8 @@ import { ArrowLeft, Calendar, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HistoryPage() {
-  const { currentPlan, meals } = useAppStore();
-  const planInfo = PLANS[currentPlan];
+  const { plan, meals } = useAppStore();
+  const planInfo = PLANS[plan];
 
   // Group meals by date
   const mealsByDate = meals.reduce(
