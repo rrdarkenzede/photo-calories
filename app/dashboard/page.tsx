@@ -1,141 +1,228 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react';
+import { useAppStore } from '@/lib/store';
+import { PlanSwitcher } from '@/components/PlanSwitcher';
+import { PLANS } from '@/lib/plans';
+import { Camera, Upload, History, BarChart3, ChefHat, Settings, Flame, Target } from 'lucide-react';
+import Link from 'next/link';
 
-const recipes = [
-  { id: '1', title: 'Salade Méditerranéenne', desc: 'Salade fraîche avec légumes et féta', cal: 350, pro: 12, carbs: 15, fat: 26, emoji: '🥗' },
-  { id: '2', title: 'Poulet Grillé', desc: 'Filet de poulet avec légumes rôtis', cal: 450, pro: 45, carbs: 20, fat: 18, emoji: '🍗' },
-  { id: '3', title: 'Smoothie Bowl', desc: 'Açaï avec fruits et granola', cal: 280, pro: 8, carbs: 48, fat: 7, emoji: '🥤' },
-  { id: '4', title: 'Poke Bowl', desc: 'Riz, saumon, algues et sauce soja', cal: 520, pro: 38, carbs: 55, fat: 12, emoji: '🍱' },
-]
-
-export default function Dashboard() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'stats' | 'recipes'>('stats')
-  const [todayCalories, setTodayCalories] = useState(0)
-  const [todayMeals, setTodayMeals] = useState(0)
-
-  useEffect(() => {
-    const history = JSON.parse(localStorage.getItem('scanHistory') || '[]')
-    const today = new Date().toDateString()
-    const todayScans = history.filter((item: any) => new Date(item.date).toDateString() === today)
-    const calories = todayScans.reduce((sum: number, item: any) => sum + item.calories, 0)
-    setTodayCalories(calories)
-    setTodayMeals(todayScans.length)
-  }, [])
-
-  const stats = [
-    { label: 'Calories Aujourd\'hui', value: todayCalories.toString(), goal: '2500', color: '#ec4899', icon: '🔥' },
-    { label: 'Repas Enregistrés', value: todayMeals.toString(), color: '#8b5cf6', icon: '🍽️' },
-    { label: 'Objectif', value: '2500', color: '#10b981', icon: '🎯' },
-    { label: 'Restant', value: (2500 - todayCalories).toString(), color: '#f59e0b', icon: '⚡' },
-  ]
+export default function DashboardPage() {
+  const { currentPlan, todayStats, dailyGoals, scansUsedToday } = useAppStore();
+  const planInfo = PLANS[currentPlan];
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <PlanSwitcher />
+
       {/* Header */}
-      <header className="glass" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '1.25rem 0', position: 'sticky', top: 0, zIndex: 100, boxShadow: 'var(--shadow-md)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 onClick={() => router.push('/')} style={{ fontSize: '1.75rem', fontWeight: 800, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', cursor: 'pointer' }}>📷 PhotoCalories</h1>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button onClick={() => router.push('/scanner')} className="btn-primary" style={{ padding: '0.65rem 1.5rem', fontSize: '0.95rem' }}>📷 Scanner</button>
-            <button onClick={() => router.push('/history')} className="glass" style={{ padding: '0.65rem 1rem', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '10px', fontSize: '1.2rem' }}>📊</button>
-            <button onClick={() => router.push('/settings')} className="glass" style={{ padding: '0.65rem 1rem', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '10px', fontSize: '1.2rem' }}>⚙️</button>
-            <button onClick={() => router.push('/')} className="glass" style={{ padding: '0.65rem 1rem', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '10px', fontSize: '1.2rem' }}>🚪</button>
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Tableau de Bord
+              </h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Plan: <span className="font-semibold uppercase">{currentPlan}</span>
+              </p>
+            </div>
+            <Link
+              href="/dashboard/settings"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            >
+              <Settings className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+            </Link>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="container" style={{ padding: '2.5rem 0' }}>
-        {/* Tabs */}
-        <div className="glass" style={{ display: 'inline-flex', gap: '0.5rem', marginBottom: '2.5rem', padding: '0.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
-          <button
-            onClick={() => setActiveTab('stats')}
-            style={{
-              padding: '0.85rem 2rem',
-              background: activeTab === 'stats' ? 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' : 'transparent',
-              color: activeTab === 'stats' ? 'white' : 'var(--text)',
-              border: 'none',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '1rem',
-              borderRadius: '12px',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            📊 Statistiques
-          </button>
-          <button
-            onClick={() => setActiveTab('recipes')}
-            style={{
-              padding: '0.85rem 2rem',
-              background: activeTab === 'recipes' ? 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' : 'transparent',
-              color: activeTab === 'recipes' ? 'white' : 'var(--text)',
-              border: 'none',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '1rem',
-              borderRadius: '12px',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            🍽️ Recettes
-          </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Summary */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 mb-8">
+          <div className="grid sm:grid-cols-3 gap-6">
+            {/* Calories consommées */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Consommées</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                {todayStats?.consumed.calories || 0}
+              </p>
+              <p className="text-xs text-slate-500">calories</p>
+            </div>
+
+            {/* Calories brûlées (Fitness only) */}
+            {currentPlan === 'fitness' && (
+              <div className="space-y-2 border-l border-slate-200 dark:border-slate-700 pl-6">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Brûlées</p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.burned || 0}
+                </p>
+                <p className="text-xs text-slate-500">calories</p>
+              </div>
+            )}
+
+            {/* Net / Objectif */}
+            <div className="space-y-2 border-l border-slate-200 dark:border-slate-700 pl-6">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Objectif</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                {dailyGoals.calories}
+              </p>
+              <p className="text-xs text-slate-500">
+                Reste:{' '}
+                <span className="font-semibold">
+                  {Math.max(0, dailyGoals.calories - (todayStats?.consumed.calories || 0))}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-6">
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-blue-600 to-emerald-600 h-3 transition-all"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    ((todayStats?.consumed.calories || 0) / dailyGoals.calories) * 100
+                  )}%`,
+                }}
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              {((todayStats?.consumed.calories || 0) / dailyGoals.calories * 100).toFixed(0)}% de ton objectif
+            </p>
+          </div>
         </div>
 
-        {/* Stats Tab */}
-        {activeTab === 'stats' && (
-          <div style={{ animation: 'slideUp 0.5s ease' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '2rem', fontWeight: 800, color: 'white' }}>Vos Statistiques</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-              {stats.map((stat) => (
-                <div key={stat.label} className="glass card" style={{
-                  padding: '2rem',
-                  borderRadius: '20px',
-                  borderLeft: `5px solid ${stat.color}`,
-                  boxShadow: 'var(--shadow-lg)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 600 }}>{stat.label}</p>
-                    <span style={{ fontSize: '2rem' }}>{stat.icon}</span>
-                  </div>
-                  <p style={{ fontSize: '3rem', fontWeight: 800, color: stat.color, marginBottom: '0.25rem' }}>{stat.value}</p>
-                  {stat.goal && <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 600 }}>/ {stat.goal} kcal</p>}
-                </div>
-              ))}
+        {/* Macros (Pro & Fitness) */}
+        {planInfo.features.macros && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 mb-8">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Macronutriments</h2>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Protéines</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.protein || 0}g
+                </p>
+                <p className="text-xs text-slate-500">Objectif: {dailyGoals.protein}g</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Glucides</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.carbs || 0}g
+                </p>
+                <p className="text-xs text-slate-500">Objectif: {dailyGoals.carbs}g</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Lipides</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.fat || 0}g
+                </p>
+                <p className="text-xs text-slate-500">Objectif: {dailyGoals.fat}g</p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Recipes Tab */}
-        {activeTab === 'recipes' && (
-          <div style={{ animation: 'slideUp 0.5s ease' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '2rem', fontWeight: 800, color: 'white' }}>Recettes Suggérées</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {recipes.map((recipe) => (
-                <div
-                  key={recipe.id}
-                  className="glass card"
-                  onClick={() => router.push(`/recipes/${recipe.id}`)}
-                  style={{ borderRadius: '20px', padding: '2rem', cursor: 'pointer' }}
-                >
-                  <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>{recipe.emoji}</div>
-                  <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem', fontWeight: 700 }}>{recipe.title}</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>{recipe.desc}</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', fontSize: '0.9rem' }}>
-                    <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(236,72,153,0.1)', borderRadius: '10px' }}><p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Cal</p><p style={{ fontWeight: 800, color: '#ec4899', fontSize: '1.1rem' }}>{recipe.cal}</p></div>
-                    <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(139,92,246,0.1)', borderRadius: '10px' }}><p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Pro</p><p style={{ fontWeight: 800, color: '#8b5cf6', fontSize: '1.1rem' }}>{recipe.pro}g</p></div>
-                    <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(16,185,129,0.1)', borderRadius: '10px' }}><p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Carbs</p><p style={{ fontWeight: 800, color: '#10b981', fontSize: '1.1rem' }}>{recipe.carbs}g</p></div>
-                    <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(245,158,11,0.1)', borderRadius: '10px' }}><p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Fat</p><p style={{ fontWeight: 800, color: '#f59e0b', fontSize: '1.1rem' }}>{recipe.fat}g</p></div>
-                  </div>
-                </div>
-              ))}
+        {/* Micros (Fitness only) */}
+        {planInfo.features.micros && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 mb-8">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Micronutriments</h2>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Fibres</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.fiber || 0}g
+                </p>
+                <p className="text-xs text-slate-500">Objectif: {dailyGoals.fiber}g</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Sucre</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.sugar || 0}g
+                </p>
+                <p className="text-xs text-slate-500">Objectif: &lt;{dailyGoals.sugar}g</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Sel</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {todayStats?.consumed.sodium || 0}mg
+                </p>
+                <p className="text-xs text-slate-500">&lt;{dailyGoals.sodium}mg</p>
+              </div>
             </div>
           </div>
         )}
+
+        {/* Scans counter */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 mb-8">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              Scans utilisés aujourd\'hui
+            </span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">
+              {scansUsedToday} / {planInfo.scansPerDay}
+            </span>
+          </div>
+        </div>
+
+        {/* Main Actions */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            href="/dashboard/scanner"
+            className="flex items-center justify-center gap-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-lg font-semibold transition-all group"
+          >
+            <Camera className="w-6 h-6 group-hover:scale-110 transition" />
+            Scan ton plat
+          </Link>
+          <Link
+            href="/dashboard/barcode"
+            className="flex items-center justify-center gap-3 bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-4 rounded-lg font-semibold transition-all group"
+          >
+            <Upload className="w-6 h-6 group-hover:scale-110 transition" />
+            Code-barres
+          </Link>
+        </div>
+
+        {/* Secondary Actions */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Link
+            href="/dashboard/history"
+            className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg font-medium transition"
+          >
+            <History className="w-5 h-5" />
+            Historique
+          </Link>
+          {planInfo.features.analytics && (
+            <Link
+              href="/dashboard/analytics"
+              className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg font-medium transition"
+            >
+              <BarChart3 className="w-5 h-5" />
+              Analytics
+            </Link>
+          )}
+          {planInfo.features.recipeBuilder && (
+            <Link
+              href="/dashboard/recipes"
+              className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg font-medium transition"
+            >
+              <ChefHat className="w-5 h-5" />
+              Recettes
+            </Link>
+          )}
+          {planInfo.features.coachAI && (
+            <Link
+              href="/dashboard/coach"
+              className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg font-medium transition"
+            >
+              <Target className="w-5 h-5" />
+              Coach IA
+            </Link>
+          )}
+        </div>
       </main>
     </div>
-  )
+  );
 }
