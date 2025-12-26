@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose' | 'camera' | 'choose-method' | 'result'
+type ScanMode = 'choose' | 'camera' | 'result'
 type Plan = 'free' | 'pro' | 'fitness'
 
 export default function ScanModal({ 
@@ -40,7 +40,7 @@ export default function ScanModal({
     }
   }
 
-  const startBarcodeCamera = async () => {
+  const startCamera = async () => {
     stopAllStreams()
     setMode('camera')
     
@@ -71,7 +71,7 @@ export default function ScanModal({
     }
   }
 
-  const captureBarcodePhoto = () => {
+  const capturePhoto = () => {
     if (!videoRef.current) {
       alert('Vidéo non disponible')
       return
@@ -92,7 +92,7 @@ export default function ScanModal({
       const imageData = canvas.toDataURL('image/jpeg', 0.9)
       setImage(imageData)
       stopAllStreams()
-      analyzeBarcodeImage(imageData)
+      analyzeImage(imageData)
     } catch (err) {
       console.error('Capture error:', err)
       alert('Erreur capture: ' + (err instanceof Error ? err.message : 'Erreur'))
@@ -106,53 +106,41 @@ export default function ScanModal({
       reader.onload = (event) => {
         const imageData = event.target?.result as string
         setImage(imageData)
-        analyzeProductImage(imageData)
+        analyzeImage(imageData)
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const analyzeBarcodeImage = async (imageData: string) => {
+  const analyzeImage = async (imageData: string) => {
     setLoading(true)
     try {
-      const response = await fetch('/api/analyze-barcode-image', {
+      // Try barcode first
+      const barcodeResponse = await fetch('/api/analyze-barcode-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: imageData }),
       })
 
-      if (!response.ok) throw new Error('Erreur détection code-barres')
-
-      const data = await response.json()
-      
-      if (data.barcode) {
-        searchBarcode(data.barcode)
-      } else {
-        alert('Code-barres non détecté. Essaye de nouveau ou saisis-le manuellement')
-        setImage(null)
-        setMode('choose')
-        setLoading(false)
+      if (barcodeResponse.ok) {
+        const barcodeData = await barcodeResponse.json()
+        if (barcodeData.barcode) {
+          // Found barcode, search it
+          await searchBarcode(barcodeData.barcode)
+          return
+        }
       }
-    } catch (err) {
-      alert('Erreur: ' + (err instanceof Error ? err.message : 'Erreur'))
-      setImage(null)
-      setMode('choose')
-      setLoading(false)
-    }
-  }
 
-  const analyzeProductImage = async (imageData: string) => {
-    setLoading(true)
-    try {
-      const response = await fetch('/api/analyze-food', {
+      // No barcode found, try food analysis
+      const foodResponse = await fetch('/api/analyze-food', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: imageData }),
       })
 
-      if (!response.ok) throw new Error('Erreur analyse')
+      if (!foodResponse.ok) throw new Error('Erreur analyse')
 
-      const data = await response.json()
+      const data = await foodResponse.json()
       
       const mockResult = {
         name: data.primary?.name || 'Aliment',
@@ -172,6 +160,8 @@ export default function ScanModal({
       setLoading(false)
     } catch (err) {
       alert('Erreur analyse: ' + (err instanceof Error ? err.message : 'Erreur'))
+      setImage(null)
+      setMode('choose')
       setLoading(false)
     }
   }
@@ -272,6 +262,8 @@ export default function ScanModal({
       setBarcodeInput('')
     } catch (err) {
       alert('Produit non trouvé')
+      setImage(null)
+      setMode('choose')
     } finally {
       setLoading(false)
     }
@@ -350,12 +342,15 @@ export default function ScanModal({
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
           
-          {/* MAIN CHOOSE SCREEN - Single Scanner Button */}
+          {/* MAIN CHOOSE SCREEN */}
           {mode === 'choose' && !result && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
-              {/* Scanner Button */}
+              {/* SCANNER Button - Camera or Upload */}
               <button 
-                onClick={() => setMode('choose-method')}
+                onClick={() => {
+                  // Try camera first
+                  startCamera()
+                }}
                 style={{ 
                   padding: '2.5rem 1.5rem', 
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
@@ -366,7 +361,8 @@ export default function ScanModal({
                   fontSize: '1.2rem', 
                   cursor: 'pointer',
                   boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
-                  transition: 'all 200ms'
+                  transition: 'all 200ms',
+                  position: 'relative'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)'
@@ -378,7 +374,15 @@ export default function ScanModal({
                 }}
               >
                 📷 Scanner
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} 
+                  onChange={handleFileUpload}
+                />
               </button>
+              <p style={{ fontSize: '0.8rem', color: '#718096', textAlign: 'center', margin: '0' }}>Caméra ou sélectionne un fichier</p>
 
               {/* Search by name */}
               <div>
@@ -465,31 +469,6 @@ export default function ScanModal({
             </div>
           )}
 
-          {/* CHOOSE METHOD - Camera or Upload */}
-          {mode === 'choose-method' && !result && (
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <button 
-                onClick={startBarcodeCamera}
-                style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
-              >
-                📱 Caméra
-              </button>
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
-              >
-                📸 Importer une photo
-              </button>
-              <button 
-                onClick={() => setMode('choose')}
-                style={{ padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}
-              >
-                ← Retour
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-            </div>
-          )}
-
           {/* CAMERA MODE */}
           {mode === 'camera' && !image && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
@@ -509,7 +488,7 @@ export default function ScanModal({
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '40%', border: '3px solid rgba(102, 126, 234, 0.8)', borderRadius: '12px', pointerEvents: 'none' }}></div>
               </div>
               
-              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0', fontWeight: 600 }}>Aligne le code-barres dans le carré</p>
+              <p style={{ fontSize: '0.85rem', color: '#718096', textAlign: 'center', margin: '0', fontWeight: 600 }}>Aligne le code-barres ou le produit</p>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <button 
@@ -531,7 +510,7 @@ export default function ScanModal({
                   ✕ Annuler
                 </button>
                 <button 
-                  onClick={captureBarcodePhoto} 
+                  onClick={capturePhoto} 
                   style={{ 
                     padding: '1rem', 
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
