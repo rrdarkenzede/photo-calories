@@ -42,11 +42,12 @@ interface Goal {
 }
 
 interface CoachProfile {
-  age?: number;
-  weight?: number;
-  height?: number;
-  activity?: string;
-  goal?: string;
+  age: number;
+  weight: number;
+  height: number;
+  gender: 'male' | 'female';
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'veryActive';
+  goal: 'weightLoss' | 'maintenance' | 'muscleGain';
 }
 
 interface AppState {
