@@ -11,7 +11,7 @@ import {
 import { useAppStore } from '@/lib/store';
 
 export default function FoodAnalysisPage() {
-  const { addMeal, todayStats } = useAppStore();
+  const { addMeal } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
@@ -310,31 +310,6 @@ export default function FoodAnalysisPage() {
                 </button>
               </>
             )}
-          </div>
-        )}
-
-        {/* Today's Stats */}
-        {todayStats && (
-          <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
-            <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Today's Summary</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">Calories</p>
-                <p className="text-2xl font-black text-orange-600">{todayStats.consumed.calories}</p>
-              </div>
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">Protein</p>
-                <p className="text-2xl font-black text-blue-600">{todayStats.consumed.protein.toFixed(1)}g</p>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">Carbs</p>
-                <p className="text-2xl font-black text-amber-600">{todayStats.consumed.carbs.toFixed(1)}g</p>
-              </div>
-              <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">Fat</p>
-                <p className="text-2xl font-black text-rose-600">{todayStats.consumed.fat.toFixed(1)}g</p>
-              </div>
-            </div>
           </div>
         )}
       </div>
