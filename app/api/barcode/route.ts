@@ -1,16 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { searchByBarcode, searchByName } from '@/lib/open-food-facts'
 
-// Redirect to new scan/barcode endpoint
-export async function POST(request: NextRequest) {
-  const body = await request.json()
-  
-  // Forward to new endpoint
-  const response = await fetch(`${request.nextUrl.origin}/api/scan/barcode`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  
-  const data = await response.json()
-  return NextResponse.json(data, { status: response.status })
+export async function POST(req: NextRequest) {
+  try {
+    const { barcode, name } = await req.json()
+
+    if (!barcode && !name) {
+      return NextResponse.json(
+        { error: 'Barcode or product name required' },
+        { status: 400 }
+      )
+    }
+
+    let product = null
+
+    if (barcode) {
+      product = await searchByBarcode(barcode)
+    }
+
+    if (!product && name) {
+      product = await searchByName(name)
+    }
+
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found in Open Food Facts database' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(product)
+  } catch (error) {
+    console.error('Error processing barcode:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
 }

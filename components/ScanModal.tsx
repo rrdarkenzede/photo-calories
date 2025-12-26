@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { MealEntry } from '@/lib/calculations'
 
-type ScanMode = 'choose' | 'camera' | 'upload' | 'barcode'
+type ScanMode = 'choose' | 'camera' | 'upload' | 'barcode' | 'barcode-result'
 type Plan = 'free' | 'pro' | 'fitness'
 
 export default function ScanModal({ 
@@ -20,11 +20,11 @@ export default function ScanModal({
   const [image, setImage] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
   const [ingredients, setIngredients] = useState<Array<{ name: string; amount: string; nutrition?: any }>>([{ name: '', amount: '100g' }])
+  const [barcodeInput, setBarcodeInput] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
 
-  // Recalculate nutrition dynamically when ingredients change
   const calculatedNutrition = useMemo(() => {
     if (!result || !ingredients.length) return null
 
@@ -33,7 +33,6 @@ export default function ScanModal({
     ingredients.forEach(ing => {
       if (!ing.name || !ing.nutrition) return
 
-      // Parse amount (e.g., "100g", "200ml")
       const amountMatch = ing.amount.match(/(\d+)/)
       const amount = amountMatch ? parseInt(amountMatch[1]) : 100
       const multiplier = amount / 100
@@ -152,23 +151,41 @@ export default function ScanModal({
     }
   }
 
-  const analyzeBarcodeManual = async (barcode: string) => {
+  const searchBarcode = async (barcode: string) => {
     setLoading(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const response = await fetch('/api/barcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ barcode }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Product not found')
+      }
+
+      const product = await response.json()
       
       const mockResult = {
-        name: 'Coca-Cola 33cl',
-        calories: 140,
-        protein: plan !== 'free' ? 0 : undefined,
-        carbs: plan !== 'free' ? 35 : undefined,
-        fat: plan !== 'free' ? 0 : undefined,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        calories: product.calories,
+        protein: plan !== 'free' ? product.protein : undefined,
+        carbs: plan !== 'free' ? product.carbs : undefined,
+        fat: plan !== 'free' ? product.fat : undefined,
+        sugars: plan === 'fitness' ? product.sugars : undefined,
+        fiber: plan === 'fitness' ? product.fiber : undefined,
+        sodium: plan === 'fitness' ? product.sodium : undefined,
+        servingSize: product.servingSize,
       }
       
       setResult(mockResult)
+      setMode('barcode-result')
+      setBarcodeInput('')
     } catch (err) {
       console.error('Barcode error:', err)
-      alert('Produit non trouvé')
+      alert('Produit non trouvé dans Open Food Facts')
     } finally {
       setLoading(false)
     }
@@ -191,7 +208,6 @@ export default function ScanModal({
   const saveMeal = () => {
     if (!result) return
     
-    // Use calculated nutrition if available (when ingredients are edited)
     const finalNutrition = calculatedNutrition || {
       calories: result.calories,
       protein: result.protein,
@@ -208,7 +224,7 @@ export default function ScanModal({
       protein: finalNutrition.protein,
       carbs: finalNutrition.carbs,
       fat: finalNutrition.fat,
-      items: plan === 'fitness' ? ingredients.map(i => `${i.name} (${i.amount})`).filter(i => i.trim()) : [result.name]
+      items: [result.name]
     }
     
     onAdd(meal)
@@ -225,7 +241,6 @@ export default function ScanModal({
     }
   }, [])
 
-  // Display nutrition (calculated if available, otherwise from result)
   const displayNutrition = calculatedNutrition || {
     calories: result?.calories || 0,
     protein: result?.protein || 0,
@@ -248,13 +263,13 @@ export default function ScanModal({
         {mode === 'choose' && (
           <div style={{ display: 'grid', gap: '1rem' }}>
             <button onClick={() => { setMode('camera'); startCamera(); }} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-              📷 Prendre une photo
+              📷 Scanner une photo
             </button>
             <button onClick={() => { fileInputRef.current?.click(); }} style={{ padding: '1.2rem', background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-              📤 Upload une image
+              📁 Upload une image
             </button>
             <button onClick={() => setMode('barcode')} style={{ padding: '1.2rem', background: 'white', color: '#1a202c', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-              🔍 Scanner un code-barres
+              🏷️ Scanner un code-barres
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
           </div>
@@ -270,20 +285,27 @@ export default function ScanModal({
           </div>
         )}
 
-        {mode === 'barcode' && (
+        {mode === 'barcode' && !loading && (
           <div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: '#1a202c', fontSize: '0.95rem' }}>Code-barres</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: '#1a202c', fontSize: '0.95rem' }}>Code-barres (EAN)</label>
               <input 
                 type="text" 
-                placeholder="Ex: 5449000054227" 
-                style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value) {
-                    analyzeBarcodeManual(e.currentTarget.value)
+                placeholder="Ex: 3017620422003" 
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
+              />
+              <button 
+                onClick={() => {
+                  if (barcodeInput.trim()) {
+                    searchBarcode(barcodeInput)
                   }
                 }}
-              />
+                style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', marginBottom: '1rem' }}
+              >
+                🔍 Chercher
+              </button>
             </div>
             <button onClick={() => setMode('choose')} style={{ width: '100%', padding: '1rem', background: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', color: '#1a202c' }}>Retour</button>
           </div>
@@ -293,34 +315,29 @@ export default function ScanModal({
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             {image && <img src={image} alt="Analyzing..." style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1rem' }} />}
             <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⏳</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c' }}>Analyse en cours...</div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c' }}>Recherche en cours...</div>
           </div>
         )}
 
-        {result && !loading && (
+        {(mode === 'upload' || mode === 'barcode-result') && result && !loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {image && <img src={image} alt="Food" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />}
+            {result.image && !image && <img src={result.image} alt={result.name} style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />}
             
             <div style={{ background: '#f7fafc', padding: '1.2rem', borderRadius: '12px', border: '2px solid #e2e8f0', boxSizing: 'border-box' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1a202c', marginBottom: '0.5rem', margin: 0 }}>{result.name}</h3>
-              {result.confidence && (
-                <p style={{ fontSize: '0.8rem', color: '#4a5568', marginBottom: '1rem', fontWeight: 600, margin: '0.5rem 0 1rem 0', wordBreak: 'break-word' }}>
-                  Confiance: {result.confidence}%
-                </p>
+              {result.brand && (
+                <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '0.5rem', fontWeight: 500 }}>Par: {result.brand}</p>
               )}
-              {result.allFoods && result.allFoods.length > 0 && (
-                <p style={{ fontSize: '0.8rem', color: '#718096', marginBottom: '1rem', fontWeight: 500, margin: '0 0 1rem 0', wordBreak: 'break-word' }}>
-                  Contient: {result.allFoods.slice(0, 5).map((f: any) => f.name).join(', ')}{result.allFoods.length > 5 ? '...' : ''}
-                </p>
+              {result.servingSize && (
+                <p style={{ fontSize: '0.8rem', color: '#718096', marginBottom: '1rem', fontWeight: 500 }}>Portion: {result.servingSize}</p>
               )}
               
-              {/* Calories Main Display */}
               <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center', marginBottom: '1rem' }}>
                 <div style={{ fontSize: '0.75rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.3rem' }}>CALORIES</div>
                 <div style={{ fontSize: '2rem', fontWeight: 900, color: '#667eea' }}>{Math.round(displayNutrition.calories)}</div>
               </div>
 
-              {/* Macros Grid - Responsive */}
               {plan !== 'free' && displayNutrition.protein !== undefined && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
@@ -338,7 +355,6 @@ export default function ScanModal({
                 </div>
               )}
 
-              {/* Micros for Fitness Plan */}
               {plan === 'fitness' && displayNutrition.sugars !== undefined && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
                   <div style={{ background: 'white', padding: '0.7rem', borderRadius: '8px', textAlign: 'center', minWidth: 0 }}>
@@ -353,37 +369,6 @@ export default function ScanModal({
                     <div style={{ fontSize: '0.65rem', color: '#4a5568', fontWeight: 600, marginBottom: '0.2rem' }}>SODIUM</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a202c' }}>{Math.round(displayNutrition.sodium)}mg</div>
                   </div>
-                </div>
-              )}
-
-              {/* Ingredients for Fitness Plan - Now editable with live recalc */}
-              {plan === 'fitness' && ingredients.length > 0 && (
-                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.6rem', margin: 0 }}>Ingrédients détectés</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '150px', overflowY: 'auto' }}>
-                    {ingredients.slice(0, 3).map((ing, i) => (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr auto', gap: '0.4rem', alignItems: 'center', minWidth: 0 }}>
-                        <input 
-                          type="text" 
-                          placeholder="Nom" 
-                          value={ing.name}
-                          onChange={(e) => updateIngredient(i, 'name', e.target.value)}
-                          style={{ padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box' }}
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="100g" 
-                          value={ing.amount}
-                          onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
-                          style={{ padding: '0.5rem', border: '1px solid #667eea', borderRadius: '6px', fontSize: '0.85rem', minWidth: 0, boxSizing: 'border-box', background: '#f0f4ff' }}
-                        />
-                        <button onClick={() => removeIngredient(i)} style={{ padding: '0.4rem 0.6rem', background: '#fee', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#c53030', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>×</button>
-                      </div>
-                    ))}
-                  </div>
-                  {ingredients.length > 3 && (
-                    <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.3rem' }}>+{ingredients.length - 3} plus</div>
-                  )}
                 </div>
               )}
             </div>
