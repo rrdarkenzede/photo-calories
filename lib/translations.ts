@@ -221,8 +221,6 @@ export const FOOD_TRANSLATIONS: Record<string, string> = {
   'jam': 'confiture',
   'honey': 'miel',
   'maple syrup': 'sirop d\'érable',
-  'bacon': 'bacon',
-  'sausage': 'saucisse',
   'hash browns': 'pommes de terre rissolées',
   
   // Nuts & Seeds
@@ -242,7 +240,6 @@ export const FOOD_TRANSLATIONS: Record<string, string> = {
   'salt': 'sel',
   'pepper': 'poivre',
   'sugar': 'sucre',
-  'honey': 'miel',
   'ketchup': 'ketchup',
   'mayonnaise': 'mayonnaise',
   'mustard': 'moutarde',
