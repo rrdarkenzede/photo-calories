@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -19,7 +19,8 @@ import {
   BarChart3,
 } from 'lucide-react';
 
-const DashboardPage = () => {
+// Wrapper component for SearchParams
+function DashboardContent() {
   const searchParams = useSearchParams();
   const [plan, setPlan] = useState(searchParams?.get('plan') || 'free');
   const [activeTab, setActiveTab] = useState('scan');
@@ -748,6 +749,22 @@ const DashboardPage = () => {
         </div>
       </motion.nav>
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+const DashboardPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-semibold">Chargement...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 };
 
