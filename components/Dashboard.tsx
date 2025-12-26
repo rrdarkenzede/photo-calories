@@ -121,21 +121,14 @@ export default function Dashboard({ profile: initialProfile }: { profile: UserPr
               <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.95rem', color: '#4a5568', textAlign: 'center', fontWeight: 600 }}>{Math.max(0, profile.targetCalories - totalCal)} cal restantes</p>
             </div>
 
-            {/* Big Action Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            {/* SINGLE ACTION BUTTON */}
+            <div style={{ marginBottom: '1.5rem' }}>
               <button 
                 onClick={openScanModal} 
                 disabled={scansRemaining === 0} 
-                style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}
+                style={{ width: '100%', padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.2rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}
               >
-                📸<br/>Scanner
-              </button>
-              <button 
-                onClick={openScanModal} 
-                disabled={scansRemaining === 0} 
-                style={{ padding: '1.5rem', background: scansRemaining === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', cursor: scansRemaining === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.3)', transition: 'all 0.2s', opacity: scansRemaining === 0 ? 0.5 : 1 }}
-              >
-                📤<br/>Upload
+                📸 Scanner un repas
               </button>
             </div>
 
