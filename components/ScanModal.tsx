@@ -28,7 +28,7 @@ export default function ScanModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
   const cameraReadyRef = useRef(false)
@@ -58,12 +58,16 @@ export default function ScanModal({
   }, [ingredients, result])
 
   const stopAllStreams = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => {
+    console.log('Stopping all streams...')
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
         console.log('Stopping track:', track.kind)
         track.stop()
       })
-      setStream(null)
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
     }
     cameraReadyRef.current = false
   }
@@ -82,39 +86,35 @@ export default function ScanModal({
         } 
       })
       
-      console.log('Camera granted, setting up video element...')
-      setStream(mediaStream)
+      console.log('Camera granted, attaching to video element...')
+      streamRef.current = mediaStream
       
-      // Wait a tick for state to update, then attach stream
-      setTimeout(() => {
-        if (videoRef.current) {
-          console.log('Attaching stream to video element')
-          videoRef.current.srcObject = mediaStream
-          
-          // Listen for when video is ready
-          const onCanPlay = () => {
-            console.log('Video element ready, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+        
+        // Listen for when video is ready
+        const onCanPlay = () => {
+          console.log('Video element ready, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          cameraReadyRef.current = true
+          videoRef.current?.removeEventListener('canplay', onCanPlay)
+          callback()
+        }
+        
+        videoRef.current.addEventListener('canplay', onCanPlay)
+        
+        // Failsafe timeout
+        const timeout = setTimeout(() => {
+          if (!cameraReadyRef.current) {
+            console.log('Camera ready timeout - proceeding anyway')
             cameraReadyRef.current = true
             videoRef.current?.removeEventListener('canplay', onCanPlay)
             callback()
           }
-          
-          videoRef.current.addEventListener('canplay', onCanPlay)
-          
-          // Failsafe timeout
-          const timeout = setTimeout(() => {
-            if (!cameraReadyRef.current) {
-              console.log('Camera ready timeout - proceeding anyway')
-              cameraReadyRef.current = true
-              videoRef.current?.removeEventListener('canplay', onCanPlay)
-              callback()
-            }
-          }, 1000)
-          
-          // Clean up timeout if video becomes ready
-          videoRef.current.addEventListener('canplay', () => clearTimeout(timeout), { once: true })
-        }
-      }, 50)
+        }, 2000)
+        
+        // Clean up timeout if video becomes ready
+        videoRef.current.addEventListener('canplay', () => clearTimeout(timeout), { once: true })
+      }
     } catch (err) {
       console.error('Camera error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
@@ -416,6 +416,7 @@ export default function ScanModal({
 
   useEffect(() => {
     return () => {
+      console.log('Cleanup: stopping all streams')
       stopAllStreams()
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current)
