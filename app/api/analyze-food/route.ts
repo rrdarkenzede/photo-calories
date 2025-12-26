@@ -7,6 +7,11 @@ const CLARIFAI_USER_ID = 'clarifai'
 const CLARIFAI_APP_ID = 'main'
 const CLARIFAI_MODEL_ID = 'food-item-recognition'
 
+interface DetectedFood {
+  name: string
+  confidence: number
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { image } = await req.json()
@@ -56,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     // Extract detected foods from Clarifai
     const concepts = clarifaiData.outputs?.[0]?.data?.concepts || []
-    const detectedFoods = concepts
+    const detectedFoods: DetectedFood[] = concepts
       .filter((c: any) => c.value > 0.5)
       .slice(0, 10)
       .map((c: any) => ({
@@ -72,13 +77,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Get nutrition data from USDA for each detected food
-    console.log('Fetching nutrition data for:', detectedFoods.map(f => f.name))
-    const usDAFoods = await searchMultipleUSDAFoods(
-      detectedFoods.map(f => f.name)
-    )
+    const foodNames = detectedFoods.map((food: DetectedFood) => food.name)
+    console.log('Fetching nutrition data for:', foodNames)
+    const usDAFoods = await searchMultipleUSDAFoods(foodNames)
 
     // Combine Clarifai detection with USDA nutrition data
-    const ingredientsWithNutrition = detectedFoods.map(food => {
+    const ingredientsWithNutrition = detectedFoods.map((food: DetectedFood) => {
       // Try to find matching USDA food
       const usdaFood = usDAFoods.find(u => 
         u.description.toLowerCase().includes(food.name.toLowerCase()) ||
@@ -104,9 +108,9 @@ export async function POST(req: NextRequest) {
       totals.protein += Math.round(item.nutrition.protein * mult * 10) / 10
       totals.carbs += Math.round(item.nutrition.carbs * mult * 10) / 10
       totals.fat += Math.round(item.nutrition.fat * mult * 10) / 10
-      totals.sugars += item.nutrition.sugars || 0
-      totals.fiber += item.nutrition.fiber || 0
-      totals.sodium += item.nutrition.sodium || 0
+      totals.sugars += (item.nutrition as any).sugars || 0
+      totals.fiber += (item.nutrition as any).fiber || 0
+      totals.sodium += (item.nutrition as any).sodium || 0
     })
 
     return NextResponse.json({
