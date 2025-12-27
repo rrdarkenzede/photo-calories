@@ -27,24 +27,24 @@ export default function HistorySection({ meals, plan }: HistorySectionProps) {
         {plan === 'free' && (
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className={`px-4 py-2 font-semibold rounded-full transition ${
+            className={`px-4 py-2 font-bold rounded-full transition ${
               showHistory
-                ? 'bg-blue-100 text-blue-600'
-                : 'bg-gray-100 text-gray-600'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700'
             }`}
           >
-            {showHistory ? 'Désactiver' : 'Activer'}
+            {showHistory ? 'Desactiver' : 'Activer'}
           </button>
         )}
       </div>
 
       {!showHistory && plan === 'free' ? (
-        <div className="text-center py-12 text-gray-400">
-          <p>Historique désactivé (FREE plan)</p>
+        <div className="text-center py-12 text-gray-600 font-semibold">
+          <p>Historique desactive (FREE plan)</p>
         </div>
       ) : localMeals.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <p>Aucun repas enregistré</p>
+        <div className="text-center py-12 text-gray-600 font-semibold">
+          <p>Aucun repas enregistre</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -72,27 +72,27 @@ export default function HistorySection({ meals, plan }: HistorySectionProps) {
                   <h3 className="font-bold text-gray-900">{meal.name}</h3>
                   {meal.nutriscore && <NutriscoreBadge score={meal.nutriscore} />}
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700 font-semibold">
                   {new Date(meal.timestamp).toLocaleString('fr-FR')}
                 </p>
               </div>
 
               {/* Calories */}
               <div className="text-right">
-                <p className="text-2xl font-bold text-blue-600">{meal.calories}</p>
-                <p className="text-sm text-gray-500">kcal</p>
+                <p className="text-2xl font-black text-blue-600">{meal.calories}</p>
+                <p className="text-sm text-gray-700 font-semibold">kcal</p>
               </div>
 
               {/* Macros (PRO/FITNESS) */}
               {plan !== 'free' && meal.protein && (
                 <div className="flex gap-2 text-sm">
-                  <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded-lg font-semibold">
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg font-bold">
                     P: {meal.protein.toFixed(0)}g
                   </span>
-                  <span className="px-2 py-1 bg-pink-100 text-pink-600 rounded-lg font-semibold">
+                  <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded-lg font-bold">
                     G: {meal.carbs?.toFixed(0) || 0}g
                   </span>
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-600 rounded-lg font-semibold">
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg font-bold">
                     L: {meal.fat?.toFixed(0) || 0}g
                   </span>
                 </div>
