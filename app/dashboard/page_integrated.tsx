@@ -19,8 +19,8 @@ import {
 } from 'lucide-react';
 
 // Import new services
-import { detectFoodInImage } from '@/lib/vision';
-import { searchFoodByName, getProductByBarcode, getGenericFoodEstimate } from '@/lib/openfoodfacts';
+import { detecterAlimentDansImage } from '@/lib/vision';
+import { chercherAlimentParNom, obtenirProduitParCodeBarres, obtenirEstimationAlimentGenerique } from '@/lib/openfoodfacts';
 import { 
   saveMeals, 
   loadMeals, 
@@ -133,71 +133,71 @@ function DashboardContent() {
 
       try {
         // Step 1: Detect food with Clarifai
-        const detectedFoods = await detectFoodInImage(imageData);
+        const detectedFoods = await detecterAlimentDansImage(imageData);
         
         if (detectedFoods.length === 0) {
           throw new Error('Aucun aliment détecté');
         }
 
         // Step 2: Get nutrition from OpenFoodFacts
-        const topFood = detectedFoods[0].name;
-        const searchResults = await searchFoodByName(topFood);
+        const topFood = detectedFoods[0].nom;
+        const searchResults = await chercherAlimentParNom(topFood);
         
         let mealData;
         if (searchResults.length > 0) {
           // Use first result
           const product = searchResults[0];
           mealData = {
-            name: product.name,
+            nom: product.nom,
             calories: Math.round(product.calories),
-            protein: product.protein,
-            carbs: product.carbs,
-            fat: product.fat,
+            proteines: product.proteines,
+            glucides: product.glucides,
+            lipides: product.lipides,
             image: product.image || imageData,
-            nutriscore: product.nutriscore,
-            detectedFoods: detectedFoods.map(f => `${f.name} (${f.confidence}%)`).join(', '),
+            nutriScore: product.nutriScore,
+            alimentsDetectes: detectedFoods.map(f => `${f.nom} (${f.confiance}%)`).join(', '),
           };
           
           // Create ingredients from API data
           if (product.ingredients && product.ingredients.length > 0) {
             setIngredients(
               product.ingredients.slice(0, 5).map((ing: string, i: number) => {
-                const estimate = getGenericFoodEstimate(ing);
+                const estimate = obtenirEstimationAlimentGenerique(ing);
                 return {
                   id: i,
-                  name: ing,
+                  nom: ing,
                   quantity: 100,
                   calories: estimate.calories,
-                  protein: estimate.protein,
-                  carbs: estimate.carbs,
-                  fat: estimate.fat,
+                  proteines: estimate.proteines,
+                  glucides: estimate.glucides,
+                  lipides: estimate.lipides,
                 };
               })
             );
           }
         } else {
           // Fallback to generic estimate
-          const estimate = getGenericFoodEstimate(topFood);
+          const estimate = obtenirEstimationAlimentGenerique(topFood);
           mealData = {
-            name: translateFood(topFood) || topFood,
+            nom: translateFood(topFood) || topFood,
             calories: Math.round(estimate.calories),
-            protein: estimate.protein,
-            carbs: estimate.carbs,
-            fat: estimate.fat,
+            proteines: estimate.proteines,
+            glucides: estimate.glucides,
+            lipides: estimate.lipides,
             image: imageData,
-            nutriscore: estimate.nutriscore,
-            detectedFoods: detectedFoods.map(f => `${f.name} (${f.confidence}%)`).join(', '),
+            nutriScore: estimate.nutriScore,
+            alimentsDetectes: detectedFoods.map(f => `${f.nom} (${f.confiance}%)`).join(', '),
           };
           
           // Generic ingredients
           setIngredients([{
             id: 0,
-            name: topFood,
+            nom: topFood,
             quantity: 100,
             calories: estimate.calories,
-            protein: estimate.protein,
-            carbs: estimate.carbs,
-            fat: estimate.fat,
+            proteines: estimate.proteines,
+            glucides: estimate.glucides,
+            lipides: estimate.lipides,
           }]);
         }
 
@@ -219,7 +219,7 @@ function DashboardContent() {
     setIsLoading(true);
 
     try {
-      const product = await getProductByBarcode(barcode);
+      const product = await obtenirProduitParCodeBarres(barcode);
       
       if (!product) {
         alert('Produit non trouvé. Essayez un autre code-barres.');
@@ -227,15 +227,15 @@ function DashboardContent() {
       }
 
       const mealData = {
-        name: product.name,
+        nom: product.nom,
         calories: Math.round(product.calories),
-        protein: product.protein,
-        carbs: product.carbs,
-        fat: product.fat,
+        proteines: product.proteines,
+        glucides: product.glucides,
+        lipides: product.lipides,
         image: product.image,
-        nutriscore: product.nutriscore,
-        barcode: barcode,
-        brands: product.brands,
+        nutriScore: product.nutriScore,
+        codeBarres: barcode,
+        marques: product.marques,
       };
 
       setDetectedMeal(mealData);
@@ -276,13 +276,13 @@ function DashboardContent() {
   const handleAddIngredient = async (foodName: string) => {
     setIsLoading(true);
     try {
-      const results = await searchFoodByName(foodName);
+      const results = await chercherAlimentParNom(foodName);
       
       let food;
       if (results.length > 0) {
         food = results[0];
       } else {
-        food = getGenericFoodEstimate(foodName);
+        food = obtenirEstimationAlimentGenerique(foodName);
       }
       
       setIngredients([
@@ -314,12 +314,12 @@ function DashboardContent() {
     if (plan === 'fitness' && ingredients.length > 0) {
       const newRecipe = {
         id: Date.now(),
-        name: detectedMeal?.name || 'Custom Recipe',
+        nom: detectedMeal?.nom || 'Custom Recipe',
         ingredients: ingredients,
         totalCalories: ingredientsTotals.calories,
-        totalProtein: ingredientsTotals.protein,
-        totalCarbs: ingredientsTotals.carbs,
-        totalFat: ingredientsTotals.fat,
+        totalProteines: ingredientsTotals.protein,
+        totalGlucides: ingredientsTotals.carbs,
+        totalLipides: ingredientsTotals.fat,
         createdAt: new Date().toISOString(),
       };
       
@@ -493,7 +493,7 @@ function DashboardContent() {
 
         {activeTab === 'history' && meals.map(meal => (
           <div key={meal.id} className="card mb-4">
-            <h4 className="font-bold">{meal.name}</h4>
+            <h4 className="font-bold">{meal.nom}</h4>
             <p className="text-sm text-gray-600">{new Date(meal.timestamp).toLocaleString('fr-FR')}</p>
             <p className="text-blue-600 font-bold">{meal.calories} kcal</p>
             <button onClick={() => handleDeleteMeal(meal.id)} className="text-red-500">
