@@ -65,14 +65,14 @@ export default function ScanModal({ onClose, onCapture }: ScanModalProps) {
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-gray-600" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Scanner ton plat</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Scanner ton plat</h2>
 
         {!hasPermission ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-700 font-semibold mb-4">
               Accès caméra refusé. Autorise l'accès dans tes paramètres.
             </p>
           </div>
