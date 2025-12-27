@@ -150,9 +150,9 @@ function DashboardContent() {
           mealData = {
             nom: product.nom,
             calories: Math.round(product.calories),
-            proteines: product.proteines,
-            glucides: product.glucides,
-            lipides: product.lipides,
+            protein: product.proteines,
+            carbs: product.glucides,
+            fat: product.lipides,
             image: product.image || imageData,
             nutriScore: product.nutriScore,
             alimentsDetectes: detectedFoods.map(f => `${f.nom} (${f.confiance}%)`).join(', '),
@@ -168,9 +168,9 @@ function DashboardContent() {
                   nom: ing,
                   quantity: 100,
                   calories: estimate.calories,
-                  proteines: estimate.proteines,
-                  glucides: estimate.glucides,
-                  lipides: estimate.lipides,
+                  protein: estimate.proteines,
+                  carbs: estimate.glucides,
+                  fat: estimate.lipides,
                 };
               })
             );
@@ -181,9 +181,9 @@ function DashboardContent() {
           mealData = {
             nom: translateFood(topFood) || topFood,
             calories: Math.round(estimate.calories),
-            proteines: estimate.proteines,
-            glucides: estimate.glucides,
-            lipides: estimate.lipides,
+            protein: estimate.proteines,
+            carbs: estimate.glucides,
+            fat: estimate.lipides,
             image: imageData,
             nutriScore: estimate.nutriScore,
             alimentsDetectes: detectedFoods.map(f => `${f.nom} (${f.confiance}%)`).join(', '),
@@ -195,9 +195,9 @@ function DashboardContent() {
             nom: topFood,
             quantity: 100,
             calories: estimate.calories,
-            proteines: estimate.proteines,
-            glucides: estimate.glucides,
-            lipides: estimate.lipides,
+            protein: estimate.proteines,
+            carbs: estimate.glucides,
+            fat: estimate.lipides,
           }]);
         }
 
@@ -229,9 +229,9 @@ function DashboardContent() {
       const mealData = {
         nom: product.nom,
         calories: Math.round(product.calories),
-        proteines: product.proteines,
-        glucides: product.glucides,
-        lipides: product.lipides,
+        protein: product.proteines,
+        carbs: product.glucides,
+        fat: product.lipides,
         image: product.image,
         nutriScore: product.nutriScore,
         codeBarres: barcode,
@@ -280,9 +280,20 @@ function DashboardContent() {
       
       let food;
       if (results.length > 0) {
-        food = results[0];
+        food = {
+          ...results[0],
+          protein: results[0].proteines,
+          carbs: results[0].glucides,
+          fat: results[0].lipides,
+        };
       } else {
-        food = obtenirEstimationAlimentGenerique(foodName);
+        const est = obtenirEstimationAlimentGenerique(foodName);
+        food = {
+          ...est,
+          protein: est.proteines,
+          carbs: est.glucides,
+          fat: est.lipides,
+        };
       }
       
       setIngredients([
@@ -314,12 +325,12 @@ function DashboardContent() {
     if (plan === 'fitness' && ingredients.length > 0) {
       const newRecipe = {
         id: Date.now(),
-        nom: detectedMeal?.nom || 'Custom Recipe',
+        name: detectedMeal?.nom || 'Custom Recipe',
         ingredients: ingredients,
         totalCalories: ingredientsTotals.calories,
-        totalProteines: ingredientsTotals.protein,
-        totalGlucides: ingredientsTotals.carbs,
-        totalLipides: ingredientsTotals.fat,
+        totalProtein: ingredientsTotals.protein,
+        totalCarbs: ingredientsTotals.carbs,
+        totalFat: ingredientsTotals.fat,
         createdAt: new Date().toISOString(),
       };
       
