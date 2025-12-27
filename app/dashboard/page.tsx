@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Camera, Upload, Barcode, Settings, Zap, Search, Book, TrendingUp } from 'lucide-react';
 
-import { detectFoodInImage } from '@/lib/vision';
-import { searchFoodByName, getProductByBarcode } from '@/lib/openfoodfacts';
+import { detecterAlimentDansImage } from '@/lib/vision';
+import { chercherAlimentParNom, obtenirProduitParCodeBarres } from '@/lib/openfoodfacts';
 import { loadMeals, addMeal, loadPlan, savePlan, loadProfile, loadRecipes } from '@/lib/storage';
 
 // Modals/Components
@@ -82,22 +82,22 @@ function DashboardContent() {
 
     setIsLoading(true);
     try {
-      const detectedFoods = await detectFoodInImage(imageData);
+      const detectedFoods = await detecterAlimentDansImage(imageData);
       if (detectedFoods.length === 0) throw new Error('Aucun aliment détecté');
 
-      const topFood = detectedFoods[0].name;
-      const searchResults = await searchFoodByName(topFood);
+      const topFood = detectedFoods[0].nom;
+      const searchResults = await chercherAlimentParNom(topFood);
       const product = searchResults[0];
 
       // Create result object
       const result = {
-        name: product?.name || topFood,
+        nom: product?.nom || topFood,
         calories: Math.round(product?.calories || 0),
-        protein: product?.protein,
-        carbs: product?.carbs,
-        fat: product?.fat,
+        proteines: product?.proteines,
+        glucides: product?.glucides,
+        lipides: product?.lipides,
         image: imageData,
-        detectedFoods,
+        alimentsDetectes: detectedFoods,
       };
 
       setCurrentResult(result);
@@ -121,16 +121,16 @@ function DashboardContent() {
 
     setIsLoading(true);
     try {
-      const product = await getProductByBarcode(barcode);
+      const product = await obtenirProduitParCodeBarres(barcode);
       if (!product) throw new Error('Produit non trouvé');
 
       const result = {
-        name: product.name,
+        nom: product.nom,
         calories: Math.round(product.calories),
-        protein: product.protein,
-        carbs: product.carbs,
-        fat: product.fat,
-        nutriscore: product.nutriscore,
+        proteines: product.proteines,
+        glucides: product.glucides,
+        lipides: product.lipides,
+        nutriScore: product.nutriScore,
         image: product.image,
       };
 
