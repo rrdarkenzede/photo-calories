@@ -36,18 +36,18 @@ export default function UploadModal({ onClose, onUpload }: UploadModalProps) {
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-gray-600" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Upload une image</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload une image</h2>
 
         <label
           onClick={() => inputRef.current?.click()}
           className="block p-12 border-2 border-dashed border-gray-300 rounded-2xl text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
         >
           <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="font-semibold text-gray-900 mb-1">Clique pour choisir</p>
-          <p className="text-sm text-gray-500">ou glisse-dépose</p>
+          <p className="font-bold text-gray-900 mb-1">Clique pour choisir</p>
+          <p className="text-sm text-gray-600 font-semibold">ou glisse et depose</p>
           <input
             ref={inputRef}
             type="file"
