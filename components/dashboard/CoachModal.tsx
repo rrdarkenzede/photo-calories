@@ -24,7 +24,7 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
 
   useEffect(() => {
     const saved = loadProfile();
-    if (saved) setProfile({ ...profile, ...saved });
+    if (saved) setProfile((prev) => ({ ...prev, ...saved }));
   }, []);
 
   // Calculate TDEE (Mifflin-St Jeor)
@@ -73,24 +73,24 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-gray-600" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
           {plan === 'fitness' ? 'Coach IA - Calcul TDEE' : 'Définir mon objectif'}
         </h2>
 
         {plan === 'pro' ? (
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold mb-2">Calories quotidiennes</label>
+              <label className="block text-sm font-bold text-gray-900 mb-2">Calories quotidiennes</label>
               <input
                 type="number"
                 value={profile.dailyCalories}
                 onChange={(e) =>
                   setProfile({ ...profile, dailyCalories: parseInt(e.target.value) })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
               />
             </div>
           </div>
@@ -98,41 +98,41 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-2">Age</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Age</label>
                 <input
                   type="number"
                   value={profile.age}
                   onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Poids (kg)</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Poids (kg)</label>
                 <input
                   type="number"
                   value={profile.weight}
                   onChange={(e) =>
                     setProfile({ ...profile, weight: parseInt(e.target.value) })
                   }
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-2">Taille (cm)</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Taille (cm)</label>
                 <input
                   type="number"
                   value={profile.height}
                   onChange={(e) =>
                     setProfile({ ...profile, height: parseInt(e.target.value) })
                   }
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Genre</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Genre</label>
                 <select
                   value={profile.gender}
                   onChange={(e) =>
@@ -141,7 +141,7 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
                       gender: e.target.value as 'male' | 'female',
                     })
                   }
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
                 >
                   <option value="male">Homme</option>
                   <option value="female">Femme</option>
@@ -150,7 +150,7 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">Activité physique</label>
+              <label className="block text-sm font-bold text-gray-900 mb-2">Activité physique</label>
               <select
                 value={profile.activityLevel}
                 onChange={(e) =>
@@ -159,7 +159,7 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
                     activityLevel: e.target.value as any,
                   })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
               >
                 <option value="sedentary">Sédentaire</option>
                 <option value="light">Légère (1-3j/semaine)</option>
@@ -170,13 +170,13 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">Objectif</label>
+              <label className="block text-sm font-bold text-gray-900 mb-2">Objectif</label>
               <select
                 value={profile.goal}
                 onChange={(e) =>
                   setProfile({ ...profile, goal: e.target.value as any })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900"
               >
                 <option value="lose">Perdre du poids</option>
                 <option value="maintain">Maintenir</option>
@@ -186,9 +186,9 @@ export default function CoachModal({ plan, onClose, onSave }: CoachModalProps) {
 
             {/* TDEE Result */}
             <div className="p-4 bg-blue-50 rounded-2xl">
-              <p className="text-sm text-gray-600 mb-1">Calories recommandées</p>
+              <p className="text-sm text-gray-700 font-semibold mb-1">Calories recommandées</p>
               <p className="text-3xl font-black text-blue-600">{calculateTDEE()}</p>
-              <p className="text-xs text-gray-500 mt-1">kcal/jour (calcul scientifique)</p>
+              <p className="text-xs text-gray-600 mt-1 font-semibold">kcal/jour (calcul scientifique)</p>
             </div>
           </div>
         )}
