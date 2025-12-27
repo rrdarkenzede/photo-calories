@@ -1,7 +1,9 @@
 /**
- * OpenFoodFacts API Integration
- * API gratuite pour obtenir les données nutritionnelles
+ * OpenFoodFacts API Integration with USDA Fallback
+ * API gratuite pour obtenir les donnees nutritionnelles
  */
+
+import { searchUSDAByName, getBestUSDAFood } from './usda';
 
 export interface FoodProduct {
   name: string;
@@ -33,7 +35,20 @@ export async function searchFoodByName(query: string): Promise<FoodProduct[]> {
     const data = await response.json();
 
     if (!data.products || data.products.length === 0) {
-      return [];
+      // Fallback to USDA if OpenFoodFacts has no results
+      console.log('No OpenFoodFacts results, trying USDA...');
+      const usdaResults = await searchUSDAByName(query);
+      return usdaResults.map((food) => ({
+        name: food.name,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        fiber: food.fiber,
+        sugar: food.sugar,
+        sodium: food.sodium,
+        nutriscore: 'N/A',
+      }));
     }
 
     return data.products
@@ -55,7 +70,24 @@ export async function searchFoodByName(query: string): Promise<FoodProduct[]> {
       }));
   } catch (error) {
     console.error('OpenFoodFacts API error:', error);
-    return [];
+    // Try USDA fallback on error
+    try {
+      const usdaResults = await searchUSDAByName(query);
+      return usdaResults.map((food) => ({
+        name: food.name,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        fiber: food.fiber,
+        sugar: food.sugar,
+        sodium: food.sodium,
+        nutriscore: 'N/A',
+      }));
+    } catch (usdaError) {
+      console.error('USDA fallback also failed:', usdaError);
+      return [];
+    }
   }
 }
 
@@ -121,27 +153,48 @@ export function getGenericFoodEstimate(foodName: string): FoodProduct {
     pain: { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
     'pain blanc': { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
     'pain complet': { calories: 247, protein: 13, carbs: 41, fat: 3.4 },
+    bread: { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
     // Proteins
     poulet: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+    chicken: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
     boeuf: { calories: 250, protein: 26, carbs: 0, fat: 17 },
+    beef: { calories: 250, protein: 26, carbs: 0, fat: 17 },
     poisson: { calories: 206, protein: 22, carbs: 0, fat: 12 },
+    fish: { calories: 206, protein: 22, carbs: 0, fat: 12 },
     oeuf: { calories: 155, protein: 13, carbs: 1, fat: 11 },
+    egg: { calories: 155, protein: 13, carbs: 1, fat: 11 },
     // Dairy
     fromage: { calories: 403, protein: 25, carbs: 3, fat: 33 },
+    cheese: { calories: 403, protein: 25, carbs: 3, fat: 33 },
     lait: { calories: 49, protein: 3.3, carbs: 4.8, fat: 1.6 },
+    milk: { calories: 49, protein: 3.3, carbs: 4.8, fat: 1.6 },
     yaourt: { calories: 59, protein: 3.5, carbs: 4.7, fat: 0.4 },
+    yogurt: { calories: 59, protein: 3.5, carbs: 4.7, fat: 0.4 },
     // Vegetables
     tomate: { calories: 18, protein: 1, carbs: 4, fat: 0 },
+    tomato: { calories: 18, protein: 1, carbs: 4, fat: 0 },
     salade: { calories: 15, protein: 1.4, carbs: 2.9, fat: 0 },
+    salad: { calories: 15, protein: 1.4, carbs: 2.9, fat: 0 },
     carotte: { calories: 41, protein: 1, carbs: 10, fat: 0 },
+    carrot: { calories: 41, protein: 1, carbs: 10, fat: 0 },
     // Carbs
     riz: { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-    'pâtes': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    rice: { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+    'pates': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    pasta: { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
     'pomme de terre': { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
+    potato: { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
     // Fruits
     pomme: { calories: 52, protein: 0.3, carbs: 14, fat: 0 },
+    apple: { calories: 52, protein: 0.3, carbs: 14, fat: 0 },
     banane: { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+    banana: { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
     orange: { calories: 47, protein: 0.9, carbs: 12, fat: 0 },
+    // Popular Fast Food
+    burger: { calories: 215, protein: 15, carbs: 16, fat: 11 },
+    pizza: { calories: 285, protein: 12, carbs: 36, fat: 10 },
+    fries: { calories: 365, protein: 3.4, carbs: 48, fat: 17 },
+    sandwich: { calories: 250, protein: 12, carbs: 30, fat: 9 },
   };
 
   const match = genericDatabase[lowerName];
