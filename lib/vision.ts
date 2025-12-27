@@ -1,29 +1,28 @@
 /**
- * Clarifai Food Recognition API
+ * API Clarifai de Reconnaissance d'Aliments
  * Detection d'aliments dans les images
  */
 
-const CLARIFAI_API_KEY = process.env.NEXT_PUBLIC_CLARIFAI_KEY || '95cc52863ab2402baca61c72e1170fa9';
-const CLARIFAI_MODEL_ID = 'food-item-recognition';
-const CLARIFAI_MODEL_VERSION_ID = 'dfebc169854e429086aceb8368662641';
+const CLE_API_CLARIFAI = process.env.NEXT_PUBLIC_CLARIFAI_KEY || '95cc52863ab2402baca61c72e1170fa9';
+const ID_MODELE_CLARIFAI = 'food-item-recognition';
+const ID_VERSION_MODELE_CLARIFAI = 'dfebc169854e429086aceb8368662641';
 
-export interface DetectedFood {
-  name: string;
-  confidence: number;
+export interface AlimentDetecte {
+  nom: string;
+  confiance: number;
 }
 
 /**
- * Detect food items in an image using Clarifai
+ * Detecter aliments dans une image avec Clarifai
  */
-export async function detectFoodInImage(imageBase64: string): Promise<DetectedFood[]> {
+export async function detecterAlimentDansImage(imageBase64: string): Promise<AlimentDetecte[]> {
   try {
-    // Remove data:image prefix if present
-    const base64Data = imageBase64.split(',')[1] || imageBase64;
+    const donneesBase64 = imageBase64.split(',')[1] || imageBase64;
 
     const response = await fetch('https://api.clarifai.com/v2/models/food-item-recognition/outputs', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${CLARIFAI_API_KEY}`,
+        'Authorization': `Key ${CLE_API_CLARIFAI}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -35,7 +34,7 @@ export async function detectFoodInImage(imageBase64: string): Promise<DetectedFo
           {
             data: {
               image: {
-                base64: base64Data,
+                base64: donneesBase64,
               },
             },
           },
@@ -46,52 +45,52 @@ export async function detectFoodInImage(imageBase64: string): Promise<DetectedFo
     const data = await response.json();
 
     if (!data.outputs || data.outputs.length === 0) {
-      console.error('No outputs from Clarifai');
+      console.error('Aucune sortie de Clarifai');
       return [];
     }
 
     const concepts = data.outputs[0]?.data?.concepts || [];
     
     return concepts
-      .slice(0, 5) // Top 5 results
+      .slice(0, 5)
       .map((concept: any) => ({
-        name: concept.name,
-        confidence: Math.round(concept.value * 100),
+        nom: concept.name,
+        confiance: Math.round(concept.value * 100),
       }));
   } catch (error) {
-    console.error('Clarifai API error:', error);
+    console.error('Erreur API Clarifai:', error);
     return [];
   }
 }
 
 /**
- * Detect food from image file
+ * Detecter aliment depuis fichier image
  */
-export async function detectFoodFromFile(file: File): Promise<DetectedFood[]> {
+export async function detecterAlimentDepuisFichier(fichier: File): Promise<AlimentDetecte[]> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const lecteur = new FileReader();
     
-    reader.onload = async (e) => {
-      const imageData = e.target?.result as string;
-      const foods = await detectFoodInImage(imageData);
-      resolve(foods);
+    lecteur.onload = async (e) => {
+      const donneesImage = e.target?.result as string;
+      const aliments = await detecterAlimentDansImage(donneesImage);
+      resolve(aliments);
     };
     
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    lecteur.onerror = () => reject(new Error('Echec lecture du fichier'));
     
-    reader.readAsDataURL(file);
+    lecteur.readAsDataURL(fichier);
   });
 }
 
 /**
- * Detect food from URL
+ * Detecter aliment depuis URL
  */
-export async function detectFoodFromURL(imageUrl: string): Promise<DetectedFood[]> {
+export async function detecterAlimentDepuisURL(urlImage: string): Promise<AlimentDetecte[]> {
   try {
     const response = await fetch('https://api.clarifai.com/v2/models/food-item-recognition/outputs', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${CLARIFAI_API_KEY}`,
+        'Authorization': `Key ${CLE_API_CLARIFAI}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -103,7 +102,7 @@ export async function detectFoodFromURL(imageUrl: string): Promise<DetectedFood[
           {
             data: {
               image: {
-                url: imageUrl,
+                url: urlImage,
               },
             },
           },
@@ -117,30 +116,29 @@ export async function detectFoodFromURL(imageUrl: string): Promise<DetectedFood[
     return concepts
       .slice(0, 5)
       .map((concept: any) => ({
-        name: concept.name,
-        confidence: Math.round(concept.value * 100),
+        nom: concept.name,
+        confiance: Math.round(concept.value * 100),
       }));
   } catch (error) {
-    console.error('Clarifai URL detection error:', error);
+    console.error('Erreur detection URL Clarifai:', error);
     return [];
   }
 }
 
 /**
- * Get best food match from detected items
+ * Obtenir le meilleur match d'aliment detecte
  */
-export function getBestFoodMatch(detectedFoods: DetectedFood[]): string | null {
-  if (detectedFoods.length === 0) return null;
+export function obtenirMeilleurMatchAliment(alimentsDetectes: AlimentDetecte[]): string | null {
+  if (alimentsDetectes.length === 0) return null;
   
-  // Return the food with highest confidence
-  const sorted = [...detectedFoods].sort((a, b) => b.confidence - a.confidence);
-  return sorted[0].name;
+  const tries = [...alimentsDetectes].sort((a, b) => b.confiance - a.confiance);
+  return tries[0].nom;
 }
 
 /**
- * Detect and get top food name
+ * Detecter et obtenir l'aliment principal
  */
-export async function detectAndGetTopFood(imageBase64: string): Promise<string | null> {
-  const detected = await detectFoodInImage(imageBase64);
-  return getBestFoodMatch(detected);
+export async function detecterEtObtenirAlimentPrincipal(imageBase64: string): Promise<string | null> {
+  const detectes = await detecterAlimentDansImage(imageBase64);
+  return obtenirMeilleurMatchAliment(detectes);
 }
