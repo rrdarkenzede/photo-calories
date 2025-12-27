@@ -30,12 +30,15 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
   );
 
   const handleSave = (countInGoal: boolean) => {
-    const mealData = plan === 'fitness' && showIngredients ? {
-      ...result,
-      ...totals,
-      ingredients,
-      isRecipe: saveAsRecipe,
-    } : result;
+    const mealData =
+      plan === 'fitness' && showIngredients
+        ? {
+            ...result,
+            ...totals,
+            ingredients,
+            isRecipe: saveAsRecipe,
+          }
+        : result;
 
     onSave(mealData, countInGoal);
   };
@@ -52,11 +55,11 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-gray-600" />
         </button>
 
         {/* Title */}
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6">
           {result.name}
         </h2>
 
@@ -75,7 +78,7 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
         {plan === 'free' && (
           <div className="text-center p-8 bg-blue-50 rounded-2xl mb-6">
             <p className="text-6xl font-black text-blue-600 mb-2">{result.calories}</p>
-            <p className="text-xl text-gray-600 font-semibold">calories</p>
+            <p className="text-xl text-gray-700 font-bold">calories</p>
           </div>
         )}
 
@@ -85,22 +88,22 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
             {/* Calories */}
             <div className="text-center p-6 bg-blue-50 rounded-2xl">
               <p className="text-5xl font-black text-blue-600 mb-1">{result.calories}</p>
-              <p className="text-lg text-gray-600 font-semibold">calories</p>
+              <p className="text-lg text-gray-700 font-bold">calories</p>
             </div>
 
             {/* Macros */}
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-4 bg-purple-50 rounded-2xl">
-                <p className="text-2xl font-bold text-purple-600">{result.protein?.toFixed(0) || 0}g</p>
-                <p className="text-sm text-gray-600">Protéines</p>
+                <p className="text-2xl font-black text-purple-600">{result.protein?.toFixed(0) || 0}g</p>
+                <p className="text-sm text-gray-700 font-semibold">Proteines</p>
               </div>
               <div className="text-center p-4 bg-pink-50 rounded-2xl">
-                <p className="text-2xl font-bold text-pink-600">{result.carbs?.toFixed(0) || 0}g</p>
-                <p className="text-sm text-gray-600">Glucides</p>
+                <p className="text-2xl font-black text-pink-600">{result.carbs?.toFixed(0) || 0}g</p>
+                <p className="text-sm text-gray-700 font-semibold">Glucides</p>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-2xl">
-                <p className="text-2xl font-bold text-yellow-600">{result.fat?.toFixed(0) || 0}g</p>
-                <p className="text-sm text-gray-600">Lipides</p>
+                <p className="text-2xl font-black text-yellow-600">{result.fat?.toFixed(0) || 0}g</p>
+                <p className="text-sm text-gray-700 font-semibold">Lipides</p>
               </div>
             </div>
           </div>
@@ -113,12 +116,12 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
               // Show button to edit ingredients
               <div className="text-center p-8 bg-gray-50 rounded-2xl">
                 <Info className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <p className="text-gray-700 mb-4">
-                  Veux-tu modifier les ingrédients détectés?
+                <p className="text-gray-800 mb-4 font-semibold text-lg">
+                  Veux-tu modifier les ingredients detectes?
                 </p>
                 <button
                   onClick={() => setShowIngredients(true)}
-                  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition"
+                  className="px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition"
                 >
                   Oui, modifier le tableau
                 </button>
@@ -126,7 +129,7 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
             ) : (
               // Ingredient table
               <div>
-                <h3 className="text-xl font-bold mb-4">Ingrédients détectés</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Ingredients detectes</h3>
                 <IngredientTable
                   ingredients={ingredients}
                   onChange={setIngredients}
@@ -134,37 +137,37 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
 
                 {/* Totals */}
                 <div className="mt-6 p-6 bg-gray-50 rounded-2xl">
-                  <h4 className="font-bold text-lg mb-4">Totaux</h4>
+                  <h4 className="font-bold text-gray-900 text-lg mb-4">Totaux</h4>
                   <div className="grid grid-cols-4 gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{totals.calories.toFixed(0)}</p>
-                      <p className="text-xs text-gray-600">kcal</p>
+                      <p className="text-2xl font-black text-blue-600">{totals.calories.toFixed(0)}</p>
+                      <p className="text-xs text-gray-700 font-semibold">kcal</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{totals.protein.toFixed(0)}g</p>
-                      <p className="text-xs text-gray-600">Protéines</p>
+                      <p className="text-2xl font-black text-purple-600">{totals.protein.toFixed(0)}g</p>
+                      <p className="text-xs text-gray-700 font-semibold">Proteines</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-pink-600">{totals.carbs.toFixed(0)}g</p>
-                      <p className="text-xs text-gray-600">Glucides</p>
+                      <p className="text-2xl font-black text-pink-600">{totals.carbs.toFixed(0)}g</p>
+                      <p className="text-xs text-gray-700 font-semibold">Glucides</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-yellow-600">{totals.fat.toFixed(0)}g</p>
-                      <p className="text-xs text-gray-600">Lipides</p>
+                      <p className="text-2xl font-black text-yellow-600">{totals.fat.toFixed(0)}g</p>
+                      <p className="text-xs text-gray-700 font-semibold">Lipides</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Save as recipe checkbox */}
-                <label className="flex items-center gap-3 mt-4 p-4 bg-green-50 rounded-2xl cursor-pointer">
+                <label className="flex items-center gap-3 mt-4 p-4 bg-green-50 rounded-2xl cursor-pointer hover:bg-green-100 transition">
                   <input
                     type="checkbox"
                     checked={saveAsRecipe}
                     onChange={(e) => setSaveAsRecipe(e.target.checked)}
                     className="w-5 h-5"
                   />
-                  <span className="font-semibold text-gray-900">
-                    Sauvegarder comme recette réutilisable
+                  <span className="font-bold text-gray-900">
+                    Sauvegarder comme recette reutilisable
                   </span>
                 </label>
               </div>
@@ -173,7 +176,7 @@ export default function ResultModal({ result, plan, onClose, onSave }: ResultMod
             {/* Nutriscore */}
             {result.nutriscore && (
               <div className="flex items-center justify-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                <span className="font-semibold text-gray-700">Nutri-Score:</span>
+                <span className="font-bold text-gray-900">Nutri-Score:</span>
                 <NutriscoreBadge score={result.nutriscore} />
               </div>
             )}
