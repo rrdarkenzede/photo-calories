@@ -93,31 +93,31 @@ export function DemoAnalyse() {
                   </ul>
                 </div>
 
-                {resultatPhoto.produitsPrincipal && (
+                {resultatPhoto.produitPrincipal && (
                   <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
                     <p className="font-bold text-green-700">✅ Produit Principal:</p>
-                    <p className="text-lg mt-1">{resultatPhoto.produitsPrincipal.nom}</p>
+                    <p className="text-lg mt-1">{resultatPhoto.produitPrincipal.nom}</p>
                     <div className="grid grid-cols-4 gap-2 mt-3 text-sm">
                       <div className="bg-white p-2 rounded">
                         <p className="text-gray-600">Calories</p>
-                        <p className="font-bold">{resultatPhoto.produitsPrincipal.calories} kcal</p>
+                        <p className="font-bold">{resultatPhoto.produitPrincipal.calories} kcal</p>
                       </div>
                       <div className="bg-white p-2 rounded">
                         <p className="text-gray-600">Proteines</p>
-                        <p className="font-bold">{resultatPhoto.produitsPrincipal.proteines}g</p>
+                        <p className="font-bold">{resultatPhoto.produitPrincipal.proteines}g</p>
                       </div>
                       <div className="bg-white p-2 rounded">
                         <p className="text-gray-600">Glucides</p>
-                        <p className="font-bold">{resultatPhoto.produitsPrincipal.glucides}g</p>
+                        <p className="font-bold">{resultatPhoto.produitPrincipal.glucides}g</p>
                       </div>
                       <div className="bg-white p-2 rounded">
                         <p className="text-gray-600">Lipides</p>
-                        <p className="font-bold">{resultatPhoto.produitsPrincipal.lipides}g</p>
+                        <p className="font-bold">{resultatPhoto.produitPrincipal.lipides}g</p>
                       </div>
                     </div>
-                    {resultatPhoto.produitsPrincipal.nutriScore && (
+                    {resultatPhoto.produitPrincipal.nutriScore && (
                       <p className="mt-2 text-sm">
-                        Nutri-Score: <span className="font-bold">{resultatPhoto.produitsPrincipal.nutriScore}</span>
+                        Nutri-Score: <span className="font-bold">{resultatPhoto.produitPrincipal.nutriScore}</span>
                       </p>
                     )}
                   </div>
