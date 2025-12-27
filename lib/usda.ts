@@ -1,75 +1,74 @@
 /**
  * USDA FoodData Central API
- * Database nutritionnelle officielle USA
+ * Base de donnees nutritionnelle officielle USA
  */
 
 const USDA_API_KEY = 'D6D0KtUuGyownWVE3AtKLObhm2VL7PggbPhipqW4';
 const USDA_BASE_URL = 'https://api.nal.usda.gov/fdc/v1';
 
-export interface USDAFood {
-  name: string;
+export interface AlimentUSDA {
+  nom: string;
   calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber?: number;
-  sugar?: number;
+  proteines: number;
+  glucides: number;
+  lipides: number;
+  fibres?: number;
+  sucres?: number;
   sodium?: number;
-  servingSize?: string;
-  servingUnit?: string;
+  taillePortions?: string;
+  unitesPortions?: string;
 }
 
 /**
- * Search USDA FoodData Central by food name
+ * Rechercher USDA FoodData Central par nom d'aliment
  */
-export async function searchUSDAByName(query: string): Promise<USDAFood[]> {
+export async function chercherUSDAParNom(requete: string): Promise<AlimentUSDA[]> {
   try {
     const response = await fetch(
-      `${USDA_BASE_URL}/foods/search?query=${encodeURIComponent(query)}&pageSize=10&api_key=${USDA_API_KEY}`
+      `${USDA_BASE_URL}/foods/search?query=${encodeURIComponent(requete)}&pageSize=10&api_key=${USDA_API_KEY}`
     );
 
     if (!response.ok) {
-      console.error(`USDA API error: ${response.status}`);
+      console.error(`Erreur API USDA: ${response.status}`);
       return [];
     }
 
     const data = await response.json();
-    const foods = data.foods || [];
+    const aliments = data.foods || [];
 
-    return foods.slice(0, 5).map((food: any) => {
-      const nutrients = food.foodNutrients || [];
+    return aliments.slice(0, 5).map((aliment: any) => {
+      const nutriments = aliment.foodNutrients || [];
 
-      // Extract nutrients
-      const getnutrient = (id: number, unit: string = 'G') => {
-        const nutrient = nutrients.find(
-          (n: any) => n.nutrientId === id && n.unitName === unit
+      const obtenirNutriment = (id: number, unite: string = 'G') => {
+        const nutriment = nutriments.find(
+          (n: any) => n.nutrientId === id && n.unitName === unite
         );
-        return nutrient ? Math.round(nutrient.value * 10) / 10 : 0;
+        return nutriment ? Math.round(nutriment.value * 10) / 10 : 0;
       };
 
       return {
-        name: food.description || 'Unknown',
-        calories: getnutrient(1008, 'KCAL'), // Energy (kcal)
-        protein: getnutrient(1003), // Protein (g)
-        carbs: getnutrient(1005), // Carbohydrate (g)
-        fat: getnutrient(1004), // Total lipid (g)
-        fiber: getnutrient(1079), // Fiber (g)
-        sugar: getnutrient(2000), // Sugars (g)
-        sodium: getnutrient(1093), // Sodium (mg)
-        servingSize: food.servingSize || 100,
-        servingUnit: food.servingSizeUnit || 'g',
+        nom: aliment.description || 'Inconnu',
+        calories: obtenirNutriment(1008, 'KCAL'),
+        proteines: obtenirNutriment(1003),
+        glucides: obtenirNutriment(1005),
+        lipides: obtenirNutriment(1004),
+        fibres: obtenirNutriment(1079),
+        sucres: obtenirNutriment(2000),
+        sodium: obtenirNutriment(1093),
+        taillePortions: aliment.servingSize || 100,
+        unitesPortions: aliment.servingSizeUnit || 'g',
       };
     });
   } catch (error) {
-    console.error('USDA search error:', error);
+    console.error('Erreur recherche USDA:', error);
     return [];
   }
 }
 
 /**
- * Get USDA food by FDC ID
+ * Obtenir aliment USDA par ID
  */
-export async function getUSDAFoodById(fdcId: string): Promise<USDAFood | null> {
+export async function obtenirAlimentUSDAParId(fdcId: string): Promise<AlimentUSDA | null> {
   try {
     const response = await fetch(
       `${USDA_BASE_URL}/food/${fdcId}?api_key=${USDA_API_KEY}`
@@ -77,40 +76,39 @@ export async function getUSDAFoodById(fdcId: string): Promise<USDAFood | null> {
 
     if (!response.ok) return null;
 
-    const food = await response.json();
-    const nutrients = food.foodNutrients || [];
+    const aliment = await response.json();
+    const nutriments = aliment.foodNutrients || [];
 
-    const getNutrient = (id: number, unit: string = 'G') => {
-      const nutrient = nutrients.find(
-        (n: any) => n.nutrientId === id && n.unitName === unit
+    const obtenirNutriment = (id: number, unite: string = 'G') => {
+      const nutriment = nutriments.find(
+        (n: any) => n.nutrientId === id && n.unitName === unite
       );
-      return nutrient ? Math.round(nutrient.value * 10) / 10 : 0;
+      return nutriment ? Math.round(nutriment.value * 10) / 10 : 0;
     };
 
     return {
-      name: food.description || 'Unknown',
-      calories: getNutrient(1008, 'KCAL'),
-      protein: getNutrient(1003),
-      carbs: getNutrient(1005),
-      fat: getNutrient(1004),
-      fiber: getNutrient(1079),
-      sugar: getNutrient(2000),
-      sodium: getNutrient(1093),
-      servingSize: food.servingSize || 100,
-      servingUnit: food.servingSizeUnit || 'g',
+      nom: aliment.description || 'Inconnu',
+      calories: obtenirNutriment(1008, 'KCAL'),
+      proteines: obtenirNutriment(1003),
+      glucides: obtenirNutriment(1005),
+      lipides: obtenirNutriment(1004),
+      fibres: obtenirNutriment(1079),
+      sucres: obtenirNutriment(2000),
+      sodium: obtenirNutriment(1093),
+      taillePortions: aliment.servingSize || 100,
+      unitesPortions: aliment.servingSizeUnit || 'g',
     };
   } catch (error) {
-    console.error('USDA get food error:', error);
+    console.error('Erreur obtention aliment USDA:', error);
     return null;
   }
 }
 
 /**
- * Get best USDA result from search
+ * Obtenir le meilleur resultat USDA
  */
-export function getBestUSDAFood(foods: USDAFood[]): USDAFood | null {
-  if (foods.length === 0) return null;
-  // Prefer results with complete nutritional data
-  const withAllData = foods.filter((f) => f.calories && f.protein && f.carbs && f.fat);
-  return withAllData.length > 0 ? withAllData[0] : foods[0];
+export function obtenirMeilleurAlimentUSDA(aliments: AlimentUSDA[]): AlimentUSDA | null {
+  if (aliments.length === 0) return null;
+  const avecDonnees = aliments.filter((a) => a.calories && a.proteines && a.glucides && a.lipides);
+  return avecDonnees.length > 0 ? avecDonnees[0] : aliments[0];
 }
