@@ -11,7 +11,7 @@ import type { ProduitAlimentaire } from '@/lib/openfoodfacts';
 export interface ResultatAnalyse {
   alimentsDetectes: string[];
   confidences: number[];
-  produitsPrincipal: ProduitAlimentaire | null;
+  produitPrincipal: ProduitAlimentaire | null;
   produitsSimilaires: ProduitAlimentaire[];
   erreur?: string;
 }
@@ -56,7 +56,7 @@ export function useAnalysePhoto() {
       const resultatFinal: ResultatAnalyse = {
         alimentsDetectes: alimentsDetectes.map((a) => a.nom),
         confidences: alimentsDetectes.map((a) => a.confiance),
-        produitsPrincipal,
+        produitPrincipal,
         produitsSimilaires,
       };
 
@@ -69,7 +69,7 @@ export function useAnalysePhoto() {
       const resultatErreur: ResultatAnalyse = {
         alimentsDetectes: [],
         confidences: [],
-        produitsPrincipal: null,
+        produitPrincipal: null,
         produitsSimilaires: [],
         erreur: messageErreur,
       };
