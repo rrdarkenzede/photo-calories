@@ -1,102 +1,100 @@
 /**
- * OpenFoodFacts API Integration with USDA Fallback
+ * OpenFoodFacts API Integration avec fallback USDA
  * API gratuite pour obtenir les donnees nutritionnelles
  */
 
-import { searchUSDAByName, getBestUSDAFood } from './usda';
+import { chercherUSDAParNom, obtenirMeilleurAlimentUSDA } from './usda';
 
-export interface FoodProduct {
-  name: string;
-  barcode?: string;
+export interface ProduitAlimentaire {
+  nom: string;
+  codeBarres?: string;
   calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber?: number;
-  sugar?: number;
+  proteines: number;
+  glucides: number;
+  lipides: number;
+  fibres?: number;
+  sucres?: number;
   sodium?: number;
   image?: string;
-  nutriscore?: string;
+  nutriScore?: string;
   ingredients?: string[];
-  brands?: string;
+  marques?: string;
 }
 
-const BASE_URL = 'https://world.openfoodfacts.org';
+const URL_BASE = 'https://world.openfoodfacts.org';
 
 /**
- * Search products by name
+ * Chercher produits par nom
  */
-export async function searchFoodByName(query: string): Promise<FoodProduct[]> {
+export async function chercherAlimentParNom(requete: string): Promise<ProduitAlimentaire[]> {
   try {
     const response = await fetch(
-      `${BASE_URL}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&page_size=20&fields=product_name,nutriments,image_front_url,nutriscore_grade,ingredients_text,brands,code`
+      `${URL_BASE}/cgi/search.pl?search_terms=${encodeURIComponent(requete)}&json=1&page_size=20&fields=product_name,nutriments,image_front_url,nutriscore_grade,ingredients_text,brands,code`
     );
 
     const data = await response.json();
 
     if (!data.products || data.products.length === 0) {
-      // Fallback to USDA if OpenFoodFacts has no results
-      console.log('No OpenFoodFacts results, trying USDA...');
-      const usdaResults = await searchUSDAByName(query);
-      return usdaResults.map((food) => ({
-        name: food.name,
-        calories: food.calories,
-        protein: food.protein,
-        carbs: food.carbs,
-        fat: food.fat,
-        fiber: food.fiber,
-        sugar: food.sugar,
-        sodium: food.sodium,
-        nutriscore: 'N/A',
+      console.log('Aucun resultat OpenFoodFacts, essai USDA...');
+      const resultatsUSDA = await chercherUSDAParNom(requete);
+      return resultatsUSDA.map((aliment) => ({
+        nom: aliment.nom,
+        calories: aliment.calories,
+        proteines: aliment.proteines,
+        glucides: aliment.glucides,
+        lipides: aliment.lipides,
+        fibres: aliment.fibres,
+        sucres: aliment.sucres,
+        sodium: aliment.sodium,
+        nutriScore: 'N/A',
       }));
     }
 
     return data.products
       .filter((p: any) => p.product_name && p.nutriments)
       .map((p: any) => ({
-        name: p.product_name,
-        barcode: p.code,
+        nom: p.product_name,
+        codeBarres: p.code,
         calories: p.nutriments['energy-kcal'] || p.nutriments['energy-kcal_100g'] || 0,
-        protein: p.nutriments.proteins || p.nutriments.proteins_100g || 0,
-        carbs: p.nutriments.carbohydrates || p.nutriments.carbohydrates_100g || 0,
-        fat: p.nutriments.fat || p.nutriments.fat_100g || 0,
-        fiber: p.nutriments.fiber || p.nutriments.fiber_100g || 0,
-        sugar: p.nutriments.sugars || p.nutriments.sugars_100g || 0,
+        proteines: p.nutriments.proteins || p.nutriments.proteins_100g || 0,
+        glucides: p.nutriments.carbohydrates || p.nutriments.carbohydrates_100g || 0,
+        lipides: p.nutriments.fat || p.nutriments.fat_100g || 0,
+        fibres: p.nutriments.fiber || p.nutriments.fiber_100g || 0,
+        sucres: p.nutriments.sugars || p.nutriments.sugars_100g || 0,
         sodium: p.nutriments.sodium || p.nutriments.sodium_100g || 0,
         image: p.image_front_url || '',
-        nutriscore: p.nutriscore_grade?.toUpperCase() || 'N/A',
+        nutriScore: p.nutriscore_grade?.toUpperCase() || 'N/A',
         ingredients: p.ingredients_text ? [p.ingredients_text] : [],
-        brands: p.brands || '',
+        marques: p.brands || '',
       }));
   } catch (error) {
-    console.error('OpenFoodFacts API error:', error);
-    // Try USDA fallback on error
+    console.error('Erreur API OpenFoodFacts:', error);
     try {
-      const usdaResults = await searchUSDAByName(query);
-      return usdaResults.map((food) => ({
-        name: food.name,
-        calories: food.calories,
-        protein: food.protein,
-        carbs: food.carbs,
-        fat: food.fat,
-        fiber: food.fiber,
-        sugar: food.sugar,
-        sodium: food.sodium,
-        nutriscore: 'N/A',
+      const resultatsUSDA = await chercherUSDAParNom(requete);
+      return resultatsUSDA.map((aliment) => ({
+        nom: aliment.nom,
+        calories: aliment.calories,
+        proteines: aliment.proteines,
+        glucides: aliment.glucides,
+        lipides: aliment.lipides,
+        fibres: aliment.fibres,
+        sucres: aliment.sucres,
+        sodium: aliment.sodium,
+        nutriScore: 'N/A',
       }));
-    } catch (usdaError) {
-      console.error('USDA fallback also failed:', usdaError);
+    } catch (erreurUSDA) {
+      console.error('Fallback USDA egalement echoue:', erreurUSDA);
       return [];
     }
   }
 }
 
 /**
- * Get product by barcode
+ * Obtenir produit par code-barres
  */
-export async function getProductByBarcode(barcode: string): Promise<FoodProduct | null> {
+export async function obtenirProduitParCodeBarres(codeBarres: string): Promise<ProduitAlimentaire | null> {
   try {
-    const response = await fetch(`${BASE_URL}/api/v0/product/${barcode}.json`);
+    const response = await fetch(`${URL_BASE}/api/v0/product/${codeBarres}.json`);
     const data = await response.json();
 
     if (data.status !== 1 || !data.product) {
@@ -105,117 +103,107 @@ export async function getProductByBarcode(barcode: string): Promise<FoodProduct 
 
     const p = data.product;
     return {
-      name: p.product_name || 'Produit inconnu',
-      barcode: barcode,
+      nom: p.product_name || 'Produit inconnu',
+      codeBarres: codeBarres,
       calories: p.nutriments['energy-kcal'] || p.nutriments['energy-kcal_100g'] || 0,
-      protein: p.nutriments.proteins || p.nutriments.proteins_100g || 0,
-      carbs: p.nutriments.carbohydrates || p.nutriments.carbohydrates_100g || 0,
-      fat: p.nutriments.fat || p.nutriments.fat_100g || 0,
-      fiber: p.nutriments.fiber || p.nutriments.fiber_100g || 0,
-      sugar: p.nutriments.sugars || p.nutriments.sugars_100g || 0,
+      proteines: p.nutriments.proteins || p.nutriments.proteins_100g || 0,
+      glucides: p.nutriments.carbohydrates || p.nutriments.carbohydrates_100g || 0,
+      lipides: p.nutriments.fat || p.nutriments.fat_100g || 0,
+      fibres: p.nutriments.fiber || p.nutriments.fiber_100g || 0,
+      sucres: p.nutriments.sugars || p.nutriments.sugars_100g || 0,
       sodium: p.nutriments.sodium || p.nutriments.sodium_100g || 0,
       image: p.image_front_url || '',
-      nutriscore: p.nutriscore_grade?.toUpperCase() || 'N/A',
+      nutriScore: p.nutriscore_grade?.toUpperCase() || 'N/A',
       ingredients: p.ingredients_text ? [p.ingredients_text] : [],
-      brands: p.brands || '',
+      marques: p.brands || '',
     };
   } catch (error) {
-    console.error('OpenFoodFacts barcode lookup error:', error);
+    console.error('Erreur recherche code-barres OpenFoodFacts:', error);
     return null;
   }
 }
 
 /**
- * Get multiple products by name with fallback
+ * Chercher aliments par nom avec fallback
  */
-export async function searchWithFallback(query: string): Promise<FoodProduct[]> {
-  // Try exact search first
-  let results = await searchFoodByName(query);
+export async function chercherAvecFallback(requete: string): Promise<ProduitAlimentaire[]> {
+  let resultats = await chercherAlimentParNom(requete);
 
-  // If no results, try with simplified query
-  if (results.length === 0) {
-    const simplified = query.split(' ')[0]; // Take first word
-    results = await searchFoodByName(simplified);
+  if (resultats.length === 0) {
+    const simplifie = requete.split(' ')[0];
+    resultats = await chercherAlimentParNom(simplifie);
   }
 
-  return results;
+  return resultats;
 }
 
 /**
- * Estimate nutrition for generic foods (fallback)
+ * Estimer nutrition pour aliments generiques (fallback)
  */
-export function getGenericFoodEstimate(foodName: string): FoodProduct {
-  const lowerName = foodName.toLowerCase();
+export function obtenirEstimationAlimentGenerique(nomAliment: string): ProduitAlimentaire {
+  const nomBas = nomAliment.toLowerCase();
 
-  // Database of common foods (per 100g)
-  const genericDatabase: Record<string, Partial<FoodProduct>> = {
-    // Breads
-    pain: { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
-    'pain blanc': { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
-    'pain complet': { calories: 247, protein: 13, carbs: 41, fat: 3.4 },
-    bread: { calories: 265, protein: 9, carbs: 49, fat: 3.3 },
-    // Proteins
-    poulet: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-    chicken: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-    boeuf: { calories: 250, protein: 26, carbs: 0, fat: 17 },
-    beef: { calories: 250, protein: 26, carbs: 0, fat: 17 },
-    poisson: { calories: 206, protein: 22, carbs: 0, fat: 12 },
-    fish: { calories: 206, protein: 22, carbs: 0, fat: 12 },
-    oeuf: { calories: 155, protein: 13, carbs: 1, fat: 11 },
-    egg: { calories: 155, protein: 13, carbs: 1, fat: 11 },
-    // Dairy
-    fromage: { calories: 403, protein: 25, carbs: 3, fat: 33 },
-    cheese: { calories: 403, protein: 25, carbs: 3, fat: 33 },
-    lait: { calories: 49, protein: 3.3, carbs: 4.8, fat: 1.6 },
-    milk: { calories: 49, protein: 3.3, carbs: 4.8, fat: 1.6 },
-    yaourt: { calories: 59, protein: 3.5, carbs: 4.7, fat: 0.4 },
-    yogurt: { calories: 59, protein: 3.5, carbs: 4.7, fat: 0.4 },
-    // Vegetables
-    tomate: { calories: 18, protein: 1, carbs: 4, fat: 0 },
-    tomato: { calories: 18, protein: 1, carbs: 4, fat: 0 },
-    salade: { calories: 15, protein: 1.4, carbs: 2.9, fat: 0 },
-    salad: { calories: 15, protein: 1.4, carbs: 2.9, fat: 0 },
-    carotte: { calories: 41, protein: 1, carbs: 10, fat: 0 },
-    carrot: { calories: 41, protein: 1, carbs: 10, fat: 0 },
-    // Carbs
-    riz: { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-    rice: { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-    'pates': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
-    pasta: { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
-    'pomme de terre': { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
-    potato: { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
-    // Fruits
-    pomme: { calories: 52, protein: 0.3, carbs: 14, fat: 0 },
-    apple: { calories: 52, protein: 0.3, carbs: 14, fat: 0 },
-    banane: { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
-    banana: { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
-    orange: { calories: 47, protein: 0.9, carbs: 12, fat: 0 },
-    // Popular Fast Food
-    burger: { calories: 215, protein: 15, carbs: 16, fat: 11 },
-    pizza: { calories: 285, protein: 12, carbs: 36, fat: 10 },
-    fries: { calories: 365, protein: 3.4, carbs: 48, fat: 17 },
-    sandwich: { calories: 250, protein: 12, carbs: 30, fat: 9 },
+  const baseDonneesGenerique: Record<string, Partial<ProduitAlimentaire>> = {
+    pain: { calories: 265, proteines: 9, glucides: 49, lipides: 3.3 },
+    'pain blanc': { calories: 265, proteines: 9, glucides: 49, lipides: 3.3 },
+    'pain complet': { calories: 247, proteines: 13, glucides: 41, lipides: 3.4 },
+    bread: { calories: 265, proteines: 9, glucides: 49, lipides: 3.3 },
+    poulet: { calories: 165, proteines: 31, glucides: 0, lipides: 3.6 },
+    chicken: { calories: 165, proteines: 31, glucides: 0, lipides: 3.6 },
+    boeuf: { calories: 250, proteines: 26, glucides: 0, lipides: 17 },
+    beef: { calories: 250, proteines: 26, glucides: 0, lipides: 17 },
+    poisson: { calories: 206, proteines: 22, glucides: 0, lipides: 12 },
+    fish: { calories: 206, proteines: 22, glucides: 0, lipides: 12 },
+    oeuf: { calories: 155, proteines: 13, glucides: 1, lipides: 11 },
+    egg: { calories: 155, proteines: 13, glucides: 1, lipides: 11 },
+    fromage: { calories: 403, proteines: 25, glucides: 3, lipides: 33 },
+    cheese: { calories: 403, proteines: 25, glucides: 3, lipides: 33 },
+    lait: { calories: 49, proteines: 3.3, glucides: 4.8, lipides: 1.6 },
+    milk: { calories: 49, proteines: 3.3, glucides: 4.8, lipides: 1.6 },
+    yaourt: { calories: 59, proteines: 3.5, glucides: 4.7, lipides: 0.4 },
+    yogurt: { calories: 59, proteines: 3.5, glucides: 4.7, lipides: 0.4 },
+    tomate: { calories: 18, proteines: 1, glucides: 4, lipides: 0 },
+    tomato: { calories: 18, proteines: 1, glucides: 4, lipides: 0 },
+    salade: { calories: 15, proteines: 1.4, glucides: 2.9, lipides: 0 },
+    salad: { calories: 15, proteines: 1.4, glucides: 2.9, lipides: 0 },
+    carotte: { calories: 41, proteines: 1, glucides: 10, lipides: 0 },
+    carrot: { calories: 41, proteines: 1, glucides: 10, lipides: 0 },
+    riz: { calories: 130, proteines: 2.7, glucides: 28, lipides: 0.3 },
+    rice: { calories: 130, proteines: 2.7, glucides: 28, lipides: 0.3 },
+    'pates': { calories: 131, proteines: 5, glucides: 25, lipides: 1.1 },
+    pasta: { calories: 131, proteines: 5, glucides: 25, lipides: 1.1 },
+    'pomme de terre': { calories: 77, proteines: 2, glucides: 17, lipides: 0.1 },
+    potato: { calories: 77, proteines: 2, glucides: 17, lipides: 0.1 },
+    pomme: { calories: 52, proteines: 0.3, glucides: 14, lipides: 0 },
+    apple: { calories: 52, proteines: 0.3, glucides: 14, lipides: 0 },
+    banane: { calories: 89, proteines: 1.1, glucides: 23, lipides: 0.3 },
+    banana: { calories: 89, proteines: 1.1, glucides: 23, lipides: 0.3 },
+    orange: { calories: 47, proteines: 0.9, glucides: 12, lipides: 0 },
+    burger: { calories: 215, proteines: 15, glucides: 16, lipides: 11 },
+    pizza: { calories: 285, proteines: 12, glucides: 36, lipides: 10 },
+    'frites': { calories: 365, proteines: 3.4, glucides: 48, lipides: 17 },
+    fries: { calories: 365, proteines: 3.4, glucides: 48, lipides: 17 },
+    sandwich: { calories: 250, proteines: 12, glucides: 30, lipides: 9 },
   };
 
-  const match = genericDatabase[lowerName];
-  if (match) {
+  const correspondance = baseDonneesGenerique[nomBas];
+  if (correspondance) {
     return {
-      name: foodName,
-      calories: match.calories || 100,
-      protein: match.protein || 5,
-      carbs: match.carbs || 10,
-      fat: match.fat || 3,
-      nutriscore: 'C',
+      nom: nomAliment,
+      calories: correspondance.calories || 100,
+      proteines: correspondance.proteines || 5,
+      glucides: correspondance.glucides || 10,
+      lipides: correspondance.lipides || 3,
+      nutriScore: 'C',
     };
   }
 
-  // Default fallback
   return {
-    name: foodName,
+    nom: nomAliment,
     calories: 100,
-    protein: 5,
-    carbs: 15,
-    fat: 3,
-    nutriscore: 'N/A',
+    proteines: 5,
+    glucides: 15,
+    lipides: 3,
+    nutriScore: 'N/A',
   };
 }
