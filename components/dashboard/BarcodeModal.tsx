@@ -40,10 +40,10 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 text-gray-600" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Code-barres</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Code-barres</h2>
 
         {!mode ? (
           <div className="space-y-3">
@@ -52,7 +52,7 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
               className="w-full p-4 border-2 border-gray-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition flex items-center gap-3"
             >
               <Camera className="w-6 h-6 text-blue-600" />
-              <span className="font-semibold">Scanner la caméra</span>
+              <span className="font-bold text-gray-900">Scanner la caméra</span>
             </button>
 
             <button
@@ -60,7 +60,7 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
               className="w-full p-4 border-2 border-gray-200 rounded-2xl hover:border-green-500 hover:bg-green-50 transition flex items-center gap-3"
             >
               <Type className="w-6 h-6 text-green-600" />
-              <span className="font-semibold">Taper manuellement</span>
+              <span className="font-bold text-gray-900">Taper manuellement</span>
             </button>
 
             <button
@@ -68,16 +68,16 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
               className="w-full p-4 border-2 border-gray-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 transition flex items-center gap-3"
             >
               <Search className="w-6 h-6 text-purple-600" />
-              <span className="font-semibold">Chercher par nom</span>
+              <span className="font-bold text-gray-900">Chercher par nom</span>
             </button>
           </div>
         ) : mode === 'camera' ? (
           <div className="text-center py-8">
             <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Fonction caméra non configurée</p>
+            <p className="text-gray-700 font-semibold mb-4">Fonction caméra non configurée</p>
             <button
               onClick={() => setMode(null)}
-              className="px-6 py-2 bg-gray-200 text-gray-900 font-semibold rounded-full"
+              className="px-6 py-2 bg-gray-200 text-gray-900 font-bold rounded-full"
             >
               Retour
             </button>
@@ -89,19 +89,19 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
               placeholder="Exemple: 3274080005003"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 font-mono"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 font-mono text-gray-900 placeholder:text-gray-500"
               autoFocus
             />
             <button
               onClick={handleManualSubmit}
               disabled={!manualCode.trim()}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 disabled:bg-gray-300 transition"
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 transition"
             >
               Rechercher
             </button>
             <button
               onClick={() => setMode(null)}
-              className="w-full py-3 bg-gray-200 text-gray-900 font-bold rounded-full"
+              className="w-full py-3 bg-gray-200 text-gray-900 font-bold rounded-full hover:bg-gray-300 transition"
             >
               Retour
             </button>
@@ -113,20 +113,20 @@ export default function BarcodeModal({ onClose, onSubmit, plan }: BarcodeModalPr
               placeholder="Ex: yaourt nature, lait..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl outline-none focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
             />
             <button
               onClick={handleSearchSubmit}
               disabled={!searchQuery.trim()}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 disabled:bg-gray-300 transition"
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 transition"
             >
               Rechercher
             </button>
             <button
               onClick={() => setMode(null)}
-              className="w-full py-3 bg-gray-200 text-gray-900 font-bold rounded-full"
+              className="w-full py-3 bg-gray-200 text-gray-900 font-bold rounded-full hover:bg-gray-300 transition"
             >
               Retour
             </button>
