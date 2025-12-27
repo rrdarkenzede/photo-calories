@@ -1,9 +1,9 @@
 /**
  * Clarifai Food Recognition API
- * Détection d'aliments dans les images
+ * Detection d'aliments dans les images
  */
 
-const CLARIFAI_API_KEY = process.env.NEXT_PUBLIC_CLARIFAI_KEY || 'a002eba876f64c5c94ed96c4dac62c02';
+const CLARIFAI_API_KEY = process.env.NEXT_PUBLIC_CLARIFAI_KEY || '95cc52863ab2402baca61c72e1170fa9';
 const CLARIFAI_MODEL_ID = 'food-item-recognition';
 const CLARIFAI_MODEL_VERSION_ID = 'dfebc169854e429086aceb8368662641';
 
